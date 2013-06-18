@@ -1,5 +1,6 @@
 open import Type
-open import Data.Bits    using (Bit; Bits)
+open import Data.Bits    using (Bits)
+open import Data.Bit     using (Bit)
 open import Data.Empty   using (⊥)
 open import Data.Fin     using (Fin)
 open import Data.Maybe   using (Maybe)
@@ -9,7 +10,7 @@ open import Data.Sum     using (_⊎_)
 open import Data.Unit    using (⊤)
 open import Data.Vec     using (Vec)
 
-module Search.Syntax where
+module Explore.Syntax where
 
 -- this is to be imported from the appropriate module
 postulate

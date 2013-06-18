@@ -1,12 +1,12 @@
-module Search.Derived where
+module Explore.Derived where
 
 open import Function
 open import Data.Nat.NP
 import Relation.Binary.PropositionalEquality.NP as ≡
 open ≡ using (_≡_; _≗_)
 open import Data.Nat.Properties
-open import Search.Type
-open import Search.Searchable
+open import Explore.Type
+open import Explore.Explorable
 
 sum-lin⇒sum-zero : ∀ {A} → {sum : Sum A} → SumLin sum → SumZero sum
 sum-lin⇒sum-zero sum-lin = sum-lin (λ _ → 0) 0
@@ -21,14 +21,14 @@ sum-ext+sum-hom⇒sum-mono {sum = sum} sum-ext sum-hom {f} {g} f≤°g =
     sum (λ x → f x + (g x ∸ f x)) ≡⟨ sum-ext (m+n∸m≡n ∘ f≤°g) ⟩
     sum g ∎ where open ≤-Reasoning
 
-search-swap' : ∀ {A B} cm (μA : Searchable A) (μB : Searchable B) f →
+explore-swap' : ∀ {A B} cm (μA : Explorable A) (μB : Explorable B) f →
                let open CMon cm
-                   sᴬ = search μA _∙_
-                   sᴮ = search μB _∙_ in
+                   sᴬ = explore μA _∙_
+                   sᴮ = explore μB _∙_ in
                sᴬ (sᴮ ∘ f) ≈ sᴮ (sᴬ ∘ flip f)
-search-swap' cm μA μB f = search-swap μA sg f (search-hom μB cm)
+explore-swap' cm μA μB f = explore-swap μA sg f (explore-hom μB cm)
   where open CMon cm
 
-sum-swap : ∀ {A B} (μA : Searchable A) (μB : Searchable B) f →
+sum-swap : ∀ {A B} (μA : Explorable A) (μB : Explorable B) f →
            sum μA (sum μB ∘ f) ≡ sum μB (sum μA ∘ flip f)
-sum-swap = search-swap' ℕ°.+-commutativeMonoid
+sum-swap = explore-swap' ℕ°.+-commutativeMonoid

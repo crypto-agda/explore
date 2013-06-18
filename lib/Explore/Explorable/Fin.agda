@@ -1,4 +1,4 @@
-module Search.Searchable.Fin where
+module Explore.Explorable.Fin where
 
 import Level as L
 open import Type
@@ -11,13 +11,13 @@ open import Data.Product
 open import Function.Related.TypeIsomorphisms.NP
 open import Relation.Binary.NP
 
-open import Search.Type
-open import Search.Searchable
-open import Search.Searchable.Maybe
+open import Explore.Type
+open import Explore.Explorable
+open import Explore.Explorable.Maybe
 
-module _ {A : ★}(μA : Searchable A) where
+module _ {A : ★}(μA : Explorable A) where
 
-  sA = search μA
+  sA = explore μA
 
   extend : ∀ {n} → A → (Fin n → A) → Fin (suc n) → A
   extend x g zero    = x
@@ -28,14 +28,14 @@ module _ {A : ★}(μA : Searchable A) where
 
   -- There is one function Fin 0 → A (called abs) so this should be fine
   -- if not there is a version below that forces the domain to be non-empty
-  sFun : ∀ n → Search _ (Fin n → A)
+  sFun : ∀ n → Explore _ (Fin n → A)
   sFun zero    op f = f ¬Fin0
   sFun (suc n) op f = sA op (λ x → sFun n op (f ∘ extend x))
 
-  ind : ∀ n → SearchInd _ (sFun n)
+  ind : ∀ n → ExploreInd _ (sFun n)
   ind zero    P P∙ Pf = Pf _
   ind (suc n) P P∙ Pf =
-    search-ind μA (λ sa → P (λ op f → sa op (λ x → sFun n op (f ∘ extend x))))
+    explore-ind μA (λ sa → P (λ op f → sa op (λ x → sFun n op (f ∘ extend x))))
       P∙
       (λ x → ind n (λ sf → P (λ op f → sf op (f ∘ extend x)))
         P∙ (Pf ∘ extend x))
@@ -46,24 +46,24 @@ module _ {A : ★}(μA : Searchable A) where
   postulate
     ade : ∀ n → AdequateSum (sumFun n)
 
-  μFun : ∀ {n} → Searchable (Fin n → A)
+  μFun : ∀ {n} → Explorable (Fin n → A)
   μFun = mk _ (ind _) (ade _)
 
 {-
-μFinSuc : ∀ n → Searchable (Fin (suc n))
+μFinSuc : ∀ n → Explorable (Fin (suc n))
 μFinSuc n = mk _ (ind n) {!!}
-  where ind : ∀ n → SearchInd _ (searchFinSuc n)
+  where ind : ∀ n → ExploreInd _ (exploreFinSuc n)
         ind zero    P P∙ Pf = Pf zero
         ind (suc n) P P∙ Pf = P∙ (Pf zero) (ind n (λ s → P (λ op f → s op (f ∘ suc))) P∙ (Pf ∘ suc))
 -}
 
-μFinSuc : ∀ n → Searchable (Fin (suc n))
+μFinSuc : ∀ n → Explorable (Fin (suc n))
 μFinSuc n = μ-iso (Maybe^⊤↔Fin1+ n) (μMaybe^ n μ⊤)
 
 postulate μFinSUI : ∀ {n} → SumStableUnderInjection (sum (μFinSuc n))
 
 module BigDistr
-  {A : ★}(μA : Searchable A)
+  {A : ★}(μA : Explorable A)
   (cm       : CommutativeMonoid L.zero L.zero)
   -- we want (open CMon cm) !!!
   (_◎_      : let open CMon cm in C → C → C)
@@ -75,14 +75,14 @@ module BigDistr
   μF→A = μFun μA
 
   -- Sum over A
-  Σᴬ = search μA _∙_
+  Σᴬ = explore μA _∙_
 
   -- Sum over (Fin(1+I)→A) functions
   Σ' : ∀ {I} → ((Fin (suc I) → A) → C) → C
-  Σ' = search μF→A _∙_
+  Σ' = explore μF→A _∙_
 
   -- Product over Fin(1+I) values
-  Π' = λ I → search (μFinSuc I) _◎_
+  Π' = λ I → explore (μFinSuc I) _◎_
 
   bigDistr : ∀ I F → Π' I (Σᴬ ∘ F) ≈ Σ' (Π' I ∘ _ˢ_ F)
   bigDistr zero    _ = refl
@@ -90,9 +90,9 @@ module BigDistr
     = Σᴬ (F zero) ◎ Π' I (Σᴬ ∘ F ∘ suc)
     ≈⟨ refl ◎-cong bigDistr I (F ∘ suc) ⟩
       Σᴬ (F zero) ◎ Σ' (Π' I ∘ _ˢ_ (F ∘ suc))
-    ≈⟨ sym (search-linʳ μA monoid _◎_ (F zero) (Σ' (Π' I ∘ _ˢ_ (F ∘ suc))) (proj₂ distrib)) ⟩
+    ≈⟨ sym (explore-linʳ μA monoid _◎_ (F zero) (Σ' (Π' I ∘ _ˢ_ (F ∘ suc))) (proj₂ distrib)) ⟩
       Σᴬ (λ j → F zero j ◎ Σ' (Π' I ∘ _ˢ_ (F ∘ suc)))
-    ≈⟨ search-sg-ext μA semigroup (λ j → sym (search-linˡ μF→A monoid _◎_ (Π' I ∘ _ˢ_ (F ∘ suc)) (F zero j) (proj₁ distrib))) ⟩
+    ≈⟨ explore-sg-ext μA semigroup (λ j → sym (explore-linˡ μF→A monoid _◎_ (Π' I ∘ _ˢ_ (F ∘ suc)) (F zero j) (proj₁ distrib))) ⟩
       (Σᴬ λ j → Σ' λ f → F zero j ◎ Π' I ((F ∘ suc) ˢ f))
     ∎
 

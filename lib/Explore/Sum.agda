@@ -1,11 +1,11 @@
-module Search.Sum where
+module Explore.Sum where
 
 open import Type
 open import Function.NP
 import Relation.Binary.PropositionalEquality.NP as ≡
 open ≡ using (_≡_ ; _≗_ ; _≗₂_)
-open import Search.Type
-open import Search.Searchable.Product
+open import Explore.Type
+open import Explore.Explorable.Product
 open import Data.Product
 open import Data.Nat.NP
 open import Data.Nat.Properties

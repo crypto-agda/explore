@@ -7,12 +7,12 @@ open import Function.Related.TypeIsomorphisms.NP
 open import Data.Bool using (true ; false ; _∧_ ; if_then_else_)
 open import Data.Product
 open import Data.Fin
-open import Search.Type
-open import Search.Searchable
+open import Explore.Type
+open import Explore.Explorable
 
 open import Relation.Binary.PropositionalEquality.NP using (_≡_ ; module ≡-Reasoning)
 
-module Search.Searchable.Product where
+module Explore.Explorable.Product where
 
 private
     Cont : ∀ {a m} → ★ m → ★ a → ★ _
@@ -27,13 +27,13 @@ private
     _,-Cont′_ : ∀ {a b m} {A : ★ a} {B : ★ b} {M : ★ m} → Cont M A → Cont M B → Cont M (A × B)
     fA ,-Cont′ fB = fA ,-Cont fB
 
-searchΣ : ∀ {m A} {B : A → ★₀} → Search m A → (∀ {x} → Search m (B x)) → Search m (Σ A B)
-searchΣ searchᴬ searchᴮ op = searchᴬ op ,-Cont searchᴮ op
+exploreΣ : ∀ {m A} {B : A → ★₀} → Explore m A → (∀ {x} → Explore m (B x)) → Explore m (Σ A B)
+exploreΣ exploreᴬ exploreᴮ op = exploreᴬ op ,-Cont exploreᴮ op
 
-module _ {m A} {B : A → ★₀} {sᴬ : Search m A} {sᴮ : ∀ {x} → Search m (B x)} where
+module _ {m A} {B : A → ★₀} {sᴬ : Explore m A} {sᴮ : ∀ {x} → Explore m (B x)} where
 
-    search-indΣ : ∀ {p} → SearchInd p sᴬ → (∀ {x} → SearchInd p (sᴮ {x})) → SearchInd p (searchΣ sᴬ sᴮ)
-    search-indΣ Psᴬ Psᴮ P P∙ Pf =
+    explore-indΣ : ∀ {p} → ExploreInd p sᴬ → (∀ {x} → ExploreInd p (sᴮ {x})) → ExploreInd p (exploreΣ sᴬ sᴮ)
+    explore-indΣ Psᴬ Psᴮ P P∙ Pf =
       Psᴬ (λ s → P (λ _ _ → s _ _)) P∙ (λ x → Psᴮ {x} (λ s → P (λ _ _ → s _ _)) P∙ (curry Pf x))
 
 module _ {A} {B : A → ★₀} {sumᴬ : Sum A} {sumᴮ : ∀ {x} → Sum (B x)} where
@@ -54,33 +54,33 @@ module _ {A} {B : A → ★₀} {sumᴬ : Sum A} {sumᴮ : ∀ {x} → Sum (B x)
                                 ∎
       where open FR.EquationalReasoning
 
-μΣ : ∀ {A} {B : A → ★ _} → Searchable A → (∀ {x} → Searchable (B x)) → Searchable (Σ A B)
-μΣ μA μB = mk _ (search-indΣ (search-ind μA) (search-ind μB))
+μΣ : ∀ {A} {B : A → ★ _} → Explorable A → (∀ {x} → Explorable (B x)) → Explorable (Σ A B)
+μΣ μA μB = mk _ (explore-indΣ (explore-ind μA) (explore-ind μB))
                 (adequate-sumΣ (adequate-sum μA) (adequate-sum μB))
 
--- using view-search ?
-proj₁-search : ∀ {m A} {B : A → ★ _} → Search m (Σ A B) → Search m A
-proj₁-search s _∙_ f = s _∙_ (f ∘ proj₁)
+-- using view-explore ?
+proj₁-explore : ∀ {m A} {B : A → ★ _} → Explore m (Σ A B) → Explore m A
+proj₁-explore s _∙_ f = s _∙_ (f ∘ proj₁)
 
-proj₂-search : ∀ {m A B} → Search m (A × B) → Search m B
-proj₂-search s _∙_ f = s _∙_ (f ∘ proj₂)
+proj₂-explore : ∀ {m A B} → Explore m (A × B) → Explore m B
+proj₂-explore s _∙_ f = s _∙_ (f ∘ proj₂)
 
 -- From now on, these are derived definitions for convenience and pedagogical reasons
 
-infixr 4 _×-search_
+infixr 4 _×-explore_
 
-_×-search_ : ∀ {m A B} → Search m A → Search m B → Search m (A × B)
-searchᴬ ×-search searchᴮ = searchΣ searchᴬ searchᴮ
+_×-explore_ : ∀ {m A B} → Explore m A → Explore m B → Explore m (A × B)
+exploreᴬ ×-explore exploreᴮ = exploreΣ exploreᴬ exploreᴮ
 
 infixr 4 _×-μ_
 
-_×-μ_ : ∀ {A B} → Searchable A → Searchable B → Searchable (A × B)
+_×-μ_ : ∀ {A B} → Explorable A → Explorable B → Explorable (A × B)
 μA ×-μ μB = μΣ μA μB
 
-_×-search-ind_ : ∀ {m p A B} {sᴬ : Search m A} {sᴮ : Search m B}
-               → SearchInd p sᴬ → SearchInd p sᴮ
-               → SearchInd p (sᴬ ×-search sᴮ)
-Psᴬ ×-search-ind Psᴮ = search-indΣ Psᴬ Psᴮ
+_×-explore-ind_ : ∀ {m p A B} {sᴬ : Explore m A} {sᴮ : Explore m B}
+               → ExploreInd p sᴬ → ExploreInd p sᴮ
+               → ExploreInd p (sᴬ ×-explore sᴮ)
+Psᴬ ×-explore-ind Psᴮ = explore-indΣ Psᴬ Psᴮ
 
 sumΣ : ∀ {A} {B : A → ★₀} → Sum A → (∀ {x} → Sum (B x)) → Sum (Σ A B)
 sumΣ = _,-Cont_
@@ -93,9 +93,9 @@ f ×-sum g = sumΣ f g
 _×-cmp_ : ∀ {A B : ★₀ } → Cmp A → Cmp B → Cmp (A × B)
 (ca ×-cmp cb) (a , b) (a' , b') = ca a a' ∧ cb b b'
 
-×-unique : ∀ {A B}(μA : Searchable A)(μB : Searchable B)(cA : Cmp A)(cB : Cmp B)
+×-unique : ∀ {A B}(μA : Explorable A)(μB : Explorable B)(cA : Cmp A)(cB : Cmp B)
            → Unique cA (count μA) → Unique cB (count μB) → Unique (cA ×-cmp cB) (count (μA ×-μ μB))
-×-unique μA μB cA cB uA uB (x , y) = count (μA ×-μ μB) ((cA ×-cmp cB) (x , y)) ≡⟨ search-ext μA _ (λ x' → help (cA x x')) ⟩
+×-unique μA μB cA cB uA uB (x , y) = count (μA ×-μ μB) ((cA ×-cmp cB) (x , y)) ≡⟨ explore-ext μA _ (λ x' → help (cA x x')) ⟩
                                      count μA (cA x) ≡⟨ uA x ⟩
                                      1 ∎
   where
@@ -104,21 +104,21 @@ _×-cmp_ : ∀ {A B : ★₀ } → Cmp A → Cmp B → Cmp (A × B)
     help true = uB y
     help false = sum-zero μB
 
-module _ {A} {B : A → _} {sᴬ : Search₁ A} {sᴮ : ∀ {x} → Search₁ (B x)} where
-  focusΣ : Focus sᴬ → (∀ {x} → Focus (sᴮ {x})) → Focus (searchΣ sᴬ (λ {x} → sᴮ {x}))
+module _ {A} {B : A → _} {sᴬ : Explore₁ A} {sᴮ : ∀ {x} → Explore₁ (B x)} where
+  focusΣ : Focus sᴬ → (∀ {x} → Focus (sᴮ {x})) → Focus (exploreΣ sᴬ (λ {x} → sᴮ {x}))
   focusΣ fᴬ fᴮ ((x , y) , z) = fᴬ (x , fᴮ (y , z))
 
-  lookupΣ : Lookup sᴬ → (∀ {x} → Lookup (sᴮ {x})) → Lookup (searchΣ sᴬ (λ {x} → sᴮ {x}))
+  lookupΣ : Lookup sᴬ → (∀ {x} → Lookup (sᴮ {x})) → Lookup (exploreΣ sᴬ (λ {x} → sᴮ {x}))
   lookupΣ lookupᴬ lookupᴮ d = uncurry (lookupᴮ ∘ lookupᴬ d)
 
-  -- can also be derived from search-ind
-  reifyΣ : Reify sᴬ → (∀ {x} → Reify (sᴮ {x})) → Reify (searchΣ sᴬ (λ {x} → sᴮ {x}))
+  -- can also be derived from explore-ind
+  reifyΣ : Reify sᴬ → (∀ {x} → Reify (sᴮ {x})) → Reify (exploreΣ sᴬ (λ {x} → sᴮ {x}))
   reifyΣ reifyᴬ reifyᴮ f = reifyᴬ (reifyᴮ ∘ curry f)
 
-module _ {A B} {sᴬ : Search₁ A} {sᴮ : Search₁ B} where
-  _×-focus_ : Focus sᴬ → Focus sᴮ → Focus (sᴬ ×-search sᴮ)
+module _ {A B} {sᴬ : Explore₁ A} {sᴮ : Explore₁ B} where
+  _×-focus_ : Focus sᴬ → Focus sᴮ → Focus (sᴬ ×-explore sᴮ)
   (fᴬ ×-focus fᴮ) = focusΣ {sᴬ = sᴬ} {sᴮ = sᴮ} fᴬ fᴮ
-  _×-lookup_ : Lookup sᴬ → Lookup sᴮ → Lookup (sᴬ ×-search sᴮ)
+  _×-lookup_ : Lookup sᴬ → Lookup sᴮ → Lookup (sᴬ ×-explore sᴮ)
   (fᴬ ×-lookup fᴮ) = lookupΣ {sᴬ = sᴬ} {sᴮ = sᴮ} fᴬ fᴮ
 
 -- Those are here only for pedagogical use
@@ -128,12 +128,12 @@ private
                           sumᴮ x₀ (λ x₁ →
                             f (x₀ , x₁)))
 
-    _×-search'_ : ∀ {A B} → Search₀ A → Search _ B → Search _ (A × B)
-    (searchᴬ ×-search' searchᴮ) op f = searchᴬ op (λ x → searchᴮ op (curry f x))
+    _×-explore'_ : ∀ {A B} → Explore₀ A → Explore _ B → Explore _ (A × B)
+    (exploreᴬ ×-explore' exploreᴮ) op f = exploreᴬ op (λ x → exploreᴮ op (curry f x))
 
-    _×-search-ind'_ : ∀ {A B} {sᴬ : Search _ A} {sᴮ : Search _ B}
-                      → SearchInd₀ sᴬ → SearchInd₀ sᴮ → SearchInd₀ (sᴬ ×-search' sᴮ)
-    (Psᴬ ×-search-ind' Psᴮ) P P∙ Pf =
+    _×-explore-ind'_ : ∀ {A B} {sᴬ : Explore _ A} {sᴮ : Explore _ B}
+                      → ExploreInd₀ sᴬ → ExploreInd₀ sᴮ → ExploreInd₀ (sᴬ ×-explore' sᴮ)
+    (Psᴬ ×-explore-ind' Psᴮ) P P∙ Pf =
       Psᴬ (λ s → P (λ _ _ → s _ _)) P∙ (Psᴮ (λ s → P (λ _ _ → s _ _)) P∙ ∘ curry Pf)
 
     -- liftM2 _,_ in the continuation monad
