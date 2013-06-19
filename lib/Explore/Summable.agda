@@ -1,4 +1,4 @@
-module Explore.Sum where
+module Explore.Summable where
 
 open import Type
 open import Function.NP

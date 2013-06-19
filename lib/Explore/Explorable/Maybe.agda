@@ -5,7 +5,7 @@ open import Data.Nat
 
 open import Explore.Type
 open import Explore.Explorable
-open import Explore.Explorable.Sum
+open import Explore.Sum
 
 module Explore.Explorable.Maybe where
 
