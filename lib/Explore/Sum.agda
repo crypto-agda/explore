@@ -1,120 +1,133 @@
+{-
+
+  The main definitions of this module are:
+
+    * explore⊎
+    * explore⊎-ind
+    * adequate-sum⊎
+
+-}
+open import Type hiding (★)
+open import Function.NP
+open import Data.Nat using (_+_)
+import Level as L
+import Function.Inverse.NP as FI
+import Function.Related as FR
+open FI using (_↔_; inverses; module Inverse) renaming (_$₁_ to to; _$₂_ to from)
+open import Function.Related.TypeIsomorphisms.NP
+open import Data.Product.NP
+open import Data.Sum
+open import Data.Bit
+open import Data.Fin using (Fin)
+open import Relation.Binary.Sum
+import Relation.Binary.PropositionalEquality.NP as ≡
+open ≡ using (_≡_ ; module ≡-Reasoning; cong)
+
+open import Explore.Type
+open import Explore.Explorable
+
 module Explore.Sum where
 
-open import Type
-open import Function.NP
-import Relation.Binary.PropositionalEquality.NP as ≡
-open ≡ using (_≡_ ; _≗_ ; _≗₂_)
-open import Explore.Type
-open import Explore.Product
-open import Data.Product
-open import Data.Nat.NP
-open import Data.Nat.Properties
-open import Data.Bool.NP renaming (Bool to 𝟚; true to 1b; false to 0b; toℕ to 𝟚▹ℕ)
-open Data.Bool.NP.Indexed
+module _ {a b u} {A : ★ a} {B : ★ b} {U : ★ u}
+         (_∙_ : U → U → U)
+         (e₁  : (A → U) → U)
+         (e₂  : (B → U) → U)
+         (f   : (A ⊎ B) → U)
+  where
+      -- find a better place/name for it
+      ⊎ᶜ : U
+      ⊎ᶜ = e₁ (f ∘ inj₁) ∙ e₂ (f ∘ inj₂)
 
-module FromSum {A : ★} (sum : Sum A) where
-  Card : ℕ
-  Card = sum (const 1)
+module _ {m A B} where
+    explore⊎ : Explore m A → Explore m B → Explore m (A ⊎ B)
+    explore⊎ exploreᴬ exploreᴮ _∙_ = ⊎ᶜ _∙_ (exploreᴬ _∙_) (exploreᴮ _∙_)
 
-  count : Count A
-  count f = sum (𝟚▹ℕ ∘ f)
+    module _ {p} {sᴬ : Explore m A} {sᴮ : Explore m B} where
+        explore⊎-ind : ExploreInd p sᴬ → ExploreInd p sᴮ → ExploreInd p (explore⊎ sᴬ sᴮ)
+        explore⊎-ind Psᴬ Psᴮ P P∙ Pf
+        -- TODO clean this up:
+          = P∙ (Psᴬ (λ s → P (λ _ f → s _ (f ∘ inj₁))) P∙ (Pf ∘ inj₁))
+               (Psᴮ (λ s → P (λ _ f → s _ (f ∘ inj₂))) P∙ (Pf ∘ inj₂))
 
-module FromSumInd {A : ★}
-                  {sum : Sum A}
-                  (sum-ind : SumInd sum) where
-  open FromSum sum public
+infixr 4 _⊎ᵉ_ _⊎ⁱ_ _⊎ˢ_
+_⊎ᵉ_ = explore⊎
+_⊎ⁱ_ = explore⊎-ind
 
-  sum-ext : SumExt sum
-  sum-ext = sum-ind (λ s → s _ ≡ s _) (≡.cong₂ _+_)
+_⊎ˢ_ : ∀ {A B} → Sum A → Sum B → Sum (A ⊎ B)
+_⊎ˢ_ = ⊎ᶜ _+_
 
-  sum-zero : SumZero sum
-  sum-zero = sum-ind (λ s → s (const 0) ≡ 0) (≡.cong₂ _+_) (λ _ → ≡.refl)
+module _ {A B} {sumᴬ : Sum A} {sumᴮ : Sum B} where
 
-  sum-hom : SumHom sum
-  sum-hom f g = sum-ind (λ s → s (f +° g) ≡ s f + s g)
-                        (λ {s₀} {s₁} p₀ p₁ → ≡.trans (≡.cong₂ _+_ p₀ p₁) (+-interchange (s₀ _) (s₀ _) _ _))
-                        (λ _ → ≡.refl)
+    adequate-sum⊎ : AdequateSum sumᴬ → AdequateSum sumᴮ → AdequateSum (sumᴬ ⊎ˢ sumᴮ)
+    adequate-sum⊎ asumᴬ asumᴮ f    = (Fin (sumᴬ (f ∘ inj₁) + sumᴮ (f ∘ inj₂)))
+                                   ↔⟨ FI.sym (Fin-⊎-+ _ _) ⟩
+                                     (Fin (sumᴬ (f ∘ inj₁)) ⊎ Fin (sumᴮ (f ∘ inj₂)))
+                                   ↔⟨ asumᴬ (f ∘ inj₁) ⊎-cong asumᴮ (f ∘ inj₂) ⟩
+                                     (Σ A (Fin ∘ f ∘ inj₁) ⊎ Σ B (Fin ∘ f ∘ inj₂))
+                                   ↔⟨ FI.sym Σ⊎-distrib ⟩
+                                     Σ (A ⊎ B) (Fin ∘ f)
+                                   ∎
+      where open FR.EquationalReasoning
 
-  sum-mono : SumMono sum
-  sum-mono = sum-ind (λ s → s _ ≤ s _) _+-mono_
+module _ {A B} {sᴬ : Explore₁ A} {sᴮ : Explore₁ B} where
+  sᴬ⁺ᴮ = sᴬ ⊎ᵉ sᴮ
+  _⊎-focus_ : Focus sᴬ → Focus sᴮ → Focus sᴬ⁺ᴮ
+  (fᴬ ⊎-focus fᴮ) (inj₁ x , y) = inj₁ (fᴬ (x , y))
+  (fᴬ ⊎-focus fᴮ) (inj₂ x , y) = inj₂ (fᴮ (x , y))
 
-  sum-lin : SumLin sum
-  sum-lin f zero    = sum-zero
-  sum-lin f (suc k) = ≡.trans (sum-hom f (λ x → k * f x)) (≡.cong₂ _+_ (≡.refl {x = sum f}) (sum-lin f k))
+  _⊎-unfocus_ : Unfocus sᴬ → Unfocus sᴮ → Unfocus sᴬ⁺ᴮ
+  _⊎-unfocus_ fᴬ fᴮ (inj₁ x) = first inj₁ (fᴬ x)
+  _⊎-unfocus_ fᴬ fᴮ (inj₂ y) = first inj₂ (fᴮ y)
 
-  module _ (f g : A → ℕ) where
-    open ≡.≡-Reasoning
+  {-
+  _⊎-focused_ : Focused sᴬ → Focused sᴮ → Focused {L.zero} sᴬ⁺ᴮ
+  _⊎-focused_ fᴬ fᴮ {B} = inverses (to fᴬ ⊎-focus to fᴮ) (from fᴬ ⊎-unfocus from fᴮ) (⇒) (⇐)
+      where
+        ⇒ : (x : Σ (A ⊎ {!!}) {!!}) → _
+        ⇒ (x , y) = {!!}
+        ⇐ : (x : sᴬ _⊎_ (B ∘ inj₁) ⊎ sᴮ _⊎_ (B ∘ inj₂)) → _
+        ⇐ (inj₁ x) = cong inj₁ {!!}
+        ⇐ (inj₂ x) = cong inj₂ {!!}
+  -}
 
-    sum-⊓-∸ : sum f ≡ sum (f ⊓° g) + sum (f ∸° g)
-    sum-⊓-∸ = sum f                          ≡⟨ sum-ext (f ⟨ a≡a⊓b+a∸b ⟩° g) ⟩
-              sum ((f ⊓° g) +° (f ∸° g))     ≡⟨ sum-hom (f ⊓° g) (f ∸° g) ⟩
-              sum (f ⊓° g) + sum (f ∸° g) ∎
+  _⊎-lookup_ : Lookup sᴬ → Lookup sᴮ → Lookup (sᴬ ⊎ᵉ sᴮ)
+  (lookupᴬ ⊎-lookup lookupᴮ) (x , y) = [ lookupᴬ x , lookupᴮ y ]
 
-    sum-⊔-⊓ : sum f + sum g ≡ sum (f ⊔° g) + sum (f ⊓° g)
-    sum-⊔-⊓ = sum f + sum g               ≡⟨ ≡.sym (sum-hom f g) ⟩
-              sum (f +° g)                ≡⟨ sum-ext (f ⟨ a+b≡a⊔b+a⊓b ⟩° g) ⟩
-              sum (f ⊔° g +° f ⊓° g)      ≡⟨ sum-hom (f ⊔° g) (f ⊓° g) ⟩
-              sum (f ⊔° g) + sum (f ⊓° g) ∎
+  _⊎-reify_ : Reify sᴬ → Reify sᴮ → Reify (sᴬ ⊎ᵉ sᴮ)
+  (reifyᴬ ⊎-reify reifyᴮ) f = (reifyᴬ (f ∘ inj₁)) , (reifyᴮ (f ∘ inj₂))
 
-    sum-⊔ : sum (f ⊔° g) ≤ sum f + sum g
-    sum-⊔ = ℕ≤.trans (sum-mono (f ⟨ ⊔≤+ ⟩° g)) (ℕ≤.reflexive (sum-hom f g))
+exploreBit : ∀ {m} → Explore m Bit
+exploreBit _∙_ f = f 0b ∙ f 1b
 
-  count-ext : CountExt count
-  count-ext f≗g = sum-ext (≡.cong 𝟚▹ℕ ∘ f≗g)
+exploreBit-ind : ∀ {m p} → ExploreInd p {m} exploreBit
+exploreBit-ind _ _P∙_ Pf = Pf 0b P∙ Pf 1b
 
-  sum-const : ∀ k → sum (const k) ≡ Card * k
-  sum-const k
-      rewrite ℕ°.*-comm Card k
-            | ≡.sym (sum-lin (const 1) k)
-            | proj₂ ℕ°.*-identity k = ≡.refl
+focusBit : ∀ {a} → Focus {a} exploreBit
+focusBit (0b , x) = inj₁ x
+focusBit (1b , x) = inj₂ x
 
-  module _ f g where
-    count-∧-not : count f ≡ count (f ∧° g) + count (f ∧° not° g)
-    count-∧-not rewrite sum-⊓-∸ (𝟚▹ℕ ∘ f) (𝟚▹ℕ ∘ g)
-                      | sum-ext (f ⟨ toℕ-⊓ ⟩° g)
-                      | sum-ext (f ⟨ toℕ-∸ ⟩° g)
-                      = ≡.refl
+focusedBit : Focused {L.zero} exploreBit
+focusedBit {B} = inverses focusBit unfocus (⇒) (⇐)
+  where open Explorable₁₁ exploreBit-ind
+        ⇒ : (x : Σ Bit B) → _
+        ⇒ (0b , x) = ≡.refl
+        ⇒ (1b , x) = ≡.refl
+        ⇐ : (x : B 0b ⊎ B 1b) → _
+        ⇐ (inj₁ x) = ≡.refl
+        ⇐ (inj₂ x) = ≡.refl
 
-    count-∨-∧ : count f + count g ≡ count (f ∨° g) + count (f ∧° g)
-    count-∨-∧ rewrite sum-⊔-⊓ (𝟚▹ℕ ∘ f) (𝟚▹ℕ ∘ g)
-                    | sum-ext (f ⟨ toℕ-⊔ ⟩° g)
-                    | sum-ext (f ⟨ toℕ-⊓ ⟩° g)
-                    = ≡.refl
+lookupBit : ∀ {a} → Lookup {a} exploreBit
+lookupBit = proj
 
-    count-∨≤+ : count (f ∨° g) ≤ count f + count g
-    count-∨≤+ = ℕ≤.trans (ℕ≤.reflexive (sum-ext (≡.sym ∘ (f ⟨ toℕ-⊔ ⟩° g))))
-                         (sum-⊔ (𝟚▹ℕ ∘ f) (𝟚▹ℕ ∘ g))
+-- DEPRECATED
+module μ where
+    _⊎-μ_ : ∀ {A B} → Explorable A → Explorable B → Explorable (A ⊎ B)
+    μA ⊎-μ μB = mk _ (explore-ind μA ⊎ⁱ explore-ind μB)
+                     (adequate-sum⊎ (adequate-sum μA) (adequate-sum μB))
 
-module FromSum×
-         {A B}
-         {sumᴬ     : Sum A}
-         (sum-indᴬ : SumInd sumᴬ)
-         {sumᴮ     : Sum B}
-         (sum-indᴮ : SumInd sumᴮ) where
+    μBit : Explorable Bit
+    μBit = μ-iso (FI.sym Bit↔⊤⊎⊤) (μ⊤ ⊎-μ μ⊤)
 
-  module |A| = FromSumInd sum-indᴬ
-  module |B| = FromSumInd sum-indᴮ
-
-  sumᴬᴮ = sumᴬ ×-sum sumᴮ
-
-  sum-∘proj₁≡Card* : ∀ f → sumᴬᴮ (f ∘ proj₁) ≡ |B|.Card * sumᴬ f
-  sum-∘proj₁≡Card* f
-      rewrite |A|.sum-ext (|B|.sum-const ∘ f)
-            = |A|.sum-lin f |B|.Card
-
-  sum-∘proj₂≡Card* : ∀ f → sumᴬᴮ (f ∘ proj₂) ≡ |A|.Card * sumᴮ f
-  sum-∘proj₂≡Card* = |A|.sum-const ∘ sumᴮ
-
-  sum-∘proj₁ : ∀ {f} {g} → sumᴬ f ≡ sumᴬ g → sumᴬᴮ (f ∘ proj₁) ≡ sumᴬᴮ (g ∘ proj₁)
-  sum-∘proj₁ {f} {g} sumf≡sumg
-      rewrite sum-∘proj₁≡Card* f
-            | sum-∘proj₁≡Card* g
-            | sumf≡sumg = ≡.refl
-
-  sum-∘proj₂ : ∀ {f} {g} → sumᴮ f ≡ sumᴮ g → sumᴬᴮ (f ∘ proj₂) ≡ sumᴬᴮ (g ∘ proj₂)
-  sum-∘proj₂ sumf≡sumg = |A|.sum-ext (const sumf≡sumg)
-
--- -}
--- -}
--- -}
--- -}
+ -- -}
+ -- -}
+ -- -}
