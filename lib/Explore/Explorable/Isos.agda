@@ -10,7 +10,7 @@ open ≡ using (_≡_; _≗_)
 
 open import Explore.Type
 open import Explore.Explorable
-open import Explore.Explorable.Product
+open import Explore.Product
 
 swap-μ : ∀ {A B} → Explorable (A × B) → Explorable (B × A)
 swap-μ = μ-iso swap-iso

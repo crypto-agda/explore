@@ -5,7 +5,7 @@ open import Function.NP
 import Relation.Binary.PropositionalEquality.NP as ≡
 open ≡ using (_≡_ ; _≗_ ; _≗₂_)
 open import Explore.Type
-open import Explore.Explorable.Product
+open import Explore.Product
 open import Data.Product
 open import Data.Nat.NP
 open import Data.Nat.Properties

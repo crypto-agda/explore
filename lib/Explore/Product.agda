@@ -21,7 +21,7 @@ open import Explore.Type
 import Explore.Monad as EM
 open import Explore.Explorable
 
-module Explore.Explorable.Product where
+module Explore.Product where
 
 module _ {m A} {B : A → ★₀} where
 
