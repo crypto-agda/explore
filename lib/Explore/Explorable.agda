@@ -2,7 +2,6 @@ import Level as L
 open L using (Lift) renaming (zero to ₀)
 open import Type hiding (★)
 open import Function.NP
-open import Explore.Type
 open import Algebra.FunctionProperties.NP
 open import Data.Bool.NP as Bool
 open import Data.Nat.NP hiding (_^_; _⊔_)
@@ -24,27 +23,13 @@ open import Function.Related.TypeIsomorphisms.NP
 import Function.Inverse.NP as FI
 open FI using (_↔_; inverses; module Inverse) renaming (_$₁_ to to; _$₂_ to from)
 
+open import Explore.Type
+import Explore.Monad as EM
+
 module Explore.Explorable where
 
 private
   ₁ = L.suc ₀
-
-fromBinTree : ∀ {m A} → BinTree A → Explore m A
-fromBinTree (leaf x)   _   f = f x
-fromBinTree (fork ℓ r) _∙_ f = fromBinTree ℓ _∙_ f ∙ fromBinTree r _∙_ f
-
-fromBinTree-ind : ∀ {m p A} (t : BinTree A) → ExploreInd p (fromBinTree {m} t)
-fromBinTree-ind (leaf x)   P P∙ Pf = Pf x
-fromBinTree-ind (fork ℓ r) P P∙ Pf = P∙ (fromBinTree-ind ℓ P P∙ Pf)
-                                        (fromBinTree-ind r P P∙ Pf)
-
-plugKit : ∀ {m p A} (M : Monoid m p) → ExploreIndKit _ {A = A} (ExplorePlug M)
-plugKit M = (λ Ps Ps' _ x →
-                  trans (∙-cong (sym (Ps _ _)) refl)
-                        (trans (assoc _ _ _)
-                               (trans (∙-cong refl (Ps' _ x)) (Ps _ _))))
-            , (λ x f _ → ∙-cong (proj₂ identity (f x)) refl)
-     where open Mon M
 
 module Explorableₘₚ
     {m p A}
@@ -75,6 +60,14 @@ module Explorableₘₚ
 
   exploreMon∘ : ∀ {ℓ} (M : Monoid m ℓ) → ExploreMon M A
   exploreMon∘ M f = explore∘ _∙_ f ε where open Mon M
+
+plugKit : ∀ {m p A} (M : Monoid m p) → ExploreIndKit _ {A = A} (ExplorePlug M)
+plugKit M = (λ Ps Ps' _ x →
+                  trans (∙-cong (sym (Ps _ _)) refl)
+                        (trans (assoc _ _ _)
+                               (trans (∙-cong refl (Ps' _ x)) (Ps _ _))))
+            , (λ x f _ → ∙-cong (proj₂ identity (f x)) refl)
+     where open Mon M
 
 module Explorableₘ
     {m A}
@@ -135,31 +128,31 @@ module Explorableₘ
 
   module _
        {S T : ★ m}
-        (_≈_ : T → T → ★ m)
-        (≈-refl : Reflexive _≈_)
-        (≈-trans : Transitive _≈_)
-        (_+_ : Op₂ S)
-        (_*_ : Op₂ T)
-        (≈-cong-* : _*_ Preserves₂ _≈_ ⟶ _≈_ ⟶ _≈_)
-        (f   : S → T)
-        (g   : A → S)
-        (hom : ∀ x y → (f (x + y)) ≈ (f x * f y))
-        where
+       (_≈_ : T → T → ★ m)
+       (≈-refl : Reflexive _≈_)
+       (≈-trans : Transitive _≈_)
+       (_+_ : Op₂ S)
+       (_*_ : Op₂ T)
+       (≈-cong-* : _*_ Preserves₂ _≈_ ⟶ _≈_ ⟶ _≈_)
+       (f   : S → T)
+       (g   : A → S)
+       (hom : ∀ x y → (f (x + y)) ≈ (f x * f y))
+       where
 
-        explore-hom′′ : f (explore _+_ g) ≈ explore _*_ (f ∘ g)
-        explore-hom′′ = explore-ind (λ s → f (s _+_ g) ≈ s _*_ (f ∘ g))
-                                                  (λ p q → ≈-trans (hom _ _) (≈-cong-* p q))
-                                                  (λ _ → ≈-refl)
+        lift-hom : f (explore _+_ g) ≈ explore _*_ (f ∘ g)
+        lift-hom = explore-ind (λ s → f (s _+_ g) ≈ s _*_ (f ∘ g))
+                               (λ p q → ≈-trans (hom _ _) (≈-cong-* p q))
+                               (λ _ → ≈-refl)
 
-  explore-hom′ :
+  lift-hom-≡ :
       ∀ {S T}
         (_+_ : Op₂ S)
         (_*_ : Op₂ T)
         (f   : S → T)
         (g   : A → S)
         (hom : ∀ x y → f (x + y) ≡ f x * f y)
-        → f (explore _+_ g) ≡ explore _*_ (f ∘ g)
-  explore-hom′ _+_ _*_ = explore-hom′′ _≡_ ≡.refl ≡.trans _+_ _*_ (≡.cong₂ _*_)
+      → f (explore _+_ g) ≡ explore _*_ (f ∘ g)
+  lift-hom-≡ _+_ _*_ = lift-hom _≡_ ≡.refl ≡.trans _+_ _*_ (≡.cong₂ _*_)
 
 module Explorable₀
     {A}
@@ -231,42 +224,6 @@ module Explorable₀
   findKey : FindKey A
   findKey pred = find? (λ x → if pred x then just x else nothing)
 
-  {-
-module BigDistr {A B : ★₀}
-                {exploreᴬ : Explore₀ A} 
-                {exploreᴮ : Explore₀ B} 
-                {exploreᴬᴮ : Explore₀ (A → B)}
-                (F : A → B → ℕ)
-                where
-  productᴬ = exploreᴬ _*_
-  sumᴮ = exploreᴮ _+_
-  sumᴬᴮ = exploreᴬᴮ _+_
-
-  module _
-    (adequate-productᴬ : AdequateProduct productᴬ)
-    (adequate-sumᴮ : AdequateSum sumᴮ)
-    (adequate-sumᴬᴮ : AdequateSum sumᴬᴮ)
-    where
-
-    open FR.EquationalReasoning
-    big-distr :
-      productᴬ (sumᴮ ∘ F) ≡
-      sumᴬᴮ (λ f → productᴬ (F ˢ f))
-    big-distr = Fin-injective (
-        Fin (productᴬ (sumᴮ ∘ F))
-      ↔⟨ adequate-productᴬ (sumᴮ ∘ F) ⟩
-        Π A (Fin ∘ sumᴮ ∘ F)
-      ↔⟨ {!adequate-sumᴮ!} ⟩
-        Π A (λ x → Σ B (Fin ∘ F x))
-      ↔⟨ dep-choice-iso _ ⟩
-        Σ (Π A (const B)) (λ f → Π A (λ x → Fin (F x (f x))))
-      ↔⟨ second-iso (λ f → sym (adequate-productᴬ (F ˢ f))) ⟩
-        Σ (Π A (const B)) (λ f → Fin (productᴬ (F ˢ f)))
-      ↔⟨ sym (adequate-sumᴬᴮ (λ f → productᴬ (F ˢ f))) ⟩
-        Fin (sumᴬᴮ (λ f → productᴬ (F ˢ f)))
-      ∎)
--}
-
 module Explorable₁₀ {A} {explore₁ : Explore₁ A}
                     (explore-ind₀ : ExploreInd ₀ explore₁) where
 
@@ -288,8 +245,7 @@ record Explorable A : ★₁ where
   open Explorable₀ explore-ind
   field
     adequate-sum     : AdequateSum sum
--- TODO (maybe)
---    adequate-product : AdequateProduct product
+--  adequate-product : AdequateProduct product
 
   open Explorable₀ explore-ind public
 
@@ -317,31 +273,19 @@ module DistFun {A} (μA : Explorable A)
 
   DistFun = ∀ f → Π' (Σᴮ ∘ f) ≈ Σ' (Π' ∘ _ˢ_ f)
 
-
 DistFun : ∀ {A} → Explorable A → ExploreForFun A → ★₁
 DistFun μA μA→ = ∀ {B} (μB : Explorable B) c → let open CMon {L.zero}{L.zero} c in
                    ∀ ◎ → _DistributesOver_ _≈_ ◎ _∙_ → ◎ Preserves₂ _≈_ ⟶ _≈_ ⟶ _≈_
                    → DistFun.DistFun μA μA→ μB _≈_ _∙_ ◎
 
-
 DistFunable : ∀ {A} → Funable A → ★₁
 DistFunable (μA , μA→) = DistFun μA μA→
 
 μ-iso : ∀ {A B} → (A ↔ B) → Explorable A → Explorable B
-μ-iso {A}{B} A↔B μA = mk exploreᴮ ind ade
+μ-iso {A}{B} A↔B μA = mk (EM.map _ A→B (explore μA)) (EM.map-ind _ A→B (explore-ind μA)) ade
   where
     A→B = to A↔B
-
-    exploreᴮ : Explore _ B
-    exploreᴮ m f = explore μA m (f ∘ A→B)
-
-    sumᴮ = exploreᴮ _+_
-
-    ind : ExploreInd _ exploreᴮ
-    ind P P∙ Pf = explore-ind μA (λ s → P (λ _ f → s _ (f ∘ A→B))) P∙ (Pf ∘ A→B)
-
-    ade : AdequateSum sumᴮ
-    ade f = sym-first-iso A↔B FI.∘ adequate-sum μA (f ∘ A→B)
+    ade = λ f → sym-first-iso A↔B FI.∘ adequate-sum μA (f ∘ A→B)
 
 -- I guess this could be more general
 μ-iso-preserve : ∀ {A B} (A↔B : A ↔ B) f (μA : Explorable A) → sum μA f ≡ sum (μ-iso A↔B μA) (f ∘ from A↔B)
@@ -351,13 +295,4 @@ DistFunable (μA , μA→) = DistFun μA μA→
 μLift = μ-iso (FI.sym Lift↔id)
 
 μ⊤ : Explorable ⊤
-μ⊤ = mk _ ind ade
-  where
-    srch : Explore _ ⊤
-    srch _ f = f _
-
-    ind : ExploreInd _ srch
-    ind _ _ Pf = Pf _
-
-    ade : AdequateSum (srch _+_)
-    ade x = FI.sym ⊤×A↔A
+μ⊤ = mk _ (EM.return-ind _ _) (λ _ → FI.sym ⊤×A↔A)
