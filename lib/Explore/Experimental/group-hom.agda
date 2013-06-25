@@ -1,4 +1,4 @@
-module otp-lem where
+module Explore.Experimental.group-hom where
 
 open import Level
 open import Algebra.FunctionProperties
@@ -7,8 +7,8 @@ open import Data.Product
 open import Function using (_∘_ ; flip)
 open import Function.Inverse as Inv using (_↔_; module Inverse)
 open import Relation.Binary.PropositionalEquality.NP
-open import Search.Type
-open import Search.Sum
+open import Explore.Type
+open import Explore.Sum
 
 record Group (G : Set) : Set where
   field
@@ -29,8 +29,8 @@ GroupHomomorphism GA GB f = ∀ x y → f (x + y) ≡ f x * f y
     open Group GA renaming (_∙_ to _+_)
     open Group GB renaming (_∙_ to _*_)
 
-module _ {A B}(GA : Group A)(GB : Group B)(f : A → B)(searchA : Search zero A)(f-homo : GroupHomomorphism GA GB f)([f] : B → A)(f-sur : ∀ b → f ([f] b) ≡ b)
-              (sui : ∀ k → StableUnder searchA (flip (Group._∙_ GA) k))(search-ext : SearchExt searchA) where
+module _ {A B}(GA : Group A)(GB : Group B)(f : A → B)(exploreA : Explore zero A)(f-homo : GroupHomomorphism GA GB f)([f] : B → A)(f-sur : ∀ b → f ([f] b) ≡ b)
+              (sui : ∀ k → StableUnder exploreA (flip (Group._∙_ GA) k))(explore-ext : ExploreExt exploreA) where
   open Group GA using (-_) renaming (_∙_ to _+_ ; ε to 0g)
   open Group GB using ()   renaming (_∙_ to _*_ ; ε to 1g ; -_ to 1/_)
 
@@ -42,11 +42,11 @@ module _ {A B}(GA : Group A)(GB : Group B)(f : A → B)(searchA : Search zero A)
   f is g^, the proof only need that it is a group homomorphism
   and that it has a right inverse
 
-  we require that the search (for type A) function (should work with only summation)
+  we require that the explore (for type A) function (should work with only summation)
   is Stable under addition of GA (notice that we have flip in there that is so that
   we don't need commutativity
 
-  finally we require that the search function respects extensionality
+  finally we require that the explore function respects extensionality
   -}
   
   {-
@@ -122,16 +122,16 @@ module _ {A B}(GA : Group A)(GB : Group B)(f : A → B)(searchA : Search zero A)
 
                
   -- this proof isn't actually any hard..
-  thm : ∀ {X}(op : X → X → X)(O : B → X) m₀ m₁ → searchA op (λ x → O (f x * m₀)) ≡ searchA op (λ x → O (f x * m₁))
-  thm op O m₀ m₁ = searchA op (λ x → O (f x * m₀))
+  thm : ∀ {X}(op : X → X → X)(O : B → X) m₀ m₁ → exploreA op (λ x → O (f x * m₀)) ≡ exploreA op (λ x → O (f x * m₁))
+  thm op O m₀ m₁ = exploreA op (λ x → O (f x * m₀))
                  ≡⟨ sui (- [f] m₀) op (λ x → O (f x * m₀)) ⟩
-                   searchA op (λ x → O (f (x + - [f] m₀)  * m₀))
-                 ≡⟨ search-ext op (λ x → cong O (lemma1 x)) ⟩
-                   searchA op (λ x → O (f x ))
+                   exploreA op (λ x → O (f (x + - [f] m₀)  * m₀))
+                 ≡⟨ explore-ext op (λ x → cong O (lemma1 x)) ⟩
+                   exploreA op (λ x → O (f x ))
                  ≡⟨ sui ([f] m₁) op (λ x → O (f x)) ⟩
-                   searchA op (λ x → O (f (x + [f] m₁)))
-                 ≡⟨ search-ext op (λ x → cong O (lemma2 x)) ⟩
-                   searchA op (λ x → O (f x * m₁))
+                   exploreA op (λ x → O (f (x + [f] m₁)))
+                 ≡⟨ explore-ext op (λ x → cong O (lemma2 x)) ⟩
+                   exploreA op (λ x → O (f x * m₁))
                  ∎
     where
       open ≡-Reasoning
