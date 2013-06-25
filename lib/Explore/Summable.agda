@@ -1,3 +1,5 @@
+-- Specific constructions on top of summation functions
+
 module Explore.Summable where
 
 open import Type
@@ -18,6 +20,19 @@ module FromSum {A : ★} (sum : Sum A) where
 
   count : Count A
   count f = sum (𝟚▹ℕ ∘ f)
+
+  sum-lin⇒sum-zero : SumLin sum → SumZero sum
+  sum-lin⇒sum-zero sum-lin = sum-lin (λ _ → 0) 0
+
+  sum-mono⇒sum-ext : SumMono sum → SumExt sum
+  sum-mono⇒sum-ext sum-mono f≗g = ℕ≤.antisym (sum-mono (ℕ≤.reflexive ∘ f≗g)) (sum-mono (ℕ≤.reflexive ∘ ≡.sym ∘ f≗g))
+
+  sum-ext+sum-hom⇒sum-mono : SumExt sum → SumHom sum → SumMono sum
+  sum-ext+sum-hom⇒sum-mono sum-ext sum-hom {f} {g} f≤°g =
+      sum f                         ≤⟨ m≤m+n _ _ ⟩
+      sum f + sum (λ x → g x ∸ f x) ≡⟨ ≡.sym (sum-hom _ _) ⟩
+      sum (λ x → f x + (g x ∸ f x)) ≡⟨ sum-ext (m+n∸m≡n ∘ f≤°g) ⟩
+      sum g ∎ where open ≤-Reasoning
 
 module FromSumInd {A : ★}
                   {sum : Sum A}

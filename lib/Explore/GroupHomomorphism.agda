@@ -1,12 +1,12 @@
-module Explore.Experimental.group-hom where
+module Explore.GroupHomomorphism where
 
 open import Level
 open import Algebra.FunctionProperties
 open import Data.Product
-
 open import Function using (_∘_ ; flip)
 open import Function.Inverse as Inv using (_↔_; module Inverse)
 open import Relation.Binary.PropositionalEquality.NP
+
 open import Explore.Type
 open import Explore.Sum
 
@@ -18,7 +18,7 @@ record Group (G : Set) : Set where
 
   -- laws
   field
-    assoc : Associative _≡_ _∙_
+    assoc    : Associative _≡_ _∙_
     identity : Identity _≡_ ε _∙_
     inverse  : Inverse _≡_ ε -_ _∙_
 
@@ -48,13 +48,13 @@ module _ {A B}(GA : Group A)(GB : Group B)(f : A → B)(exploreA : Explore zero 
 
   finally we require that the explore function respects extensionality
   -}
-  
+
   {-
    I had some problems with using the standard library definiton of Groups
    so I rolled my own, therefor I need some boring proofs first
 
   -}
-  
+
   help : ∀ x y → x ≡ (x * y) * 1/ y
   help x y = x
            ≡⟨ sym (proj₂ identity x) ⟩
@@ -66,7 +66,7 @@ module _ {A B}(GA : Group A)(GB : Group B)(f : A → B)(exploreA : Explore zero 
            ∎
     where open ≡-Reasoning
           open Group GB
-    
+
   unique-1g : ∀ x y → x * y ≡ y → x ≡ 1g
   unique-1g x y eq = x
                    ≡⟨ help x y ⟩
@@ -90,7 +90,7 @@ module _ {A B}(GA : Group A)(GB : Group B)(f : A → B)(exploreA : Explore zero 
                   ∎
     where open ≡-Reasoning
           open Group GB
-    
+
   f-pres-ε : f 0g ≡ 1g
   f-pres-ε = unique-1g (f 0g) (f 0g) part
     where open ≡-Reasoning
@@ -120,7 +120,6 @@ module _ {A B}(GA : Group A)(GB : Group B)(f : A → B)(exploreA : Explore zero 
 
   -}
 
-               
   -- this proof isn't actually any hard..
   thm : ∀ {X}(op : X → X → X)(O : B → X) m₀ m₁ → exploreA op (λ x → O (f x * m₀)) ≡ exploreA op (λ x → O (f x * m₁))
   thm op O m₀ m₁ = exploreA op (λ x → O (f x * m₀))

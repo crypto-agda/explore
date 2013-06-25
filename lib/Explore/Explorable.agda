@@ -1,3 +1,5 @@
+-- Constructions on top of exploration functions
+
 import Level as L
 open L using (Lift) renaming (zero to ₀)
 open import Type hiding (★)
@@ -296,3 +298,15 @@ DistFunable (μA , μA→) = DistFun μA μA→
 
 μ⊤ : Explorable ⊤
 μ⊤ = mk _ (EM.return-ind _ _) (λ _ → FI.sym ⊤×A↔A)
+
+explore-swap' : ∀ {A B} cm (μA : Explorable A) (μB : Explorable B) f →
+               let open CMon cm
+                   sᴬ = explore μA _∙_
+                   sᴮ = explore μB _∙_ in
+               sᴬ (sᴮ ∘ f) ≈ sᴮ (sᴬ ∘ flip f)
+explore-swap' cm μA μB f = explore-swap μA sg f (explore-hom μB cm)
+  where open CMon cm
+
+sum-swap : ∀ {A B} (μA : Explorable A) (μB : Explorable B) f →
+           sum μA (sum μB ∘ f) ≡ sum μB (sum μA ∘ flip f)
+sum-swap = explore-swap' ℕ°.+-commutativeMonoid

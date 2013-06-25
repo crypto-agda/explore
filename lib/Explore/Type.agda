@@ -1,3 +1,4 @@
+-- The core types behind exploration functions
 module Explore.Type where
 
 open import Level using (_⊔_) renaming (zero to ₀; suc to ₛ)
