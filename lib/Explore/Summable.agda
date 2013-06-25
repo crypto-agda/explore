@@ -94,8 +94,9 @@ module FromSum×
 
   module |A| = FromSumInd sum-indᴬ
   module |B| = FromSumInd sum-indᴮ
-
-  sumᴬᴮ = sumᴬ ×-sum sumᴮ
+  open Operators
+  
+  sumᴬᴮ = sumᴬ ×ˢ sumᴮ
 
   sum-∘proj₁≡Card* : ∀ f → sumᴬᴮ (f ∘ proj₁) ≡ |B|.Card * sumᴬ f
   sum-∘proj₁≡Card* f
