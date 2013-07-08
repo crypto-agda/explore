@@ -5,12 +5,12 @@ open import Algebra
 open import Algebra.FunctionProperties.NP
 open import Data.Nat.NP hiding (_^_)
 open import Data.Nat.Properties
-open import Data.Unit hiding (_≤_)
+open import Data.One hiding (_≤_)
 open import Data.Sum
 open import Data.Maybe.NP
 open import Data.Product
 open import Data.Bits
-open import Data.Empty
+open import Data.Zero
 open import Data.Bool.NP as Bool
 import Function.Equality as FE
 open FE using (_⟨$⟩_ ; ≡-setoid)
@@ -197,10 +197,10 @@ _≈Search_ : ∀ {A} → (s₀ s₁ : Search A) → ★₁
 s₀ ≈Search s₁ = ∀ {B} (op : Op₂ B) f → s₀ op f ≡ s₁ op f
 
 
-μ⊤ : SumProp ⊤
-μ⊤ = srch , ind
+μ𝟙 : SumProp 𝟙
+μ𝟙 = srch , ind
   where
-    srch : Search ⊤
+    srch : Search 𝟙
     srch _ f = f _
 
     ind : SearchInd srch
@@ -357,7 +357,7 @@ searchFinSuc n _∙_ f = vfoldr₁ _∙_ (tabulate f)
                P∙ search-ind μA (λ s → P (λ op f → s op (f ∘ just))  ) _P∙_ (Pf ∘ just)
 
 μMaybeIso : ∀ {A} → SumProp A → SumProp (Maybe A)
-μMaybeIso μA = μ-iso (FI.sym Maybe↔⊤⊎ FI.∘ lift-⊎) (μ⊤ +μ μA)
+μMaybeIso μA = μ-iso (FI.sym Maybe↔𝟙⊎ FI.∘ lift-⊎) (μ𝟙 +μ μA)
 
 μMaybe^ : ∀ {A} n → SumProp A → SumProp (Maybe^ n A)
 μMaybe^ zero    μA = μA

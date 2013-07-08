@@ -36,8 +36,8 @@ module v0 where
   D (suc n) (suc k) = D n k ⊎ D n (suc k)
 
   FinC≅D : ∀ n k → Fin (C n k) ↔ D n k
-  FinC≅D n       zero    = Fin1↔⊤
-  FinC≅D zero    (suc k) = Fin0↔⊥
+  FinC≅D n       zero    = Fin1↔𝟙
+  FinC≅D zero    (suc k) = Fin0↔𝟘
   FinC≅D (suc n) (suc k) =  FinC≅D n k ⊎-cong FinC≅D n (suc k)
                          ∘I sym (Fin-⊎-+ (C n k) (C n (suc k)))
 
@@ -71,5 +71,5 @@ Bits1↔𝟚 = {!!}
 
 open v0
 foo : ∀ n → Σ (Fin (suc n)) (D (suc n) ∘ Fin▹ℕ) ↔ Bits (suc n)
-foo zero = ((sym Bits1↔𝟚 ∘I {!!}) ∘I Σ𝟙F↔F _) ∘I first-iso Fin1↔⊤
+foo zero = ((sym Bits1↔𝟚 ∘I {!!}) ∘I Σ𝟙F↔F _) ∘I first-iso Fin1↔𝟙
 foo (suc n) = {!!}

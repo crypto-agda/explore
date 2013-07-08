@@ -3,7 +3,7 @@ module sum-properties where
 open import Type
 import Level as L
 open L using (Lift)
-open import Data.Empty using (⊥)
+open import Data.Zero using (𝟘)
 open import Data.Bool.NP
 open Data.Bool.NP.Indexed
 open import Data.Nat.NP
@@ -12,7 +12,7 @@ open import Data.Product renaming (map to pmap)
 open import Data.Sum
 open import Relation.Binary.Product.Pointwise
 open import Data.Maybe
-open import Data.Unit using (⊤)
+open import Data.One using (𝟙)
 open import Function.NP
 import Function.Inverse as Inv
 open Inv using (_↔_)
@@ -43,8 +43,8 @@ CountStableUnderInjection μ = ∀ p → Injective p → CountStableUnder (count
 #-StableUnderInjection : ∀ {A}{μ : SumProp A} → SumStableUnderInjection (sum μ) → CountStableUnderInjection μ
 #-StableUnderInjection sui p p-inj f = sui p p-inj (toℕ ∘ f)
 
-⊤SUI : SumStableUnderInjection (sum μ⊤)
-⊤SUI f p x = ≡.refl
+𝟙SUI : SumStableUnderInjection (sum μ𝟙)
+𝟙SUI f p x = ≡.refl
 
 {-
 stableMaybe : ∀ {A} (μA : SumProp A) → StableUnderInjection μA
@@ -127,8 +127,8 @@ record Iso1+ {A : Set}(μA : SumProp A) : ★₁ where
   stable : StableUnderInjection (μMaybe μB) → StableUnderInjection μA
   stable suiMB = StableIso.stable μA (μMaybe μB) iso sums-ok suiMB
 
--- iso1+⊤ : Iso1+ μ⊤
--- iso1+⊤ = {!mk !}
+-- iso1+𝟙 : Iso1+ μ𝟙
+-- iso1+𝟙 = {!mk !}
 
 iso1+Maybe : ∀ {A} (μA : SumProp A) → Iso1+ μA → Iso1+ (μMaybe μA)
 iso1+Maybe {A} μA A≅1+ = mk A μA Inv.id (λ f → ≡.refl)
@@ -205,29 +205,29 @@ _≈⟨_⟩_ : ∀ {A B C} (μA : SumProp A){μB : SumProp B}{μC : SumProp C} �
 _ ≈⟨ A≈B ⟩ B≈C = ≈-trans A≈B B≈C
 
 {-
-Fin1≈⊤ : μFin 1 ≈ μ⊤
-Fin1≈⊤ = mk iso sums-ok where
+Fin1≈𝟙 : μFin 1 ≈ μ𝟙
+Fin1≈𝟙 = mk iso sums-ok where
   open import Relation.Binary.Sum
   iso : _
-  iso = (A⊎⊥↔A Inv.∘ Inv.id ⊎-cong Fin0↔⊥) Inv.∘ Fin∘suc↔⊤⊎Fin
+  iso = (A⊎𝟘↔A Inv.∘ Inv.id ⊎-cong Fin0↔𝟘) Inv.∘ Fin∘suc↔𝟙⊎Fin
 
   sums-ok : (_ : _) → _
   sums-ok f = ≡.refl
 -}
 
-⊤+Fin : ∀ {n pf} → μ⊤ ⊎-μ μFinSuc n ≈ μFinSuc (suc n)
-⊤+Fin {zero} {()}
-⊤+Fin {suc n} = mk iso sums-ok where
+𝟙+Fin : ∀ {n pf} → μ𝟙 ⊎-μ μFinSuc n ≈ μFinSuc (suc n)
+𝟙+Fin {zero} {()}
+𝟙+Fin {suc n} = mk iso sums-ok where
   iso : _
-  iso = Inv.sym Fin∘suc↔⊤⊎Fin
+  iso = Inv.sym Fin∘suc↔𝟙⊎Fin
 
   sums-ok : (_ : _) → _
   sums-ok f = ≡.refl
 
-⊤×A≈A : ∀ {A}{μA : SumProp A} → μ⊤ ×-μ μA ≈ μA
-⊤×A≈A = mk iso sums-ok where
+𝟙×A≈A : ∀ {A}{μA : SumProp A} → μ𝟙 ×-μ μA ≈ μA
+𝟙×A≈A = mk iso sums-ok where
   iso : _
-  iso = ⊤×A↔A
+  iso = 𝟙×A↔A
 
   sums-ok : (_ : _) → _
   sums-ok f = ≡.refl
@@ -248,8 +248,8 @@ Maybe-Finable {A} μA finA = mk card iso sums-ok where
   |A| = suc (Finable.FinCard finA)
 
   iso : _
-  iso = (⊤ ⊎ A)       ↔⟨ Inv.id ⊎-cong FinA.iso ⟩
-        (⊤ ⊎ Fin |A|) ↔⟨ sym Fin∘suc↔⊤⊎Fin ⟩
+  iso = (𝟙 ⊎ A)       ↔⟨ Inv.id ⊎-cong FinA.iso ⟩
+        (𝟙 ⊎ Fin |A|) ↔⟨ sym Fin∘suc↔𝟙⊎Fin ⟩
         Fin (suc |A|) ∎
     where open EquationalReasoning
 
@@ -339,19 +339,19 @@ _Suc-+_ {suc m} _  _ = _
 
 {-
 +-≈ (suc zero) (suc n) = μFin 1 +μ μFin (suc n)
-               ≈⟨ Fin1≈⊤ +μ-cong ≈-refl (μFin (suc n)) ⟩
-                μ⊤ +μ μFinSuc n
-              ≈⟨ ⊤+Fin ⟩
+               ≈⟨ Fin1≈𝟙 +μ-cong ≈-refl (μFin (suc n)) ⟩
+                μ𝟙 +μ μFinSuc n
+              ≈⟨ 𝟙+Fin ⟩
                 μFinSuc (suc n)
               ≈∎
 +-≈ (suc (suc m)) (suc n) = μFinSuc (suc m) +μ μFinSuc n
-              ≈⟨ ≈-sym ⊤+Fin +μ-cong ≈-refl (μFinSuc n) ⟩
-                (μ⊤ +μ μFinSuc m) +μ μFinSuc n
-              ≈⟨ +μ-assoc μ⊤ (μFinSuc m) (μFinSuc n) ⟩
-                μ⊤ +μ (μFinSuc m +μ μFinSuc n)
-              ≈⟨ ≈-refl μ⊤ +μ-cong +-≈ (suc m) (suc n) ⟩
-                μ⊤ +μ μFinSuc (m + suc n)
-              ≈⟨ ⊤+Fin ⟩
+              ≈⟨ ≈-sym 𝟙+Fin +μ-cong ≈-refl (μFinSuc n) ⟩
+                (μ𝟙 +μ μFinSuc m) +μ μFinSuc n
+              ≈⟨ +μ-assoc μ𝟙 (μFinSuc m) (μFinSuc n) ⟩
+                μ𝟙 +μ (μFinSuc m +μ μFinSuc n)
+              ≈⟨ ≈-refl μ𝟙 +μ-cong +-≈ (suc m) (suc n) ⟩
+                μ𝟙 +μ μFinSuc (m + suc n)
+              ≈⟨ 𝟙+Fin ⟩
                 μFinSuc (suc m + suc n)
               ≈∎
               -}
@@ -359,37 +359,37 @@ _Suc-+_ {suc m} _  _ = _
 {-
 +-≈ : ∀ m n → (μFinSuc m) +μ (μFinSuc n) ≈ μFinSuc (m + suc n)
 +-≈ zero n    = μFinSuc zero +μ μFinSuc n
-              ≈⟨ Fin1≈⊤ +μ-cong ≈-refl (μFinSuc n) ⟩
-                μ⊤ +μ μFinSuc n
-              ≈⟨ ⊤+Fin ⟩
+              ≈⟨ Fin1≈𝟙 +μ-cong ≈-refl (μFinSuc n) ⟩
+                μ𝟙 +μ μFinSuc n
+              ≈⟨ 𝟙+Fin ⟩
                 μFinSuc (suc n)
               ≈∎
 +-≈ (suc m) n = μFinSuc (suc m) +μ μFinSuc n
-              ≈⟨ ≈-sym ⊤+Fin +μ-cong ≈-refl (μFinSuc n) ⟩
-                (μ⊤ +μ μFinSuc m) +μ μFinSuc n
-              ≈⟨ +μ-assoc μ⊤ (μFinSuc m) (μFinSuc n) ⟩
-                μ⊤ +μ (μFinSuc m +μ μFinSuc n)
-              ≈⟨ ≈-refl μ⊤ +μ-cong +-≈ m n ⟩
-                μ⊤ +μ μFinSuc (m + suc n)
-              ≈⟨ ⊤+Fin ⟩
+              ≈⟨ ≈-sym 𝟙+Fin +μ-cong ≈-refl (μFinSuc n) ⟩
+                (μ𝟙 +μ μFinSuc m) +μ μFinSuc n
+              ≈⟨ +μ-assoc μ𝟙 (μFinSuc m) (μFinSuc n) ⟩
+                μ𝟙 +μ (μFinSuc m +μ μFinSuc n)
+              ≈⟨ ≈-refl μ𝟙 +μ-cong +-≈ m n ⟩
+                μ𝟙 +μ μFinSuc (m + suc n)
+              ≈⟨ 𝟙+Fin ⟩
                 μFinSuc (suc m + suc n)
               ≈∎
 
 ×-≈ : ∀ m n → μFinSuc m ×μ μFinSuc n ≈ μFinSuc (n + m * suc n)
 ×-≈ zero n    = μFinSuc 0 ×μ μFinSuc n
-              ≈⟨ Fin1≈⊤ ×μ-cong (≈-refl (μFinSuc n)) ⟩
-                μ⊤ ×μ μFinSuc n
-              ≈⟨ ⊤×A≈A ⟩
+              ≈⟨ Fin1≈𝟙 ×μ-cong (≈-refl (μFinSuc n)) ⟩
+                μ𝟙 ×μ μFinSuc n
+              ≈⟨ 𝟙×A≈A ⟩
                 μFinSuc n
               ≈⟨ μFinSucPres (ℕ°.+-comm 0 n) ⟩
                 μFinSuc (n + 0)
               ≈∎
 ×-≈ (suc m) n = μFinSuc (suc m) ×μ μFinSuc n
-              ≈⟨ ≈-sym ⊤+Fin ×μ-cong ≈-refl (μFinSuc n) ⟩
-                (μ⊤ +μ μFinSuc m) ×μ μFinSuc n
-              ≈⟨ ×+-distrib μ⊤ (μFinSuc m) (μFinSuc n) ⟩
-                (μ⊤ ×μ μFinSuc n) +μ (μFinSuc m ×μ μFinSuc n)
-              ≈⟨ ⊤×A≈A {μA = μFinSuc n} +μ-cong ×-≈ m n ⟩
+              ≈⟨ ≈-sym 𝟙+Fin ×μ-cong ≈-refl (μFinSuc n) ⟩
+                (μ𝟙 +μ μFinSuc m) ×μ μFinSuc n
+              ≈⟨ ×+-distrib μ𝟙 (μFinSuc m) (μFinSuc n) ⟩
+                (μ𝟙 ×μ μFinSuc n) +μ (μFinSuc m ×μ μFinSuc n)
+              ≈⟨ 𝟙×A≈A {μA = μFinSuc n} +μ-cong ×-≈ m n ⟩
                 μFinSuc n +μ μFinSuc (n + m * suc n)
               ≈⟨ +-≈ n (n + m * suc n) ⟩
                 μFinSuc (n + suc m * suc n)
@@ -404,8 +404,8 @@ open import Data.Fin using (Fin ; zero ; suc)
 Finable : ∀ {A} → SumProp A → Set
 Finable μA = Σ ℕ λ FinCard → μA ≈ μFinSuc FinCard
 
-⊤-Finable : Finable μ⊤
-⊤-Finable = 0 , ≈-sym Fin1≈⊤
+𝟙-Finable : Finable μ𝟙
+𝟙-Finable = 0 , ≈-sym Fin1≈𝟙
 
 Fin-Finable : ∀ {n} → Finable (μFinSuc n)
 Fin-Finable {n} = n , ≈-refl (μFinSuc n)
@@ -453,35 +453,35 @@ StableIfFinable μA (_ , A≈Fin)
   = _≈_.StableUnder≈ (≈-sym A≈Fin) μFinSUI
 
 Decomposable : ★ → ★₁
-Decomposable A = (A ↔ ⊤) ⊎ (∃ λ (B : ★) → A ↔ Maybe B)
+Decomposable A = (A ↔ 𝟙) ⊎ (∃ λ (B : ★) → A ↔ Maybe B)
 
 open EquationalReasoning
 
 dec-iso : ∀ {A B} → (A ↔ B) → Decomposable A → Decomposable B
-dec-iso A↔B (inj₁ A↔⊤) = inj₁ (A↔⊤ Inv.∘ sym A↔B)
+dec-iso A↔B (inj₁ A↔𝟙) = inj₁ (A↔𝟙 Inv.∘ sym A↔B)
 dec-iso A↔B (inj₂ (C , A↔MaybeC)) = inj₂ (C , A↔MaybeC Inv.∘ sym A↔B)
 
 Maybe×⊎ : ∀ {A B : ★} → (Maybe A × B) ↔ (B ⊎ (A × B))
-Maybe×⊎ {A} {B} = (Maybe A × B)   ↔⟨ Maybe↔⊤⊎ ×-cong Inv.id ⟩
-                  ((⊤ ⊎ A) × B)   ↔⟨ ×⊎°.distribʳ B ⊤ A ⟩
-                  (⊤ × B ⊎ A × B) ↔⟨ ⊤×A↔A ⊎-cong Inv.id ⟩
+Maybe×⊎ {A} {B} = (Maybe A × B)   ↔⟨ Maybe↔𝟙⊎ ×-cong Inv.id ⟩
+                  ((𝟙 ⊎ A) × B)   ↔⟨ ×⊎°.distribʳ B 𝟙 A ⟩
+                  (𝟙 × B ⊎ A × B) ↔⟨ 𝟙×A↔A ⊎-cong Inv.id ⟩
                   (B ⊎ (A × B))   ∎
 
 dec× : ∀ {A B} → Decomposable A → Decomposable B → Decomposable (A × B)
-dec× {A} {B} (inj₁ A↔⊤) dB = dec-iso (B      ↔⟨ sym ⊤×A↔A ⟩
-                                     (⊤ × B) ↔⟨ sym A↔⊤ ×-cong Inv.id ⟩
+dec× {A} {B} (inj₁ A↔𝟙) dB = dec-iso (B      ↔⟨ sym 𝟙×A↔A ⟩
+                                     (𝟙 × B) ↔⟨ sym A↔𝟙 ×-cong Inv.id ⟩
                                      (A × B) ∎) dB
-dec× {A} {B} dA (inj₁ B↔⊤) = dec-iso (A      ↔⟨ sym A×⊤↔A ⟩
-                                     (A × ⊤) ↔⟨ Inv.id ×-cong sym B↔⊤ ⟩
+dec× {A} {B} dA (inj₁ B↔𝟙) = dec-iso (A      ↔⟨ sym A×𝟙↔A ⟩
+                                     (A × 𝟙) ↔⟨ Inv.id ×-cong sym B↔𝟙 ⟩
                                      (A × B) ∎) dA
 dec× {A} {B} (inj₂ (C , A↔1+C)) (inj₂ (D , B↔1+D))
   = inj₂ (_ , Maybe-⊎ Inv.∘ Maybe×⊎ Inv.∘ A↔1+C ×-cong B↔1+D)
 
 dec+ : ∀ {A B} → Decomposable A → Decomposable B → Decomposable (A ⊎ B)
-dec+ {A} {B} (inj₁ A↔⊤)         dB = inj₂ (B , sym Maybe↔⊤⊎ Inv.∘ A↔⊤ ⊎-cong Inv.id)
-dec+ {A} {B} (inj₂ (C , A↔1+C)) dB = inj₂ ((C ⊎ B) , sym Maybe↔⊤⊎
-                                               Inv.∘ ⊎-CMon.assoc ⊤ C B
-                                               Inv.∘ (Maybe↔⊤⊎ Inv.∘ A↔1+C) ⊎-cong Inv.id)
+dec+ {A} {B} (inj₁ A↔𝟙)         dB = inj₂ (B , sym Maybe↔𝟙⊎ Inv.∘ A↔𝟙 ⊎-cong Inv.id)
+dec+ {A} {B} (inj₂ (C , A↔1+C)) dB = inj₂ ((C ⊎ B) , sym Maybe↔𝟙⊎
+                                               Inv.∘ ⊎-CMon.assoc 𝟙 C B
+                                               Inv.∘ (Maybe↔𝟙⊎ Inv.∘ A↔1+C) ⊎-cong Inv.id)
 
 {-
 dB = dec-iso {!!} dB

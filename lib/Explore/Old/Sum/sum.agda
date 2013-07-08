@@ -6,7 +6,7 @@ open import Algebra
 open import Algebra.FunctionProperties.NP
 open import Data.Nat.NP hiding (_^_)
 open import Data.Nat.Properties
-open import Data.Unit hiding (_≤_)
+open import Data.One hiding (_≤_)
 open import Data.Sum
 open import Data.Maybe.NP
 open import Data.Product

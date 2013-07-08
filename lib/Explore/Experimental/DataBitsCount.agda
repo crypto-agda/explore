@@ -11,7 +11,7 @@ open import Data.Bits.Sum
 
 
 open import Data.Bool.Properties using (not-involutive)
-open import Data.Empty using (⊥; ⊥-elim)
+open import Data.Zero using (𝟘; 𝟘-elim)
 import Data.Fin as Fin
 open Fin using (Fin; zero; suc; #_; inject₁; inject+; raise) renaming (_+_ to _+ᶠ_)
 
@@ -133,7 +133,7 @@ open ≡
 #⇒ : ∀ {n} (f g : Bits n → 𝟚) → (∀ x → ✓ (f x) → ✓ (g x)) → #⟨ f ⟩ ≤ #⟨ g ⟩
 #⇒ {zero} f g f⇒g with f [] | g [] | f⇒g []
 ... | true  | true  | _ = s≤s z≤n
-... | true  | false | p = ⊥-elim (p _)
+... | true  | false | p = 𝟘-elim (p _)
 ... | false | _     | _ = z≤n
 #⇒ {suc n} f g f⇒g = #⇒ (f ∘ 0∷_) (g ∘ 0∷_) (f⇒g ∘ 0∷_)
                +-mono #⇒ (f ∘ 1∷_) (g ∘ 1∷_) (f⇒g ∘ 1∷_)

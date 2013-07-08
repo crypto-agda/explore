@@ -5,7 +5,7 @@ open import Search.Type
 open import Search.Searchable
 open import Search.Searchable.Product
 
-open import Data.Unit
+open import Data.One
 open import Data.Product
 open import Function
 open import Relation.Binary.PropositionalEquality.NP

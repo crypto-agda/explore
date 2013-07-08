@@ -13,7 +13,7 @@ open import Data.Maybe.NP
 open import Algebra
 open import Data.Product
 open import Data.Sum
-open import Data.Unit using (⊤)
+open import Data.One using (𝟙)
 open import Data.Tree.Binary
 import Data.List as List
 open List using (List; _++_)
@@ -296,8 +296,8 @@ DistFunable (μA , μA→) = DistFun μA μA→
 μLift : ∀ {A} → Explorable A → Explorable (Lift A)
 μLift = μ-iso (FI.sym Lift↔id)
 
-μ⊤ : Explorable ⊤
-μ⊤ = mk _ (EM.return-ind _ _) (λ _ → FI.sym ⊤×A↔A)
+μ𝟙 : Explorable 𝟙
+μ𝟙 = mk _ (EM.return-ind _ _) (λ _ → FI.sym 𝟙×A↔A)
 
 explore-swap' : ∀ {A B} cm (μA : Explorable A) (μB : Explorable B) f →
                let open CMon cm

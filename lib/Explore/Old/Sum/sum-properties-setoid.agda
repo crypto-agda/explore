@@ -6,7 +6,7 @@ import Level as L
 open import Algebra
 import Algebra.FunctionProperties as FP
 
-open import Data.Empty using (⊥)
+open import Data.Zero using (𝟘)
 open import Data.Bool.NP
 open Data.Bool.NP.Indexed
 open import Data.Fin using (Fin)
@@ -14,7 +14,7 @@ open import Data.Nat.NP
 open import Data.Nat.Properties
 open import Data.Product renaming (map to pmap)
 open import Data.Sum
-open import Data.Unit using (⊤)
+open import Data.One using (𝟙)
 open import Function.NP
 import Function.Inverse as Inv
 open Inv using (_↔_)
@@ -197,7 +197,7 @@ lift-⊎ {A} {B} =  record { to = to; from = from; inverse-of = inverse-of } whe
 
   from : _
   from = record { _⟨$⟩_ = id; cong = cong } where
-    cong : ∀ {i j} → ⊎ʳ ⊥ _≡_ _≡_ i j → i ≡ j
+    cong : ∀ {i j} → ⊎ʳ 𝟘 _≡_ _≡_ i j → i ≡ j
     cong (₁∼₂ ())
     cong (₁∼₁ x∼₁y) = ≡.cong inj₁ x∼₁y
     cong (₂∼₂ x∼₂y) = ≡.cong inj₂ x∼₂y
@@ -210,26 +210,26 @@ lift-⊎ {A} {B} =  record { to = to; from = from; inverse-of = inverse-of } whe
    right-inverse-of : (_ : _) → _
    right-inverse-of x = Setoid.refl ((≡.setoid A) ⊎-setoid (≡.setoid B))
 
-Fin0≈⊤ : μFinSuc zero ≈ μ⊤
-Fin0≈⊤ = mk iso sums-ok where
+Fin0≈𝟙 : μFinSuc zero ≈ μ𝟙
+Fin0≈𝟙 = mk iso sums-ok where
   open import Relation.Binary.Sum
   iso : _
-  iso = (A⊎⊥↔A Inv.∘ Inv.id ⊎-cong Fin0↔⊥) Inv.∘ Fin∘suc↔⊤⊎Fin
+  iso = (A⊎𝟘↔A Inv.∘ Inv.id ⊎-cong Fin0↔𝟘) Inv.∘ Fin∘suc↔𝟙⊎Fin
 
   sums-ok : (_ : _) → _
   sums-ok f = ≡.refl
 
 
-⊤+Fin : ∀ {n} → μ⊤ +μ μFinSuc n ≈ μFinSuc (suc n)
-⊤+Fin {n} = mk iso sums-ok where
+𝟙+Fin : ∀ {n} → μ𝟙 +μ μFinSuc n ≈ μFinSuc (suc n)
+𝟙+Fin {n} = mk iso sums-ok where
   iso : _
-  iso = Inv.sym (Inv._∘_ (lift-⊎ {⊤} {Fin (suc n)}) Fin∘suc↔⊤⊎Fin)
+  iso = Inv.sym (Inv._∘_ (lift-⊎ {𝟙} {Fin (suc n)}) Fin∘suc↔𝟙⊎Fin)
 
   sums-ok : (_ : _) → _
   sums-ok f = ≡.refl
 
-⊤×A≈A : ∀ {A}{μA : SumProp A} → μ⊤ ×μ μA ≈ μA
-⊤×A≈A {A} = mk iso sums-ok where
+𝟙×A≈A : ∀ {A}{μA : SumProp A} → μ𝟙 ×μ μA ≈ μA
+𝟙×A≈A {A} = mk iso sums-ok where
   iso : _
   iso = ×-ICMon.identityˡ _
 
@@ -315,37 +315,37 @@ _×μ-cong_ {A}{B}{C}{D}{μA}{μB}{μC}{μD} A≈C B≈D = mk iso sums-ok where
 
 +-≈ : ∀ m n → (μFinSuc m) +μ (μFinSuc n) ≈ μFinSuc (m + suc n)
 +-≈ zero n    = μFinSuc zero +μ μFinSuc n
-              ≈⟨ Fin0≈⊤ +μ-cong ≈-refl (μFinSuc n) ⟩
-                μ⊤ +μ μFinSuc n
-              ≈⟨ ⊤+Fin ⟩
+              ≈⟨ Fin0≈𝟙 +μ-cong ≈-refl (μFinSuc n) ⟩
+                μ𝟙 +μ μFinSuc n
+              ≈⟨ 𝟙+Fin ⟩
                 μFinSuc (suc n)
               ≈∎
 +-≈ (suc m) n = μFinSuc (suc m) +μ μFinSuc n
-              ≈⟨ ≈-sym ⊤+Fin +μ-cong ≈-refl (μFinSuc n) ⟩
-                (μ⊤ +μ μFinSuc m) +μ μFinSuc n
-              ≈⟨ +μ-assoc μ⊤ (μFinSuc m) (μFinSuc n) ⟩
-                μ⊤ +μ (μFinSuc m +μ μFinSuc n)
-              ≈⟨ ≈-refl μ⊤ +μ-cong +-≈ m n ⟩
-                μ⊤ +μ μFinSuc (m + suc n)
-              ≈⟨ ⊤+Fin ⟩
+              ≈⟨ ≈-sym 𝟙+Fin +μ-cong ≈-refl (μFinSuc n) ⟩
+                (μ𝟙 +μ μFinSuc m) +μ μFinSuc n
+              ≈⟨ +μ-assoc μ𝟙 (μFinSuc m) (μFinSuc n) ⟩
+                μ𝟙 +μ (μFinSuc m +μ μFinSuc n)
+              ≈⟨ ≈-refl μ𝟙 +μ-cong +-≈ m n ⟩
+                μ𝟙 +μ μFinSuc (m + suc n)
+              ≈⟨ 𝟙+Fin ⟩
                 μFinSuc (suc m + suc n)
               ≈∎
 
 ×-≈ : ∀ m n → μFinSuc m ×μ μFinSuc n ≈ μFinSuc (n + m * suc n)
 ×-≈ zero n    = μFinSuc 0 ×μ μFinSuc n
-              ≈⟨ Fin0≈⊤ ×μ-cong (≈-refl (μFinSuc n)) ⟩
-                μ⊤ ×μ μFinSuc n
-              ≈⟨ ⊤×A≈A ⟩
+              ≈⟨ Fin0≈𝟙 ×μ-cong (≈-refl (μFinSuc n)) ⟩
+                μ𝟙 ×μ μFinSuc n
+              ≈⟨ 𝟙×A≈A ⟩
                 μFinSuc n
               ≈⟨ μFinPres (ℕ°.+-comm 0 n) ⟩
                 μFinSuc (n + 0)
               ≈∎
 ×-≈ (suc m) n = μFinSuc (suc m) ×μ μFinSuc n
-              ≈⟨ ≈-sym ⊤+Fin ×μ-cong ≈-refl (μFinSuc n) ⟩
-                (μ⊤ +μ μFinSuc m) ×μ μFinSuc n
-              ≈⟨ ×+-distrib μ⊤ (μFinSuc m) (μFinSuc n) ⟩
-                (μ⊤ ×μ μFinSuc n) +μ (μFinSuc m ×μ μFinSuc n)
-              ≈⟨ ⊤×A≈A {μA = μFinSuc n} +μ-cong ×-≈ m n ⟩
+              ≈⟨ ≈-sym 𝟙+Fin ×μ-cong ≈-refl (μFinSuc n) ⟩
+                (μ𝟙 +μ μFinSuc m) ×μ μFinSuc n
+              ≈⟨ ×+-distrib μ𝟙 (μFinSuc m) (μFinSuc n) ⟩
+                (μ𝟙 ×μ μFinSuc n) +μ (μFinSuc m ×μ μFinSuc n)
+              ≈⟨ 𝟙×A≈A {μA = μFinSuc n} +μ-cong ×-≈ m n ⟩
                 μFinSuc n +μ μFinSuc (n + m * suc n)
               ≈⟨ +-≈ n (n + m * suc n) ⟩
                 μFinSuc (n + suc m * suc n)
@@ -356,8 +356,8 @@ open import Data.Fin using (Fin ; zero ; suc)
 Finable : ∀ {A} → SumPropoid A → Set
 Finable μA = Σ ℕ λ FinCard → μA ≈ μFinSuc FinCard
 
-⊤-Finable : Finable μ⊤
-⊤-Finable = 0 , ≈-sym Fin0≈⊤
+𝟙-Finable : Finable μ𝟙
+𝟙-Finable = 0 , ≈-sym Fin0≈𝟙
 
 Fin-Finable : ∀ {n} → Finable (μFinSuc n)
 Fin-Finable {n} = n , ≈-refl (μFinSuc n)

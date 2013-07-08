@@ -19,7 +19,7 @@ swapS-preserve : ∀ {A B} f (μA×B : Explorable (A × B)) → sum μA×B f ≡
 swapS-preserve = μ-iso-preserve swap-iso
 
 μ^ : ∀ {A} (μA : Explorable A) n → Explorable (A ^ n)
-μ^ μA zero    = μLift μ⊤
+μ^ μA zero    = μLift μ𝟙
 μ^ μA (suc n) = μA ×-μ μ^ μA n
 
 μVec : ∀ {A} (μA : Explorable A) n  → Explorable (Vec A n)

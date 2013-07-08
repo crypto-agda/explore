@@ -3,7 +3,7 @@ module Search.Searchable.Fun where
 open import Type hiding (★)
 open import Data.Product
 open import Data.Sum
-open import Data.Unit
+open import Data.One
 open import Data.Bits
 open import Function.NP
 open import Search.Type
@@ -72,8 +72,8 @@ _⊎-Fun_ : ∀ {A B : ★₀} → Funable A → Funable B → Funable (A ⊎ B)
 _⊎-Fun_ (μA , μA→) (μB , μB→) = (μA ⊎-μ μB) , (λ X → μΠ⊎⁻ (μA→ X ×-μ μB→ X))
 -}
 
-S⊤ : ∀ {m A} → Search m A → Search m (⊤ → A)
-S⊤ sA _∙_ f = sA _∙_ (f ∘ const)
+S𝟙 : ∀ {m A} → Search m A → Search m (𝟙 → A)
+S𝟙 sA _∙_ f = sA _∙_ (f ∘ const)
 
 SΠBit : ∀ {m A} → Search m (A 0b) → Search m (A 1b)
                 → Search m (Π Bit A)

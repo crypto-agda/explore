@@ -8,7 +8,7 @@ import Function.Related as FR
 open import Type hiding (★)
 open import Data.Product.NP
 open import Data.Bool.NP using (✓)
-open import Data.Unit using (⊤)
+open import Data.One using (𝟙)
 open import Data.Bits
 open import Relation.Binary
 import Relation.Binary.PropositionalEquality as ≡

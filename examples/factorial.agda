@@ -36,7 +36,7 @@ module v1 where
     suc n !★ = Fin (1 + n) × n !★
 
     !★≅Fin! : ∀ n → n !★ ↔ Fin (n !)
-    !★≅Fin! zero    = I.sym Fin1↔⊤
+    !★≅Fin! zero    = I.sym Fin1↔𝟙
     !★≅Fin! (suc n) = Fin-×-* (suc n) (n !) I.∘ I.id ×-cong !★≅Fin! n
 
 module v2 where
@@ -57,7 +57,7 @@ module v2 where
     1+ n !★ = n !★ ⊎ Fin n × n !★
 
     !★≅Fin! : ∀ n → n !★ ↔ Fin (n !)
-    !★≅Fin! zero    = I.sym Fin1↔⊤
+    !★≅Fin! zero    = I.sym Fin1↔𝟙
     !★≅Fin! (suc n) = Fin-⊎-+ (n !) (n * n !)
                   I.∘ !★≅Fin! n ⊎-cong
                       (Fin-×-* n (n !) I.∘ I.id ×-cong !★≅Fin! n)

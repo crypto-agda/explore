@@ -58,7 +58,7 @@ module _ {A : ★}(μA : Explorable A) where
 -}
 
 μFinSuc : ∀ n → Explorable (Fin (suc n))
-μFinSuc n = μ-iso (Maybe^⊤↔Fin1+ n) (μMaybe^ n μ⊤)
+μFinSuc n = μ-iso (Maybe^𝟙↔Fin1+ n) (μMaybe^ n μ𝟙)
 
 postulate μFinSUI : ∀ {n} → SumStableUnderInjection (sum (μFinSuc n))
 
