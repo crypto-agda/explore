@@ -126,7 +126,7 @@ module μ where
                      (adequate-sum⊎ (adequate-sum μA) (adequate-sum μB))
 
     μBit : Explorable Bit
-    μBit = μ-iso (FI.sym Bit↔𝟙⊎𝟙) (μ𝟙 ⊎-μ μ𝟙)
+    μBit = μ-iso (FI.sym 𝟚↔𝟙⊎𝟙) (μ𝟙 ⊎-μ μ𝟙)
 
  -- -}
  -- -}
