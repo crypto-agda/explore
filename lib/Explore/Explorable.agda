@@ -1,8 +1,7 @@
 {-# OPTIONS --without-K #-}
 -- Constructions on top of exploration functions
 
-import Level as L
-open L using (Lift) renaming (zero to ₀)
+open import Level.NP
 open import Type hiding (★)
 open import Function.NP
 open import Algebra.FunctionProperties.NP
@@ -30,9 +29,6 @@ open import Explore.Type
 import Explore.Monad as EM
 
 module Explore.Explorable where
-
-private
-  ₁ = L.suc ₀
 
 module Explorableₘₚ
     {m p A}
@@ -209,6 +205,16 @@ module Explorable₀
   product : (A → ℕ) → ℕ
   product = explore _*_
 
+  big-∧ and big-∨ or big-xor : (A → Bool) → Bool
+
+  big-∧ = explore _∧_
+  and   = big-∧
+
+  big-∨ = explore _∨_
+  or    = big-∨
+
+  big-xor = explore _xor_
+
   toBinTree : BinTree A
   toBinTree = explore fork leaf
 
@@ -277,7 +283,7 @@ module DistFun {A} (μA : Explorable A)
   DistFun = ∀ f → Π' (Σᴮ ∘ f) ≈ Σ' (Π' ∘ _ˢ_ f)
 
 DistFun : ∀ {A} → Explorable A → ExploreForFun A → ★₁
-DistFun μA μA→ = ∀ {B} (μB : Explorable B) c → let open CMon {L.zero}{L.zero} c in
+DistFun μA μA→ = ∀ {B} (μB : Explorable B) c → let open CMon {₀}{₀} c in
                    ∀ ◎ → _DistributesOver_ _≈_ ◎ _∙_ → ◎ Preserves₂ _≈_ ⟶ _≈_ ⟶ _≈_
                    → DistFun.DistFun μA μA→ μB _≈_ _∙_ ◎
 

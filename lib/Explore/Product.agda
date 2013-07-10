@@ -6,6 +6,7 @@
   * adequate-sumΣ
 -}
 
+open import Level.NP
 open import Type hiding (★)
 open import Function.NP
 import Function.Related as FR
@@ -69,12 +70,6 @@ sumΣ = _⟨,⟩_
 sum× : ∀ {A B} → Sum A → Sum B → Sum (A × B)
 sum× = _⟨,⟩′_
 
-module Operators where
-    infixr 4 _×ᵉ_ _×ⁱ_ _×ˢ_
-    _×ᵉ_ = explore×
-    _×ⁱ_ = explore×-ind
-    _×ˢ_ = sum×
-
 {-
 μΣ : ∀ {A} {B : A → ★ _} → Explorable A → (∀ {x} → Explorable (B x)) → Explorable (Σ A B)
 μΣ μA μB = mk _ (exploreΣ-ind (explore-ind μA) (explore-ind μB))
@@ -99,7 +94,7 @@ _×-cmp_ : ∀ {A B : ★₀ } → Cmp A → Cmp B → Cmp (A × B)
     help false = sum-zero μB
 -}
 
-module _ {A} {B : A → _} {sᴬ : Explore₁ A} {sᴮ : ∀ {x} → Explore₁ (B x)} where
+module _ {ℓ} {A} {B : A → _} {sᴬ : Explore (ₛ ℓ) A} {sᴮ : ∀ {x} → Explore (ₛ ℓ) (B x)} where
   focusΣ : Focus sᴬ → (∀ {x} → Focus (sᴮ {x})) → Focus (exploreΣ sᴬ (λ {x} → sᴮ {x}))
   focusΣ fᴬ fᴮ ((x , y) , z) = fᴬ (x , fᴮ (y , z))
 
@@ -110,12 +105,19 @@ module _ {A} {B : A → _} {sᴬ : Explore₁ A} {sᴮ : ∀ {x} → Explore₁ 
   reifyΣ : Reify sᴬ → (∀ {x} → Reify (sᴮ {x})) → Reify (exploreΣ sᴬ (λ {x} → sᴮ {x}))
   reifyΣ reifyᴬ reifyᴮ f = reifyᴬ (reifyᴮ ∘ curry f)
 
-module _ {A B} {sᴬ : Explore₁ A} {sᴮ : Explore₁ B} where
-  open Operators
-  focus× : Focus sᴬ → Focus sᴮ → Focus (sᴬ ×ᵉ sᴮ)
+module _ {ℓ} {A B} {sᴬ : Explore (ₛ ℓ) A} {sᴮ : Explore (ₛ ℓ) B} where
+  focus× : Focus sᴬ → Focus sᴮ → Focus (explore× sᴬ sᴮ)
   focus× fᴬ fᴮ = focusΣ {sᴬ = sᴬ} {sᴮ = sᴮ} fᴬ fᴮ
-  lookup× : Lookup sᴬ → Lookup sᴮ → Lookup (sᴬ ×ᵉ sᴮ)
+  lookup× : Lookup sᴬ → Lookup sᴮ → Lookup (explore× sᴬ sᴮ)
   lookup× fᴬ fᴮ = lookupΣ {sᴬ = sᴬ} {sᴮ = sᴮ} fᴬ fᴮ
+
+module Operators where
+    infixr 4 _×ᵉ_ _×ⁱ_ _×ˢ_
+    _×ᵉ_ = explore×
+    _×ⁱ_ = explore×-ind
+    _×ˢ_ = sum×
+    _×ᶠ_ = focus×
+    _×ˡ_ = lookup×
 
 -- Those are here only for pedagogical use
 private

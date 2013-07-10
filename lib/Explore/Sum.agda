@@ -70,6 +70,8 @@ module _ {A B} {sumᴬ : Sum A} {sumᴮ : Sum B} where
                                    ∎
       where open FR.EquationalReasoning
 
+    _⊎ᵃ_ = adequate-sum⊎
+
 module _ {A B} {sᴬ : Explore₁ A} {sᴮ : Explore₁ B} where
   sᴬ⁺ᴮ = sᴬ ⊎ᵉ sᴮ
   _⊎-focus_ : Focus sᴬ → Focus sᴮ → Focus sᴬ⁺ᴮ
@@ -97,37 +99,10 @@ module _ {A B} {sᴬ : Explore₁ A} {sᴮ : Explore₁ B} where
   _⊎-reify_ : Reify sᴬ → Reify sᴮ → Reify (sᴬ ⊎ᵉ sᴮ)
   (reifyᴬ ⊎-reify reifyᴮ) f = (reifyᴬ (f ∘ inj₁)) , (reifyᴮ (f ∘ inj₂))
 
-exploreBit : ∀ {m} → Explore m Bit
-exploreBit _∙_ f = f 0b ∙ f 1b
-
-exploreBit-ind : ∀ {m p} → ExploreInd p {m} exploreBit
-exploreBit-ind _ _P∙_ Pf = Pf 0b P∙ Pf 1b
-
-focusBit : ∀ {a} → Focus {a} exploreBit
-focusBit (0b , x) = inj₁ x
-focusBit (1b , x) = inj₂ x
-
-focusedBit : Focused {L.zero} exploreBit
-focusedBit {B} = inverses focusBit unfocus (⇒) (⇐)
-  where open Explorable₁₁ exploreBit-ind
-        ⇒ : (x : Σ Bit B) → _
-        ⇒ (0b , x) = ≡.refl
-        ⇒ (1b , x) = ≡.refl
-        ⇐ : (x : B 0b ⊎ B 1b) → _
-        ⇐ (inj₁ x) = ≡.refl
-        ⇐ (inj₂ x) = ≡.refl
-
-lookupBit : ∀ {a} → Lookup {a} exploreBit
-lookupBit = proj
-
 -- DEPRECATED
-module μ where
-    _⊎-μ_ : ∀ {A B} → Explorable A → Explorable B → Explorable (A ⊎ B)
-    μA ⊎-μ μB = mk _ (explore-ind μA ⊎ⁱ explore-ind μB)
-                     (adequate-sum⊎ (adequate-sum μA) (adequate-sum μB))
-
-    μBit : Explorable Bit
-    μBit = μ-iso (FI.sym 𝟚↔𝟙⊎𝟙) (μ𝟙 ⊎-μ μ𝟙)
+_⊎-μ_ : ∀ {A B} → Explorable A → Explorable B → Explorable (A ⊎ B)
+μA ⊎-μ μB = mk _ (explore-ind μA ⊎ⁱ explore-ind μB)
+                 (adequate-sum⊎ (adequate-sum μA) (adequate-sum μB))
 
  -- -}
  -- -}
