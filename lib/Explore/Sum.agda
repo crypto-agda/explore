@@ -11,7 +11,7 @@
 open import Type hiding (★)
 open import Function.NP
 open import Data.Nat using (_+_)
-import Level as L
+open import Level.NP
 import Function.Inverse.NP as FI
 import Function.Related as FR
 open FI using (_↔_; inverses; module Inverse) renaming (_$₁_ to to; _$₂_ to from)
@@ -72,15 +72,15 @@ module _ {A B} {sumᴬ : Sum A} {sumᴮ : Sum B} where
 
     _⊎ᵃ_ = adequate-sum⊎
 
-module _ {A B} {sᴬ : Explore₁ A} {sᴮ : Explore₁ B} where
+module _ {ℓ} {A B} {sᴬ : Explore (ₛ ℓ) A} {sᴮ : Explore (ₛ ℓ) B} where
   sᴬ⁺ᴮ = sᴬ ⊎ᵉ sᴮ
-  _⊎-focus_ : Focus sᴬ → Focus sᴮ → Focus sᴬ⁺ᴮ
-  (fᴬ ⊎-focus fᴮ) (inj₁ x , y) = inj₁ (fᴬ (x , y))
-  (fᴬ ⊎-focus fᴮ) (inj₂ x , y) = inj₂ (fᴮ (x , y))
+  focus⊎ : Focus sᴬ → Focus sᴮ → Focus sᴬ⁺ᴮ
+  focus⊎ fᴬ fᴮ (inj₁ x , y) = inj₁ (fᴬ (x , y))
+  focus⊎ fᴬ fᴮ (inj₂ x , y) = inj₂ (fᴮ (x , y))
 
-  _⊎-unfocus_ : Unfocus sᴬ → Unfocus sᴮ → Unfocus sᴬ⁺ᴮ
-  _⊎-unfocus_ fᴬ fᴮ (inj₁ x) = first inj₁ (fᴬ x)
-  _⊎-unfocus_ fᴬ fᴮ (inj₂ y) = first inj₂ (fᴮ y)
+  unfocus⊎ : Unfocus sᴬ → Unfocus sᴮ → Unfocus sᴬ⁺ᴮ
+  unfocus⊎ fᴬ fᴮ (inj₁ x) = first inj₁ (fᴬ x)
+  unfocus⊎ fᴬ fᴮ (inj₂ y) = first inj₂ (fᴮ y)
 
   {-
   _⊎-focused_ : Focused sᴬ → Focused sᴮ → Focused {L.zero} sᴬ⁺ᴮ
@@ -93,11 +93,11 @@ module _ {A B} {sᴬ : Explore₁ A} {sᴮ : Explore₁ B} where
         ⇐ (inj₂ x) = cong inj₂ {!!}
   -}
 
-  _⊎-lookup_ : Lookup sᴬ → Lookup sᴮ → Lookup (sᴬ ⊎ᵉ sᴮ)
-  (lookupᴬ ⊎-lookup lookupᴮ) (x , y) = [ lookupᴬ x , lookupᴮ y ]
+  lookup⊎ : Lookup sᴬ → Lookup sᴮ → Lookup (sᴬ ⊎ᵉ sᴮ)
+  lookup⊎ lookupᴬ lookupᴮ (x , y) = [ lookupᴬ x , lookupᴮ y ]
 
-  _⊎-reify_ : Reify sᴬ → Reify sᴮ → Reify (sᴬ ⊎ᵉ sᴮ)
-  (reifyᴬ ⊎-reify reifyᴮ) f = (reifyᴬ (f ∘ inj₁)) , (reifyᴮ (f ∘ inj₂))
+  reify⊎ : Reify sᴬ → Reify sᴮ → Reify (sᴬ ⊎ᵉ sᴮ)
+  reify⊎ reifyᴬ reifyᴮ f = (reifyᴬ (f ∘ inj₁)) , (reifyᴮ (f ∘ inj₂))
 
 -- DEPRECATED
 _⊎-μ_ : ∀ {A B} → Explorable A → Explorable B → Explorable (A ⊎ B)
