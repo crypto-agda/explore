@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 open import Function.Related.TypeIsomorphisms.NP
 open import Function.Inverse.NP
 open import Data.Maybe.NP

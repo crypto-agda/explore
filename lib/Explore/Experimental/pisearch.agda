@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 {-# OPTIONS --type-in-type #-}
 module pisearch where
 open import Type hiding (★_)

@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 module Explore.README where
 
 -- The core types behind exploration functions

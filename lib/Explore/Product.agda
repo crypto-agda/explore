@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 {- The main definitions are the following:
 
   * exploreΣ

@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 module 3to2 where
 
 open import Type using (★; ★₁)

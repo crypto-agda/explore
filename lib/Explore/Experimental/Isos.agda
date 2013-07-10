@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 module Explore.Explorable.Isos where
 
 open import Function

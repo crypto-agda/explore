@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 module isos-examples where
 
 open import Function

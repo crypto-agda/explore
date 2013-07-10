@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 module Explore.Explorable.Fin where
 
 import Level as L

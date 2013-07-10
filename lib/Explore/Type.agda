@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 -- The core types behind exploration functions
 module Explore.Type where
 

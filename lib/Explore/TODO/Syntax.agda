@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 open import Type
 open import Data.Bits    using (Bits)
 open import Data.Bit     using (Bit)

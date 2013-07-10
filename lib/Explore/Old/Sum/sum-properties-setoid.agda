@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 module sum-properties-setoid where
 
 open import Type

@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 module Search.Searchable.Fun where
 
 open import Type hiding (★)

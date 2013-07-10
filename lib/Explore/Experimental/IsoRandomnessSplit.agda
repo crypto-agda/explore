@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 module tactic where
 
 open import Type

@@ -1,3 +1,4 @@
+-- NOTE with-K
 -- Specific constructions on top of summation functions
 
 module Explore.Summable where

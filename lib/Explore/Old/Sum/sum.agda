@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 import Level as L
 open L using (Lift; lift)
 open import Type hiding (★)

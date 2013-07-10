@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 open import Data.Bits.Search
 open import Data.Nat.NP
 

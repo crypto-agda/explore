@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 -- Constructions on top of exploration functions
 
 import Level as L

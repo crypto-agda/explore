@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 -- most of this is subsumed by crypto-agda Search code
 open import Type hiding (★)
 open import Data.Nat.NP hiding (_==_) renaming (_<=_ to _ℕ<=_)

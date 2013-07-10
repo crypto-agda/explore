@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 module Explore.BinTree where
 
 open import Data.Tree.Binary
