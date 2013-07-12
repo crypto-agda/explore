@@ -14,7 +14,7 @@ open import Algebra
 open import Relation.Binary.NP
 open import Data.Product
 open import Data.Sum
-open import Data.Bool.NP using (Bool; ✓)
+open import Data.Two using (𝟚; ✓)
 open import Data.Maybe.NP using (_→?_)
 open import Data.Fin using (Fin)
 import Algebra.FunctionProperties.NP as FP
@@ -186,7 +186,7 @@ Find? : ★₀ → ★₁
 Find? A = ∀ {B : ★₀} → (A →? B) →? B
 
 FindKey : ★₀ → ★₀
-FindKey A = (A → Bool) →? A
+FindKey A = (A → 𝟚) →? A
 
 _,-kit_ : ∀ {m p A} {P : Explore m A → ★ p}{Q : Explore m A → ★ p}
           → ExploreIndKit p P → ExploreIndKit p Q → ExploreIndKit p (P ×° Q)

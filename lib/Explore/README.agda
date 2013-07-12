@@ -16,6 +16,13 @@ open import Explore.Product
 -- Exploration of disjoint sums
 open import Explore.Sum
 
+-- Exploration of base types 𝟙 and 𝟚
+open import Explore.One
+open import Explore.Two
+
+-- A type universe of explorable types
+open import Explore.Universe
+
 -- From binary trees to explorations and back
 open import Explore.BinTree
 

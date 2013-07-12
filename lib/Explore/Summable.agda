@@ -12,8 +12,8 @@ open import Explore.Product
 open import Data.Product
 open import Data.Nat.NP
 open import Data.Nat.Properties
-open import Data.Bool.NP renaming (Bool to 𝟚; true to 1b; false to 0b; toℕ to 𝟚▹ℕ)
-open Data.Bool.NP.Indexed
+open import Data.Two
+open Data.Two.Indexed
 
 module FromSum {A : ★} (sum : Sum A) where
   Card : ℕ
@@ -87,18 +87,18 @@ module FromSumInd {A : ★}
   module _ f g where
     count-∧-not : count f ≡ count (f ∧° g) + count (f ∧° not° g)
     count-∧-not rewrite sum-⊓-∸ (𝟚▹ℕ ∘ f) (𝟚▹ℕ ∘ g)
-                      | sum-ext (f ⟨ toℕ-⊓ ⟩° g)
-                      | sum-ext (f ⟨ toℕ-∸ ⟩° g)
+                      | sum-ext (f ⟨ 𝟚▹ℕ-⊓ ⟩° g)
+                      | sum-ext (f ⟨ 𝟚▹ℕ-∸ ⟩° g)
                       = ≡.refl
 
     count-∨-∧ : count f + count g ≡ count (f ∨° g) + count (f ∧° g)
     count-∨-∧ rewrite sum-⊔-⊓ (𝟚▹ℕ ∘ f) (𝟚▹ℕ ∘ g)
-                    | sum-ext (f ⟨ toℕ-⊔ ⟩° g)
-                    | sum-ext (f ⟨ toℕ-⊓ ⟩° g)
+                    | sum-ext (f ⟨ 𝟚▹ℕ-⊔ ⟩° g)
+                    | sum-ext (f ⟨ 𝟚▹ℕ-⊓ ⟩° g)
                     = ≡.refl
 
     count-∨≤+ : count (f ∨° g) ≤ count f + count g
-    count-∨≤+ = ℕ≤.trans (ℕ≤.reflexive (sum-ext (≡.sym ∘ (f ⟨ toℕ-⊔ ⟩° g))))
+    count-∨≤+ = ℕ≤.trans (ℕ≤.reflexive (sum-ext (≡.sym ∘ (f ⟨ 𝟚▹ℕ-⊔ ⟩° g))))
                          (sum-⊔ (𝟚▹ℕ ∘ f) (𝟚▹ℕ ∘ g))
 
 module FromSum×

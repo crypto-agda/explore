@@ -6,7 +6,7 @@ open import Algebra.FunctionProperties
 open import Data.Product
 open import Function using (_∘_ ; flip)
 open import Function.Inverse as Inv using (_↔_; module Inverse)
-open import Relation.Binary.PropositionalEquality.NP
+open import Relation.Binary.PropositionalEquality.NP hiding (_∙_)
 
 open import Explore.Type
 open import Explore.Sum

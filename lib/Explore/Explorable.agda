@@ -5,7 +5,7 @@ open import Level.NP
 open import Type hiding (★)
 open import Function.NP
 open import Algebra.FunctionProperties.NP
-open import Data.Bool.NP as Bool
+open import Data.Two
 open import Data.Nat.NP hiding (_^_; _⊔_)
 open import Data.Nat.Properties
 open import Data.Fin using (Fin)
@@ -194,18 +194,18 @@ module Explorable₀
   Card = sum (const 1)
 
   count : Count A
-  count f = sum (Bool.toℕ ∘ f)
+  count f = sum (𝟚▹ℕ ∘ f)
 
   count-ext : CountExt count
-  count-ext f≗g = sum-ext (≡.cong Bool.toℕ ∘ f≗g)
+  count-ext f≗g = sum-ext (≡.cong 𝟚▹ℕ ∘ f≗g)
 
   countStableUnder : ∀ {p} → SumStableUnder sum p → CountStableUnder count p
-  countStableUnder sumSU-p f = sumSU-p (Bool.toℕ ∘ f)
+  countStableUnder sumSU-p f = sumSU-p (𝟚▹ℕ ∘ f)
 
   product : (A → ℕ) → ℕ
   product = explore _*_
 
-  big-∧ and big-∨ or big-xor : (A → Bool) → Bool
+  big-∧ and big-∨ or big-xor : (A → 𝟚) → 𝟚
 
   big-∧ = explore _∧_
   and   = big-∧
@@ -231,7 +231,7 @@ module Explorable₀
   find? = explore (M?._∣_ _)
 
   findKey : FindKey A
-  findKey pred = find? (λ x → if pred x then just x else nothing)
+  findKey pred = find? (λ x → [0: nothing 1: just x ] (pred x))
 
 module Explorable₁₀ {A} {explore₁ : Explore₁ A}
                     (explore-ind₀ : ExploreInd ₀ explore₁) where
