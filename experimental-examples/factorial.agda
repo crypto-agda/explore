@@ -81,6 +81,7 @@ test-product[1…3] : product[1… 3 ] ≡ (λ f → f 1 * (f 2 * (f 3 * 1)))
 test-product[1…3] = ≡.refl
 
 open v1
+{-
 adequate1 : ∀ n → n ! ≡ product[1… n ] id
 adequate1 zero = ≡.refl
 adequate1 (suc n) rewrite adequate1 n = {!!}
@@ -89,6 +90,7 @@ adequate1 (suc n) rewrite adequate1 n = {!!}
   (1 + n) * Π{x∈1…n}x
 
   Π{x∈1…n}1+x
+  -}
 
 {-
 open import Data.Maybe
@@ -97,6 +99,7 @@ open import Data.Maybe
 ΠMaybe = {!!}
 -}
 
+{-
 ΠFin1+ : ∀ n (F : Fin (1 + n) → ★) →
          Π (Fin (1 + n)) F ↔ (F zero × Π (Fin n) (F ∘ suc))
 ΠFin1+ = {!!}
@@ -112,6 +115,7 @@ open import Data.Maybe
 ΠFin1+ʳ′ : ∀ n (F : ℕ → ★) →
            Π (Fin (1 + n)) (F ∘ Fin▹ℕ) ↔ (F n × Π (Fin n) (F ∘ Fin▹ℕ))
 ΠFin1+ʳ′ = {!!}
+-}
 
 Π[0…_] : ℕ → (ℕ → ℕ) → ★
 Π[0… n ] f = Π (Fin n) (Fin ∘ f ∘ Fin▹ℕ)
@@ -128,6 +132,7 @@ open import Data.Maybe
 -- Π𝟘↔𝟙 : ∀ {F : 𝟘 → ★} → Π 𝟘 F ↔ 𝟙
 -- Π𝟘↔𝟙 = {!!}
 
+{-
 ΠFin0↔𝟙 : ∀ {F : Fin 0 → ★} → Π (Fin 0) F ↔ 𝟙
 ΠFin0↔𝟙 = inverses _ (const (λ())) (λ x → {!!}) (λ x → ≡.refl)
 
@@ -142,15 +147,16 @@ open import Data.Maybe
                     Π[0… 1 + n ] f
                   ∎
                 where open FR.EquationalReasoning
-
+-}
 -- (A → B ⊎ C)
 
 -- TODO
 -- adequate! : ∀ n → Fin (suc n) × Fin (n !) ↔ Π (Fin n) (Fin′ F.∘ suc)
 
-foo : ∀ n → (2 + n)! ≡ (2 + n) * (1 + n)!
-foo = λ n → ≡.refl
+example : ∀ n → (2 + n)! ≡ (2 + n) * (1 + n)!
+example = λ n → ≡.refl
 
+{-
 adequate! : ∀ n → Fin ((1 + n)!) ↔ Π[0… n ] suc
 adequate! zero = {!I.id!}
 adequate! (suc n) = (Fin ((2 + n)!))
@@ -164,6 +170,7 @@ adequate! (suc n) = (Fin ((2 + n)!))
                     Π[0… suc n ] suc
                   ∎
                 where open FR.EquationalReasoning
+-}
 {-
 
 HI: (n+1)! ↔ Π n suc
