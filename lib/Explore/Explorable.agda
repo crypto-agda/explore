@@ -30,10 +30,66 @@ import Explore.Monad as EM
 
 module Explore.Explorable where
 
+module FromExplore
+    {m A}
+    (explore : Explore m A) where
+
+  exploreMon : ∀ {ℓ} (M : Monoid m ℓ) → ExploreMon M A
+  exploreMon M = explore _∙_
+    where open Mon M
+
+  explore∘ : ∀ {M} → (M → M → M) → (A → M) → (M → M)
+  explore∘ = explore∘FromExplore explore
+
+  exploreMon∘ : ∀ {ℓ} (M : Monoid m ℓ) → ExploreMon M A
+  exploreMon∘ M f = explore∘ _∙_ f ε where open Mon M
+
+module FromExplore₀ {A} (explore : Explore₀ A) where
+  open FromExplore explore
+
+  sum : Sum A
+  sum = explore _+_
+
+  Card : ℕ
+  Card = sum (const 1)
+
+  count : Count A
+  count f = sum (𝟚▹ℕ ∘ f)
+
+  product : (A → ℕ) → ℕ
+  product = explore _*_
+
+  big-∧ and big-∨ or big-xor : (A → 𝟚) → 𝟚
+
+  big-∧ = explore _∧_
+  and   = big-∧
+
+  big-∨ = explore _∨_
+  or    = big-∨
+
+  big-xor = explore _xor_
+
+  toBinTree : BinTree A
+  toBinTree = explore fork leaf
+
+  toList : List A
+  toList = explore _++_ List.[_]
+
+  toList∘ : List A
+  toList∘ = explore∘ _++_ List.[_] List.[]
+
+  find? : Find? A
+  find? = explore (M?._∣_ _)
+
+  findKey : FindKey A
+  findKey pred = find? (λ x → [0: nothing 1: just x ] (pred x))
+
 module Explorableₘₚ
     {m p A}
     {explore     : Explore m A}
     (explore-ind : ExploreInd p explore) where
+
+  open FromExplore explore public
 
   explore-sg-ext : ExploreSgExt _ explore
   explore-sg-ext sg {f} {g} f≈°g = explore-ind (λ s → s _ f ≈ s _ g) ∙-cong f≈°g
@@ -49,16 +105,6 @@ module Explorableₘₚ
                (λ p q → trans (∙-cong p q) (sym (pf _ _)))
                (λ _ → refl)
     where open Sgrp sg
-
-  exploreMon : ∀ {ℓ} (M : Monoid m ℓ) → ExploreMon M A
-  exploreMon M = explore _∙_
-    where open Mon M
-
-  explore∘ : ∀ {M} → (M → M → M) → (A → M) → (M → M)
-  explore∘ = explore∘FromExplore explore
-
-  exploreMon∘ : ∀ {ℓ} (M : Monoid m ℓ) → ExploreMon M A
-  exploreMon∘ M f = explore∘ _∙_ f ε where open Mon M
 
 plugKit : ∀ {m p A} (M : Monoid m p) → ExploreIndKit _ {A = A} (ExplorePlug M)
 plugKit M = (λ Ps Ps' _ x →
@@ -159,9 +205,7 @@ module Explorable₀
     (explore-ind : ExploreInd₀ explore) where
   open Explorableₘₚ explore-ind public
   open Explorableₘ  explore-ind public
-
-  sum : Sum A
-  sum = explore _+_
+  open FromExplore₀ explore     public
 
   ⟦explore⟧ : ∀ {Aᵣ : A → A → ★_ _}
                (Aᵣ-refl : Reflexive Aᵣ)
@@ -190,48 +234,14 @@ module Explorable₀
   sumStableUnder : ∀ {p} → StableUnder explore p → SumStableUnder sum p
   sumStableUnder SU-p = SU-p _+_
 
-  Card : ℕ
-  Card = sum (const 1)
-
-  count : Count A
-  count f = sum (𝟚▹ℕ ∘ f)
-
   count-ext : CountExt count
   count-ext f≗g = sum-ext (≡.cong 𝟚▹ℕ ∘ f≗g)
 
   countStableUnder : ∀ {p} → SumStableUnder sum p → CountStableUnder count p
   countStableUnder sumSU-p f = sumSU-p (𝟚▹ℕ ∘ f)
 
-  product : (A → ℕ) → ℕ
-  product = explore _*_
-
-  big-∧ and big-∨ or big-xor : (A → 𝟚) → 𝟚
-
-  big-∧ = explore _∧_
-  and   = big-∧
-
-  big-∨ = explore _∨_
-  or    = big-∨
-
-  big-xor = explore _xor_
-
-  toBinTree : BinTree A
-  toBinTree = explore fork leaf
-
-  toList : List A
-  toList = explore _++_ List.[_]
-
-  toList∘ : List A
-  toList∘ = explore∘ _++_ List.[_] List.[]
-
   toList≡toList∘ : toList ≡ toList∘
   toList≡toList∘ = exploreMon∘-spec (List.monoid A) List.[_]
-
-  find? : Find? A
-  find? = explore (M?._∣_ _)
-
-  findKey : FindKey A
-  findKey pred = find? (λ x → [0: nothing 1: just x ] (pred x))
 
 module Explorable₁₀ {A} {explore₁ : Explore₁ A}
                     (explore-ind₀ : ExploreInd ₀ explore₁) where
