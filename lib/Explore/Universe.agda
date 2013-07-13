@@ -5,11 +5,13 @@ open import Data.Two
 open import Data.Product
 open import Data.Sum
 open import Data.Nat
+open import Data.Fin using (Fin)
 open import Explore.Type
 open import Explore.One
 open import Explore.Two
 open import Explore.Product
 open import Explore.Sum
+open import Explore.Fin
 open import Explore.Explorable
 
 module Explore.Universe where
@@ -26,16 +28,18 @@ data U where
   𝟙′ 𝟚′ : U
   _×′_ _⊎′_ : U → U → U
   Σ′ : (t : U) → (El t → U) → U
-
-_^′_ : U → ℕ → U
-t ^′ zero  = t
-t ^′ suc n = t ×′ t ^′ n
+--FinS′ : ℕ → U
 
 El 𝟙′ = 𝟙
 El 𝟚′ = 𝟚
 El (s ×′ t) = El s × El t
 El (s ⊎′ t) = El s ⊎ El t
 El (Σ′ t f) = Σ (El t) λ x → El (f x)
+--El (FinS′ n) = FinS n
+
+_^′_ : U → ℕ → U
+t ^′ zero  = t
+t ^′ suc n = t ×′ t ^′ n
 
 module _ {ℓ} where
 
@@ -44,7 +48,8 @@ module _ {ℓ} where
     exploreU 𝟚′ = 𝟚ᵉ
     exploreU (s ×′ t) = exploreU s ×ᵉ exploreU t
     exploreU (s ⊎′ t) = exploreU s ⊎ᵉ exploreU t
-    exploreU (Σ′ t f)  = exploreΣ (exploreU t) λ {x} → exploreU (f x)
+    exploreU (Σ′ t f) = exploreΣ (exploreU t) λ {x} → exploreU (f x)
+  --exploreU (FinS′ n) = FinSᵉ n
 
     exploreU-ind : ∀ {p} t → ExploreInd p (exploreU t)
     exploreU-ind 𝟙′ = 𝟙ⁱ
@@ -52,6 +57,7 @@ module _ {ℓ} where
     exploreU-ind (s ×′ t) = exploreU-ind s ×ⁱ exploreU-ind t
     exploreU-ind (s ⊎′ t) = exploreU-ind s ⊎ⁱ exploreU-ind t
     exploreU-ind (Σ′ t f) = exploreΣ-ind (exploreU-ind t) λ {x} → exploreU-ind (f x)
+  --exploreU-ind (FinS′ n) = FinSⁱ n
 
 module _ (t : U) where
   private
@@ -69,6 +75,7 @@ adequate-sumU 𝟚′       = 𝟚ˢ-ok
 adequate-sumU (s ×′ t) = adequate-sumΣ (adequate-sumU s) (adequate-sumU t)
 adequate-sumU (s ⊎′ t) = adequate-sum⊎ (adequate-sumU s) (adequate-sumU t)
 adequate-sumU (Σ′ t f) = adequate-sumΣ (adequate-sumU t) (λ {x} → adequate-sumU (f x))
+--adequate-sumU (FinS′ n) = {!!}
 
 module _ {ℓ} where
     lookupU : ∀ t → Lookup {ℓ} (exploreU t)
@@ -77,6 +84,7 @@ module _ {ℓ} where
     lookupU (s ×′ t) = lookup× {_} {_} {_} {exploreU s} {exploreU t} (lookupU s) (lookupU t)
     lookupU (s ⊎′ t) = lookup⊎ {_} {_} {_} {exploreU s} {exploreU t} (lookupU s) (lookupU t)
     lookupU (Σ′ t f) = lookupΣ {_} {_} {_} {exploreU t} {λ {x} → exploreU (f x)} (lookupU t) (λ {x} → lookupU (f x))
+  --lookupU (FinS′ n) = FinSˡ n
 
     focusU : ∀ t → Focus {ℓ} (exploreU t)
     focusU 𝟙′ = 𝟙ᶠ
@@ -84,4 +92,5 @@ module _ {ℓ} where
     focusU (s ×′ t) = focus× {_} {_} {_} {exploreU s} {exploreU t} (focusU s) (focusU t)
     focusU (s ⊎′ t) = focus⊎ {_} {_} {_} {exploreU s} {exploreU t} (focusU s) (focusU t)
     focusU (Σ′ t f) = focusΣ {_} {_} {_} {exploreU t} {λ {x} → exploreU (f x)} (focusU t) (λ {x} → focusU (f x))
+  --focusU (FinS′ n) = FinSᶠ n
 -- -}

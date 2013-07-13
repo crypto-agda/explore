@@ -1,7 +1,6 @@
 {-# OPTIONS --without-K #-}
-module Explore.Fin where
 
-import Level as L
+open import Level.NP
 open import Type
 open import Function
 open import Algebra
@@ -9,23 +8,61 @@ open import Algebra.FunctionProperties.NP
 open import Data.Fin using (Fin; zero; suc)
 open import Data.Nat
 open import Data.Product
+open import Data.Sum
 open import Function.Related.TypeIsomorphisms.NP
+import Function.Inverse.NP as Inv
+open Inv using (_↔_; sym; id; inverses; module Inverse) renaming (_$₁_ to to; _$₂_ to from)
 open import Relation.Binary.NP
-
 open import Explore.Type
 open import Explore.Explorable
+open import Explore.Isomorphism
 --open import Explore.Explorable.Maybe
 
+module Explore.Fin where
+
+FinS = Fin ∘ suc
+
+{- TODO use Explore.Isomorphism to shorten and finish that
+module _ {ℓ} n where
+
+    iso = Maybe^𝟙↔Fin1+ n
+    FinSᵉ : Explore ℓ (FinS n)
+    FinSᵉ = {!explore-iso iso!}
+-}
+
+module _ {ℓ} where
+    FinSᵉ : ∀ n → Explore ℓ (FinS n)
+    FinSᵉ zero    _∙_ f = f zero
+    FinSᵉ (suc n) _∙_ f = f zero ∙ FinSᵉ n _∙_ (f ∘ suc)
+
+    FinSⁱ : ∀ {p} n → ExploreInd p (FinSᵉ n)
+    FinSⁱ zero    P _∙_ f = f zero
+    FinSⁱ (suc n) P _∙_ f = f zero ∙ FinSⁱ n Psuc _∙_ (f ∘ suc)
+      where Psuc = λ e → P (λ op f → e op (f ∘ suc))
+
+module _ {ℓ} where
+    FinSˡ : ∀ n → Lookup {ℓ} (FinSᵉ n)
+    FinSˡ zero    b        zero    = b
+    FinSˡ (suc _) (b , _)  zero    = b
+    FinSˡ zero    _        (suc ())
+    FinSˡ (suc n) (_ , xs) (suc x) = FinSˡ n xs x
+
+    FinSᶠ : ∀ n → Focus {ℓ} (FinSᵉ n)
+    FinSᶠ zero    (zero   , b) = b
+    FinSᶠ zero    (suc () , _)
+    FinSᶠ (suc n) (zero   , b) = inj₁ b
+    FinSᶠ (suc n) (suc x  , b) = inj₂ (FinSᶠ n (x , b))
+
 module _ n where
-  T = Fin (suc n)
-
-  iso = Maybe^𝟙↔Fin1+ n
-
-  module _ {ℓ} where
-    FinSucᵉ : Explore ℓ T
-    FinSucᵉ _∙_ f = f zero ∙ {!FinSucᵉ _∙_ (f ∘ suc)!}
+    open Explorable₀  (FinSⁱ n) public using () renaming (sum     to FinSˢ; product to FinSᵖ)
+    open Explorable₁₀ (FinSⁱ n) public using () renaming (reify   to FinSʳ)
+    open Explorable₁₁ (FinSⁱ n) public using () renaming (unfocus to FinSᵘ)
 
 {-
+FinSˢ-ok : ∀ n → AdequateSum (FinSˢ n)
+
+FinSᵖ-ok : ∀ n → AdequateProduct (FinSᵖ n)
+
 module _ {A : ★}(μA : Explorable A) where
 
   sA = explore μA
@@ -61,18 +98,18 @@ module _ {A : ★}(μA : Explorable A) where
   μFun = mk _ (ind _) (ade _)
 
 {-
-μFinSuc : ∀ n → Explorable (Fin (suc n))
-μFinSuc n = mk _ (ind n) {!!}
-  where ind : ∀ n → ExploreInd _ (exploreFinSuc n)
+μFinS : ∀ n → Explorable (Fin (suc n))
+μFinS n = mk _ (ind n) {!!}
+  where ind : ∀ n → ExploreInd _ (exploreFinS n)
         ind zero    P P∙ Pf = Pf zero
         ind (suc n) P P∙ Pf = P∙ (Pf zero) (ind n (λ s → P (λ op f → s op (f ∘ suc))) P∙ (Pf ∘ suc))
 -}
 
-postulate μFinSUI : ∀ {n} → SumStableUnderInjection (sum (μFinSuc n))
+postulate μFinSUI : ∀ {n} → SumStableUnderInjection (sum (μFinS n))
 
 module BigDistr
   {A : ★}(μA : Explorable A)
-  (cm       : CommutativeMonoid L.zero L.zero)
+  (cm       : CommutativeMonoid ₀ ₀)
   -- we want (open CMon cm) !!!
   (_◎_      : let open CMon cm in C → C → C)
   (distrib  : let open CMon cm in _DistributesOver_ _≈_ _◎_ _∙_)
@@ -90,7 +127,7 @@ module BigDistr
   Σ' = explore μF→A _∙_
 
   -- Product over Fin(1+I) values
-  Π' = λ I → explore (μFinSuc I) _◎_
+  Π' = λ I → explore (μFinS I) _◎_
 
   bigDistr : ∀ I F → Π' I (Σᴬ ∘ F) ≈ Σ' (Π' I ∘ _ˢ_ F)
   bigDistr zero    _ = refl
@@ -104,6 +141,12 @@ module BigDistr
       (Σᴬ λ j → Σ' λ f → F zero j ◎ Π' I ((F ∘ suc) ˢ f))
     ∎
 
-FinDist : ∀ {n} → DistFun (μFinSuc n) (λ μX → μFun μX)
+FinDist : ∀ {n} → DistFun (μFinS n) (λ μX → μFun μX)
 FinDist μB c ◎ distrib ◎-cong f = BigDistr.bigDistr μB c ◎ distrib ◎-cong _ f
+-- -}
+-- -}
+-- -}
+-- -}
+-- -}
+-- -}
 -- -}

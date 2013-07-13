@@ -16,9 +16,10 @@ open import Explore.Product
 -- Exploration of disjoint sums
 open import Explore.Sum
 
--- Exploration of base types 𝟙 and 𝟚
+-- Exploration of base types 𝟙, 𝟚, Fin (1 + n)
 open import Explore.One
 open import Explore.Two
+open import Explore.Fin -- unfinished
 
 -- A type universe of explorable types
 open import Explore.Universe
