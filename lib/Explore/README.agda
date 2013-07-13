@@ -23,6 +23,9 @@ open import Explore.Two
 -- A type universe of explorable types
 open import Explore.Universe
 
+-- Transporting explorations across isomorphisms
+open import Explore.Isomorphism
+
 -- From binary trees to explorations and back
 open import Explore.BinTree
 
