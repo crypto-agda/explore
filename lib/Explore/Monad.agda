@@ -21,16 +21,17 @@ module _ {A B : Set} where
     _>>=_ : M A → (A → M B) → M B
     (expᴬ >>= expᴮ) _∙_ f = expᴬ _∙_ λ x → expᴮ x _∙_ f
 
-    _>>=-ind_ : ∀ {expᴬ : M A} → ExploreInd₀ expᴬ →
-                 {expᴮ : A → M B} → (∀ x → ExploreInd₀ (expᴮ x))
-               → ExploreInd₀ (expᴬ >>= expᴮ)
+    _>>=-ind_ : ∀ {p}
+                  {expᴬ : M A} → ExploreInd p expᴬ →
+                  {expᴮ : A → M B} → (∀ x → ExploreInd p (expᴮ x))
+               → ExploreInd p (expᴬ >>= expᴮ)
     _>>=-ind_ {expᴬ} Pᴬ {expᴮ} Pᴮ P _P∙_ Pf
       = Pᴬ (λ e → P (e >>= expᴮ)) _P∙_ λ x → Pᴮ x P _P∙_ Pf
 
     map : (A → B) → M A → M B
     map f e = e >>= return ∘ f
 
-    map-ind : (f : A → B) {expᴬ : M A} → ExploreInd₀ expᴬ → ExploreInd₀ (map f expᴬ)
+    map-ind : ∀ {p} (f : A → B) {expᴬ : M A} → ExploreInd p expᴬ → ExploreInd p (map f expᴬ)
     map-ind f Pᴬ = Pᴬ >>=-ind return-ind ∘ f
 
     private
