@@ -12,7 +12,7 @@ module _ {A : Set} where
     return : A → M A
     return x _∙_ f = f x
 
-    return-ind : ∀ x → ExploreInd₀ (return x)
+    return-ind : ∀ {p} x → ExploreInd p (return x)
     return-ind x P _P∙_ Pf = Pf x
 
 module _ {A B : Set} where

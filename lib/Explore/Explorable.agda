@@ -303,9 +303,6 @@ DistFunable (μA , μA→) = DistFun μA μA→
 μLift : ∀ {A} → Explorable A → Explorable (Lift A)
 μLift = μ-iso (FI.sym Lift↔id)
 
-μ𝟙 : Explorable 𝟙
-μ𝟙 = mk _ (EM.return-ind _ _) (λ _ → FI.sym 𝟙×A↔A)
-
 explore-swap' : ∀ {A B} cm (μA : Explorable A) (μB : Explorable B) f →
                let open CMon cm
                    sᴬ = explore μA _∙_

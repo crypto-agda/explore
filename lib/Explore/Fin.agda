@@ -1,5 +1,5 @@
 {-# OPTIONS --without-K #-}
-module Explore.Explorable.Fin where
+module Explore.Fin where
 
 import Level as L
 open import Type
@@ -14,8 +14,18 @@ open import Relation.Binary.NP
 
 open import Explore.Type
 open import Explore.Explorable
-open import Explore.Explorable.Maybe
+--open import Explore.Explorable.Maybe
 
+module _ n where
+  T = Fin (suc n)
+
+  iso = Maybe^𝟙↔Fin1+ n
+
+  module _ {ℓ} where
+    FinSucᵉ : Explore ℓ T
+    FinSucᵉ _∙_ f = f zero ∙ {!FinSucᵉ _∙_ (f ∘ suc)!}
+
+{-
 module _ {A : ★}(μA : Explorable A) where
 
   sA = explore μA
@@ -58,9 +68,6 @@ module _ {A : ★}(μA : Explorable A) where
         ind (suc n) P P∙ Pf = P∙ (Pf zero) (ind n (λ s → P (λ op f → s op (f ∘ suc))) P∙ (Pf ∘ suc))
 -}
 
-μFinSuc : ∀ n → Explorable (Fin (suc n))
-μFinSuc n = μ-iso (Maybe^𝟙↔Fin1+ n) (μMaybe^ n μ𝟙)
-
 postulate μFinSUI : ∀ {n} → SumStableUnderInjection (sum (μFinSuc n))
 
 module BigDistr
@@ -99,3 +106,4 @@ module BigDistr
 
 FinDist : ∀ {n} → DistFun (μFinSuc n) (λ μX → μFun μX)
 FinDist μB c ◎ distrib ◎-cong f = BigDistr.bigDistr μB c ◎ distrib ◎-cong _ f
+-- -}
