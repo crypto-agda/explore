@@ -2,7 +2,7 @@
 -- The core types behind exploration functions
 module Explore.Type where
 
-open import Level using (_⊔_) renaming (zero to ₀; suc to ₛ)
+open import Level.NP
 open import Type hiding (★)
 open import Function.NP
 open import Function.Inverse using (_↔_)
@@ -123,6 +123,9 @@ _$kit_ {P = P} ind (P∙ , Pf) = ind P P∙ Pf
 
 ExploreInd₀ : ∀ {ℓ A} → Explore ℓ A → ★ _
 ExploreInd₀ = ExploreInd ₀
+
+ExploreInd₁ : ∀ {ℓ A} → Explore ℓ A → ★ _
+ExploreInd₁ = ExploreInd ₁
 
 ExploreMon : ∀ {c ℓ} → Monoid c ℓ → ★₀ → ★ _
 ExploreMon M A = (A → C) → C
@@ -309,27 +312,29 @@ ExploreSwap r {ℓ} {A} sᴬ = ∀ {B : ★₀} sg f →
 Unique : ∀ {A} → Cmp A → Count A → ★ _
 Unique cmp count = ∀ x → count (cmp x) ≡ 1
 
-DataΠ : ∀ {b A} → Explore _ A → (A → ★ b) → ★ b
-DataΠ sA = sA _×_
+module _ {ℓ A} (Aᵉ : Explore (ₛ ℓ) A) where
+    DataΠ : (A → ★ ℓ) → ★ ℓ
+    DataΠ = Aᵉ _×_
 
-Lookup : ∀ {b A} → Explore _ A → ★ _
-Lookup {b} {A} sA = ∀ {B : A → ★ b} → DataΠ sA B → Π A B
+    ΣPoint : (A → ★ ℓ) → ★ ℓ
+    ΣPoint = Aᵉ _⊎_
 
-Reify : ∀ {b A} → Explore _ A → ★ _
-Reify {b} {A} sA = ∀ {B : A → ★ b} → Π A B → DataΠ sA B
+module _ {ℓ A} (Aᵉ : Explore (ₛ ℓ) A) where
+    Lookup : ★ (ₛ ℓ)
+    Lookup = ∀ {P : A → ★ ℓ} → DataΠ Aᵉ P → Π A P
 
-Reified : ∀ {b A} → Explore _ A → ★ _
-Reified {b} {A} sA = ∀ {B : A → ★ b} → Π A B ↔ DataΠ sA B
+    Reify : ★ (ₛ ℓ)
+    Reify = ∀ {P : A → ★ ℓ} → Π A P → DataΠ Aᵉ P
 
-ΣPoint : ∀ {b A} → Explore _ A → (A → ★ b) → ★ b
-ΣPoint sA = sA _⊎_
+    Reified : ★ (ₛ ℓ)
+    Reified = ∀ {P : A → ★ ℓ} → Π A P ↔ DataΠ Aᵉ P
 
-Unfocus : ∀ {b A} → Explore _ A → ★ _
-Unfocus {b} {A} sA = ∀ {B : A → ★ b} → ΣPoint sA B → Σ A B
+    Unfocus : ★ (ₛ ℓ)
+    Unfocus = ∀ {P : A → ★ ℓ} → ΣPoint Aᵉ P → Σ A P
 
-Focus : ∀ {b A} → Explore _ A → ★ _
-Focus {b} {A} sA = ∀ {B : A → ★ b} → Σ A B → ΣPoint sA B
+    Focus : ★ (ₛ ℓ)
+    Focus = ∀ {P : A → ★ ℓ} → Σ A P → ΣPoint Aᵉ P
 
-Focused : ∀ {b A} → Explore _ A → ★ _
-Focused {b} {A} sA = ∀ {B : A → ★ b} → Σ A B ↔ ΣPoint sA B
+    Focused : ★ (ₛ ℓ)
+    Focused = ∀ {P : A → ★ ℓ} → Σ A P ↔ ΣPoint Aᵉ P
 -- -}
