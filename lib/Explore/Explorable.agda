@@ -8,7 +8,7 @@ open import Algebra.FunctionProperties.NP
 open import Data.Two
 open import Data.Nat.NP hiding (_^_; _⊔_)
 open import Data.Nat.Properties
-open import Data.Fin using (Fin)
+open import Data.Fin using (Fin) renaming (zero to fzero)
 open import Data.Maybe.NP
 open import Algebra
 open import Data.Product
@@ -18,6 +18,8 @@ open import Data.Tree.Binary
 import Data.List as List
 open List using (List; _++_)
 open import Relation.Binary
+open import Relation.Binary.Sum using (_⊎-cong_)
+open import Relation.Binary.Product.Pointwise using (_×-cong_)
 import Function.Related as FR
 import Relation.Binary.PropositionalEquality as ≡
 open ≡ using (_≡_)
@@ -227,10 +229,18 @@ module Explorable₀
   sum-mono : SumMono sum
   sum-mono = explore-mono _≤_ _+-mono_
 
+  sum-swap' : ∀ {B}{sumμB : Sum B}(μB : SumHom sumμB) f →
+             sum (sumμB ∘ f) ≡ sumμB (sum ∘ flip f)
+  sum-swap' {B}{sumB} μB f = explore-ind (λ E → E _+_ (sumB ∘ f) ≡ sumB (E _+_ ∘ flip f))
+     (λ p q → ≡.trans (≡.cong₂ _+_ p q) (≡.sym (μB _ _))) (λ _ → ≡.refl)
+  
   sum-lin : SumLin sum
   sum-lin f zero    = sum-zero
   sum-lin f (suc k) = ≡.trans (sum-hom f (λ x → k * f x)) (≡.cong₂ _+_ (≡.refl {x = sum f}) (sum-lin f k))
-
+  
+  sum-const : SumConst sum
+  sum-const x = ≡.trans (≡.trans (sum-ext (λ _ → ≡.sym (proj₂ ℕ°.*-identity x))) (sum-lin (const 1) x)) (ℕ°.*-comm x Card)
+  
   sumStableUnder : ∀ {p} → StableUnder explore p → SumStableUnder sum p
   sumStableUnder SU-p = SU-p _+_
 
@@ -243,6 +253,101 @@ module Explorable₀
   toList≡toList∘ : toList ≡ toList∘
   toList≡toList∘ = exploreMon∘-spec (List.monoid A) List.[_]
 
+module AdequateSum₀
+  {A}{B}
+  {sumᴬ : Sum A}{sumᴮ : Sum B}
+  (sumᴬ-adq : AdequateSum sumᴬ)
+  (sumᴮ-adq : AdequateSum sumᴮ) where
+
+  sumStableUnder : (p : A ↔ B)(f : A → ℕ)
+                 → sumᴬ f ≡ sumᴮ (f ∘ from p)
+  sumStableUnder p f = Fin-injective (FI.sym (sumᴮ-adq (f ∘ from p))
+                                  FI.∘ first-iso p
+                                  FI.∘ sumᴬ-adq f)
+module EndoAdequateSum₀
+  {A}
+  {sum : Sum A}
+  (sum-adq : AdequateSum sum) where
+
+  open AdequateSum₀ sum-adq sum-adq public
+
+  module _ (p q : A → 𝟚)(prf : sum (𝟚▹ℕ ∘ p) ≡ sum (𝟚▹ℕ ∘ q)) where
+    private
+
+        P = λ x → p x ≡ 1₂
+        Q = λ x → q x ≡ 1₂
+        ¬P = λ x → p x ≡ 0₂
+        ¬Q = λ x → q x ≡ 0₂
+    
+        Fin-reflexive : ∀ {n m} → n ≡ m → Fin n ↔ Fin m
+        Fin-reflexive eq rewrite eq = FI.id
+    
+        Fin↔≡1₂ : ∀ b → Fin (𝟚▹ℕ b) ↔ b ≡ 1₂
+        Fin↔≡1₂ 1₂ = inverses (λ x → ≡.refl) (λ _ → _) (λ x → ≡.refl) (λ x → ≡.proof-irrelevance ≡.refl x) FI.∘ Fin1↔𝟙
+        Fin↔≡1₂ 0₂ = inverses (λ ()) (λ ()) (λ ()) (λ ())
+
+        Fin↔≡0₂ : ∀ b → Fin (𝟚▹ℕ (not b)) ↔ b ≡ 0₂
+        Fin↔≡0₂ b = FI.sym (≡-iso (not-𝟚↔𝟚)) FI.∘ Fin↔≡1₂ (not b)
+        
+        count-≡ : ∀ (p : A → 𝟚) x → Fin (𝟚▹ℕ (p x)) ↔ p x ≡ 1₂
+        count-≡ p x = Fin↔≡1₂ (p x)
+        
+        lem1 : ∀ px qx → 𝟚▹ℕ qx ≡ (𝟚▹ℕ (px ∧ qx)) + 𝟚▹ℕ (not px) * 𝟚▹ℕ qx
+        lem1 1₂ 1₂ = ≡.refl
+        lem1 1₂ 0₂ = ≡.refl
+        lem1 0₂ 1₂ = ≡.refl
+        lem1 0₂ 0₂ = ≡.refl
+
+        lem2 : ∀ px qx → 𝟚▹ℕ px ≡ (𝟚▹ℕ (px ∧ qx)) + 𝟚▹ℕ px * 𝟚▹ℕ (not qx)
+        lem2 1₂ 1₂ = ≡.refl
+        lem2 1₂ 0₂ = ≡.refl
+        lem2 0₂ 1₂ = ≡.refl
+        lem2 0₂ 0₂ = ≡.refl
+        
+        lemma1 : ∀ px qx → qx ≡ 1₂ ↔ (Fin (𝟚▹ℕ (px ∧ qx)) ⊎ (px ≡ 0₂ × qx ≡ 1₂))
+        lemma1 px qx = FI.id ⊎-cong (Fin↔≡0₂ px ×-cong Fin↔≡1₂ qx)
+                  FI.∘ FI.id ⊎-cong FI.sym (Fin-×-* (𝟚▹ℕ (not px)) (𝟚▹ℕ qx))
+                  FI.∘ FI.sym (Fin-⊎-+ (𝟚▹ℕ (px ∧ qx)) (𝟚▹ℕ (not px) * 𝟚▹ℕ qx))
+                  FI.∘ Fin-reflexive (lem1 px qx)
+                  FI.∘ FI.sym (Fin↔≡1₂ qx)
+        
+        lemma2 : ∀ px qx → (Fin (𝟚▹ℕ (px ∧ qx)) ⊎ (px ≡ 1₂ × qx ≡ 0₂)) ↔ px ≡ 1₂
+        lemma2 px qx = Fin↔≡1₂ px
+                  FI.∘ Fin-reflexive (≡.sym (lem2 px qx))
+                  FI.∘ Fin-⊎-+ _ _ 
+                  FI.∘ FI.id ⊎-cong (Fin-×-* _ _)
+                  FI.∘ FI.sym (FI.id ⊎-cong (Fin↔≡1₂ px ×-cong Fin↔≡0₂ qx))
+
+        iso : Σ A P ↔ Σ A Q
+        iso = second-iso (count-≡ q)
+               FI.∘ sum-adq (𝟚▹ℕ ∘ q)
+               FI.∘ Fin-reflexive prf
+               FI.∘ FI.sym (sum-adq (𝟚▹ℕ ∘ p))
+               FI.∘ FI.sym (second-iso (count-≡ p))
+  
+        iso' : (Fin (sum (λ x → 𝟚▹ℕ (p x ∧ q x))) ⊎ Σ A (λ x →  P x × ¬Q x))
+             ↔ (Fin (sum (λ x → 𝟚▹ℕ (p x ∧ q x))) ⊎ Σ A (λ x → ¬P x ×  Q x))
+        iso' = FI.sym (sum-adq (λ x → 𝟚▹ℕ (p x ∧ q x))) ⊎-cong FI.id
+          FI.∘ Σ-⊎-hom
+          FI.∘ second-iso (λ x → lemma1 (p x) (q x))
+          FI.∘ iso
+          FI.∘ second-iso (λ x → lemma2 (p x ) (q x))
+          FI.∘ FI.sym Σ-⊎-hom
+          FI.∘ (sum-adq (λ x → 𝟚▹ℕ (p x ∧ q x))) ⊎-cong FI.id
+               
+        iso'' : Σ A (λ x →  P x × ¬Q x)
+              ↔ Σ A (λ x → ¬P x ×  Q x)
+        iso'' = Fin⊎-injective (sum (λ x → 𝟚▹ℕ (p x ∧ q x))) iso'
+  
+        module M = Work-In-Progress (to iso'') (from iso'') (Inverse.left-inverse-of iso'')
+                                    (Inverse.right-inverse-of iso'')
+    
+    indIso : A ↔ A
+    indIso = inverses M.π M.π M.ππ M.ππ
+      
+    indIsIso : ∀ x → p x ≡ q (from indIso x)
+    indIsIso x = M.prop x
+  
 module Explorable₁₀ {A} {explore₁ : Explore₁ A}
                     (explore-ind₀ : ExploreInd ₀ explore₁) where
 

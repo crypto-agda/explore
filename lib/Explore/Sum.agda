@@ -18,7 +18,7 @@ open FI using (_↔_; inverses; module Inverse) renaming (_$₁_ to to; _$₂_ t
 open import Function.Related.TypeIsomorphisms.NP
 open import Data.Product.NP
 open import Data.Sum
-open import Data.Bit
+-- open import Data.Bit
 open import Data.Fin using (Fin)
 open import Relation.Binary.Sum
 import Relation.Binary.PropositionalEquality.NP as ≡
@@ -42,13 +42,24 @@ module _ {a b u} {A : ★ a} {B : ★ b} {U : ★ u}
 module _ {m A B} where
     explore⊎ : Explore m A → Explore m B → Explore m (A ⊎ B)
     explore⊎ exploreᴬ exploreᴮ _∙_ = ⊎ᶜ _∙_ (exploreᴬ _∙_) (exploreᴮ _∙_)
-
+    
     module _ {p} {sᴬ : Explore m A} {sᴮ : Explore m B} where
         explore⊎-ind : ExploreInd p sᴬ → ExploreInd p sᴮ → ExploreInd p (explore⊎ sᴬ sᴮ)
         explore⊎-ind Psᴬ Psᴮ P P∙ Pf
         -- TODO clean this up:
           = P∙ (Psᴬ (λ s → P (λ _ f → s _ (f ∘ inj₁))) P∙ (Pf ∘ inj₁))
                (Psᴮ (λ s → P (λ _ f → s _ (f ∘ inj₂))) P∙ (Pf ∘ inj₂))
+
+module _ {A B}{sᴬ : Explore ₀ A}{sᴮ : Explore ₀ B} where
+   explore⊎-adq : AdequateExplore sᴬ → AdequateExplore sᴮ → AdequateExplore (explore⊎ sᴬ sᴮ)
+   explore⊎-adq aᴬ aᴮ F _+_ f F-proof = F (sᴬ _+_ (f ∘ inj₁) +  sᴮ _+_ (f ∘ inj₂))
+                                      ↔⟨ F-proof  ⟩
+                                        (F (sᴬ _+_ (f ∘ inj₁)) ⊎ F (sᴮ _+_ (f ∘ inj₂)))
+                                      ↔⟨ aᴬ F _+_ (f ∘ inj₁) F-proof ⊎-cong aᴮ F _+_ (f ∘ inj₂) F-proof ⟩
+                                        (Σ A (F ∘ f ∘ inj₁) ⊎ Σ B (F ∘ f ∘ inj₂))
+                                      ↔⟨ FI.sym Σ⊎-distrib ⟩
+                                        Σ (A ⊎ B) (F ∘ f) ∎ 
+     where open FR.EquationalReasoning
 
 infixr 4 _⊎ᵉ_ _⊎ⁱ_ _⊎ˢ_
 _⊎ᵉ_ = explore⊎
