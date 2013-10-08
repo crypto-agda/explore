@@ -1,0 +1,47 @@
+module Orig = ...
+
+point-explore : (x : A) → Explore _ (Σ A (_≡_ x))
+point-explore x = Orig.point-explore (x , refl)
+
+point-explore-ind : (x : A) → ExploreInd (point-explore x)
+point-explore-ind x = Orig.point-explore-ind (x , refl)
+
+-- less general than Orig.0-explore
+0-explore : Explore _ (A × 𝟡)
+0-explore = Orig.0-explore
+
+_∙-explore_ : ∀ {P Q} → Explore _ (Σ A P)
+                      → Explore _ (Σ A Q)
+                      → Explore _ (Σ A (P ⊎° Q))
+(eP ∙-explore eQ) z _∙_ f = map-explore (second inj₁) eP z _∙_ f
+                          ∙ map-explore (second inj₂) eQ z _∙_ f
+-- should be Orig.explore⊎ together with the iso
+-- (Σ A P ⊎ Σ A Q) ↔ (Σ A (P ⊎° Q))
+
+explore⊎ : ∀ {P Q} → Explore _ (Σ A P)
+                   → Explore _ (Σ B Q)
+                   → Explore _ (Σ (A ⊎ B) [ P , Q ])
+explore⊎ eP eQ z _∙_ f = map-explore < inj₁ × inj₁ > eP z _∙_ f
+                       ∙ map-explore < inj₂ × inj₂ > eQ z _∙_ f
+
+-- notice the usual explore⊎ could instantiate to:
+Orig.explore⊎ : ∀ {P Q} → Explore _ (Σ A P)
+                        → Explore _ (Σ B Q)
+                        → Explore _ (Σ A P ⊎ Σ B Q)
+
+(P ×°° Q) (a , b) = P a × Q b
+
+explore× : ∀ {P Q} → Explore _ (Σ A P)
+                   → Explore _ (Σ B Q)
+                   → Explore _ (Σ (A × B) (P ×°° Q))
+explore× eP eQ z _∙_ f = eP z _∙_ λ (a , p) →
+                           eQ z _∙_ λ (b , q) →
+                             f ((a , b) , (p , q))
+
+-- mmm...
+exploreΣ : ∀ {P Q} → Explore _ (Σ A P)
+                   → ((x : Σ A P) → Explore _ (Σ (B x) Q))
+                   → Explore _ (Σ (Σ A B) (P ×°° Q))
+exploreΣ eP eQ z _∙_ f = eP z _∙_ λ (a , p) →
+                           eQ z _∙_ λ (b , q) →
+                             f ((a , b) , (p , q))
