@@ -41,14 +41,14 @@ module _ {a b u} {A : ★ a} {B : ★ b} {U : ★ u}
 
 module _ {m A B} where
     explore⊎ : Explore m A → Explore m B → Explore m (A ⊎ B)
-    explore⊎ exploreᴬ exploreᴮ _∙_ = ⊎ᶜ _∙_ (exploreᴬ _∙_) (exploreᴮ _∙_)
+    explore⊎ exploreᴬ exploreᴮ z _∙_ = ⊎ᶜ _∙_ (exploreᴬ z _∙_) (exploreᴮ z _∙_)
 
     module _ {p} {sᴬ : Explore m A} {sᴮ : Explore m B} where
         explore⊎-ind : ExploreInd p sᴬ → ExploreInd p sᴮ → ExploreInd p (explore⊎ sᴬ sᴮ)
-        explore⊎-ind Psᴬ Psᴮ P P∙ Pf
+        explore⊎-ind Psᴬ Psᴮ P Pz P∙ Pf
         -- TODO clean this up:
-          = P∙ (Psᴬ (λ s → P (λ _ f → s _ (f ∘ inj₁))) P∙ (Pf ∘ inj₁))
-               (Psᴮ (λ s → P (λ _ f → s _ (f ∘ inj₂))) P∙ (Pf ∘ inj₂))
+          = P∙ (Psᴬ (λ s → P (λ _ _ f → s _ _ (f ∘ inj₁))) Pz P∙ (Pf ∘ inj₁))
+               (Psᴮ (λ s → P (λ _ _ f → s _ _ (f ∘ inj₂))) Pz P∙ (Pf ∘ inj₂))
 
 infixr 4 _⊎ᵉ_ _⊎ⁱ_ _⊎ˢ_
 _⊎ᵉ_ = explore⊎

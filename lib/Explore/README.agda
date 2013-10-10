@@ -16,10 +16,14 @@ open import Explore.Product
 -- Exploration of disjoint sums
 open import Explore.Sum
 
--- Exploration of base types 𝟙, 𝟚, Fin (1 + n)
+-- Exploration of base types 𝟘, 𝟙, 𝟚, Fin n
+open import Explore.Zero
 open import Explore.One
 open import Explore.Two
-open import Explore.Fin -- unfinished
+open import Explore.Fin -- 2 postulates remains
+
+-- TODO unfinished
+open import Explore.Subset
 
 -- A type universe of explorable types
 open import Explore.Universe
@@ -35,3 +39,6 @@ open import Explore.Monad
 
 -- Indistinguisability (One-time-pad like) for groups
 open import Explore.GroupHomomorphism
+
+-- An example with a specific type: 6 sided dice
+import Explore.Dice

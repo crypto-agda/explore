@@ -7,13 +7,13 @@ open import Type hiding (★)
 open import Function.NP
 open import Function.Inverse using (_↔_)
 open import Data.Nat.NP hiding (_⊔_)
-open import Data.Bit
-open import Data.Bits
 open import Data.Indexed
 open import Algebra
 open import Relation.Binary.NP
 open import Data.Product
 open import Data.Sum
+open import Data.Zero using (𝟘)
+open import Data.One using (𝟙)
 open import Data.Two using (𝟚; ✓)
 open import Data.Maybe.NP using (_→?_)
 open import Data.Fin using (Fin)
@@ -67,7 +67,7 @@ module CMon {c ℓ} (cm : CommutativeMonoid c ℓ) where
                     _∙_ assoc comm (λ _ → flip ∙-cong refl)
 
 Explore : ∀ ℓ → ★₀ → ★ ₛ ℓ
-Explore ℓ A = ∀ {M : ★ ℓ} → (_∙_ : M → M → M) → (A → M) → M
+Explore ℓ A = ∀ {M : ★ ℓ} (ε : M) (_∙_ : M → M → M) → (A → M) → M
 
 Explore₀ : ★₀ → ★₁
 Explore₀ = Explore _
@@ -76,50 +76,60 @@ Explore₁ : ★₀ → ★₂
 Explore₁ = Explore _
 
 [Explore] : ([★₀] [→] [★₁]) (Explore _)
-[Explore] Aₚ = ∀⟨ Mₚ ∶ [★₀] ⟩[→] [Op₂] Mₚ [→] (Aₚ [→] Mₚ) [→] Mₚ
+[Explore] Aₚ = ∀⟨ Mₚ ∶ [★₀] ⟩[→] Mₚ [→] [Op₂] Mₚ [→] (Aₚ [→] Mₚ) [→] Mₚ
 
 ⟦Explore⟧ : (⟦★₀⟧ ⟦→⟧ ⟦★₁⟧) (Explore _) (Explore _)
-⟦Explore⟧ Aᵣ = ∀⟨ Mᵣ ∶ ⟦★₀⟧ ⟩⟦→⟧ ⟦Op₂⟧ Mᵣ ⟦→⟧ (Aᵣ ⟦→⟧ Mᵣ) ⟦→⟧ Mᵣ
+⟦Explore⟧ Aᵣ = ∀⟨ Mᵣ ∶ ⟦★₀⟧ ⟩⟦→⟧ Mᵣ ⟦→⟧ ⟦Op₂⟧ Mᵣ ⟦→⟧ (Aᵣ ⟦→⟧ Mᵣ) ⟦→⟧ Mᵣ
 
 ⟦Explore⟧ᵤ : ∀ {ℓ} → (⟦★₀⟧ ⟦→⟧ ⟦★⟧ (ₛ ℓ)) (Explore ℓ) (Explore ℓ)
-⟦Explore⟧ᵤ {ℓ} Aᵣ = ∀⟨ Mᵣ ∶ ⟦★⟧ ℓ ⟩⟦→⟧ ⟦Op₂⟧ Mᵣ ⟦→⟧ (Aᵣ ⟦→⟧ Mᵣ) ⟦→⟧ Mᵣ
+⟦Explore⟧ᵤ {ℓ} Aᵣ = ∀⟨ Mᵣ ∶ ⟦★⟧ ℓ ⟩⟦→⟧ Mᵣ ⟦→⟧ ⟦Op₂⟧ Mᵣ ⟦→⟧ (Aᵣ ⟦→⟧ Mᵣ) ⟦→⟧ Mᵣ
 
 -- Trimmed down version of ⟦Explore⟧
 ⟦Explore⟧₁ : ∀ {A : ★_ _} (Aᵣ : A → A → ★_ _) → Explore _ A → ★₁
-⟦Explore⟧₁ Aᵣ s = ⟦Explore⟧ Aᵣ s s
+⟦Explore⟧₁ Aᵣ e = ⟦Explore⟧ Aᵣ e e
 
-_∙-explore_ : ∀ {ℓ A} → Explore ℓ A → Explore ℓ A → Explore ℓ A
-(s₀ ∙-explore s₁) _∙_ f = s₀ _∙_ f ∙ s₁ _∙_ f
+-- These three basic combinators are defined here
+-- since they are used to define ExploreInd
+module _ {ℓ A} where
+    merge-explore : Explore ℓ A → Explore ℓ A → Explore ℓ A
+    merge-explore e₀ e₁ ε _∙_ f = e₀ ε _∙_ f ∙ e₁ ε _∙_ f
 
-const-explore : ∀ {ℓ A} → A → Explore ℓ A
-const-explore x _ f = f x
+    empty-explore : Explore ℓ A
+    empty-explore ε _ _ = ε
+
+    point-explore : A → Explore ℓ A
+    point-explore x _ _ f = f x
 
 ExploreInd : ∀ p {ℓ A} → Explore ℓ A → ★ _
-ExploreInd p {ℓ} {A} srch =
+ExploreInd p {ℓ} {A} exp =
   ∀ (P  : Explore ℓ A → ★ p)
-    (P∙ : ∀ {s₀ s₁ : Explore ℓ A} → P s₀ → P s₁ → P (λ _∙_ f → s₀ _∙_ f ∙ s₁ _∙_ f))
-    (Pf : ∀ x → P (λ _ f → f x))
-  → P srch
+    (Pε : P empty-explore)
+    (P∙ : ∀ {e₀ e₁ : Explore ℓ A} → P e₀ → P e₁ → P (merge-explore e₀ e₁))
+    (Pf : ∀ x → P (point-explore x))
+  → P exp
 
-const-explore-ind : ∀ {ℓ p A} (x : A) → ExploreInd p (const-explore {ℓ} x)
-const-explore-ind x _ _ Pf = Pf x
+module _ {ℓ p A} where
+    point-explore-ind : (x : A) → ExploreInd p (point-explore {ℓ} x)
+    point-explore-ind x _ _ _ Pf = Pf x
 
-{-
-_∙ExploreInd_ : ∀ {ℓ p A} {s₀ s₁ : Explore ℓ A}
-               → ExploreInd p s₀ → ExploreInd p s₁
-               → ExploreInd p (s₀ ∙Explore s₁)
-_∙ExploreInd_ {s₀ = s₀} {s₁} Ps₀ Ps₁ P P∙ Pf = Ps₀ (λ s → P s₁ → P (s ∙Explore s₁)) (λ {s₂} {s₃} Ps₂ Ps₃ Ps₁' → {!!}) (P∙ ∘ Pf) (Ps₁ P P∙ Pf)
--}
+    empty-explore-ind : ExploreInd p {ℓ} {A} empty-explore
+    empty-explore-ind _ Pε _ _ = Pε
+
+    merge-explore-ind : ∀ {e₀ e₁ : Explore ℓ A}
+                        → ExploreInd p e₀ → ExploreInd p e₁
+                        → ExploreInd p (merge-explore e₀ e₁)
+    merge-explore-ind Pe₀ Pe₁ P Pε _P∙_ Pf = (Pe₀ P Pε _P∙_ Pf) P∙ (Pe₁ P Pε _P∙_ Pf)
 
 record ExploreIndKit p {ℓ A} (P : Explore ℓ A → ★ p) : ★ (ₛ ℓ ⊔ p) where
-  constructor _,_
+  constructor mk
   field
-    P∙ : ∀ {s₀ s₁ : Explore ℓ A} → P s₀ → P s₁ → P (s₀ ∙-explore s₁)
-    Pf : ∀ x → P (const-explore x)
+    Pε : P empty-explore
+    P∙ : ∀ {e₀ e₁ : Explore ℓ A} → P e₀ → P e₁ → P (merge-explore e₀ e₁)
+    Pf : ∀ x → P (point-explore x)
 
-_$kit_ : ∀ {p ℓ A} {P : Explore ℓ A → ★ p} {s : Explore ℓ A}
-         → ExploreInd p s → ExploreIndKit p P → P s
-_$kit_ {P = P} ind (P∙ , Pf) = ind P P∙ Pf
+_$kit_ : ∀ {p ℓ A} {P : Explore ℓ A → ★ p} {e : Explore ℓ A}
+         → ExploreInd p e → ExploreIndKit p P → P e
+_$kit_ {P = P} ind (mk Pε P∙ Pf) = ind P Pε P∙ Pf
 
 ExploreInd₀ : ∀ {ℓ A} → Explore ℓ A → ★ _
 ExploreInd₀ = ExploreInd ₀
@@ -132,43 +142,48 @@ ExploreMon M A = (A → C) → C
   where open Mon M
 
 ExploreMonInd : ∀ p {c ℓ} {A} (M : Monoid c ℓ) → ExploreMon M A → ★ _
-ExploreMonInd p {c} {ℓ} {A} M srch =
+ExploreMonInd p {c} {ℓ} {A} M exp =
   ∀ (P  : ExploreMon M A → ★ p)
-    (P∙ : ∀ {s₀ s₁ : ExploreMon M A} → P s₀ → P s₁ → P (λ f → s₀ f ∙ s₁ f))
+    (Pε : P (const ε))
+    (P∙ : ∀ {e₀ e₁ : ExploreMon M A} → P e₀ → P e₁ → P (λ f → e₀ f ∙ e₁ f))
     (Pf : ∀ x → P (λ f → f x))
-    (P≈ : ∀ {s s'} → s ≈° s' → P s → P s')
-  → P srch
+    (P≈ : ∀ {e e'} → e ≈° e' → P e → P e')
+  → P exp
   where open Mon M
 
-explore∘FromExplore : ∀ {m A} → Explore m A
-                    → ∀ {M : ★ m} → (M → M → M) → (A → M) → (M → M)
-explore∘FromExplore explore op f = explore _∘′_ (op ∘ f)
+  {-
+explore∘FromExploreNE : ∀ {m A} → ExploreNE m A → Explore m A
+explore∘FromExploreNE explore ε op f = explore _∘′_ (op ∘ f) ε
+-}
 
-ExplorePlug : ∀ {m ℓ A} (M : Monoid m ℓ) (s : Explore _ A) → ★ _
-ExplorePlug M s = ∀ f x → s∘ _∙_ f ε ∙ x ≈ s∘ _∙_ f x
+explore∘FromExplore : ∀ {m A} → Explore m A → Explore m A
+explore∘FromExplore explore ε op f = explore id _∘′_ (op ∘ f) ε
+
+ExplorePlug : ∀ {m ℓ A} (M : Monoid m ℓ) (e : Explore _ A) → ★ _
+ExplorePlug M e = ∀ f x → e∘ ε _∙_ f ∙ x ≈ e∘ x _∙_ f
    where open Mon M
-         s∘ = explore∘FromExplore s
+         e∘ = explore∘FromExplore e
 
   {-
 ExploreMon : ∀ m → ★₀ → ★ _
 ExploreMon m A = ∀ {M : ★ m} → M × Op₂ M → (A → M) → M
 
 ExploreMonInd : ∀ p {ℓ} {A} → ExploreMon ℓ A → ★ _
-ExploreMonInd p {ℓ} {A} srch =
+ExploreMonInd p {ℓ} {A} exp =
   ∀ (P  : ExploreMon _ A → ★ p)
-    (P∙ : ∀ {s₀ s₁ : ExploreMon _ A} → P s₀ → P s₁ → P (λ M f → let _∙_ = proj₂ M in
-                                                               s₀ M f ∙ s₁ M f))
+    (P∙ : ∀ {e₀ e₁ : ExploreMon _ A} → P e₀ → P e₁ → P (λ M f → let _∙_ = proj₂ M in
+                                                               e₀ M f ∙ e₁ M f))
     (Pf : ∀ x → P (λ _ f → f x))
-  → P srch
+  → P exp
 
 exploreMonFromExplore : ∀ {ℓ A}
                       → Explore ℓ A → ExploreMon ℓ A
-exploreMonFromExplore s = s ∘ proj₂
+exploreMonFromExplore e = e ∘ proj₂
   -}
 
 exploreMonFromExplore : ∀ {c ℓ A}
                       → Explore c A → (M : Monoid c ℓ) → ExploreMon M A
-exploreMonFromExplore s M = s _∙_ where open Mon M
+exploreMonFromExplore e M f = e ε _∙_ f where open Mon M
 
 Sum : ★₀ → ★₀
 Sum A = (A → ℕ) → ℕ
@@ -183,7 +198,7 @@ AdequateProduct : ∀ {A} → Product A → ★₀
 AdequateProduct {A} productᴬ = ∀ f → Fin (productᴬ f) ↔ Π A (Fin ∘ f)
 
 Count : ★₀ → ★₀
-Count A = (A → Bit) → ℕ
+Count A = (A → 𝟚) → ℕ
 
 Find? : ★₀ → ★₁
 Find? A = ∀ {B : ★₀} → (A →? B) →? B
@@ -193,29 +208,33 @@ FindKey A = (A → 𝟚) →? A
 
 _,-kit_ : ∀ {m p A} {P : Explore m A → ★ p}{Q : Explore m A → ★ p}
           → ExploreIndKit p P → ExploreIndKit p Q → ExploreIndKit p (P ×° Q)
-Pk ,-kit Qk = (λ x y → P∙ Pk (proj₁ x) (proj₁ y) , P∙ Qk (proj₂ x) (proj₂ y))
-            , (λ x → Pf Pk x , Pf Qk x)
+Pk ,-kit Qk = mk (Pε Pk , Pε Qk)
+                 (λ x y → P∙ Pk (proj₁ x) (proj₁ y) , P∙ Qk (proj₂ x) (proj₂ y))
+                 (λ x → Pf Pk x , Pf Qk x)
              where open ExploreIndKit
 
-ExploreInd-Extra : ∀ p {m A} → Explore m A → ★ _
-ExploreInd-Extra p {m} {A} srch =
-  ∀ (Q     : Explore m A → ★ p)
-    (Q-kit : ExploreIndKit p Q)
-    (P     : Explore m A → ★ p)
-    (P∙    : ∀ {s₀ s₁ : Explore m A} → Q s₀ → Q s₁ → P s₀ → P s₁
-             → P (s₀ ∙-explore s₁))
-    (Pf    : ∀ x → P (const-explore x))
-  → P srch
+module Extra where
+    ExploreInd-Extra : ∀ p {m A} → Explore m A → ★ _
+    ExploreInd-Extra p {m} {A} exp =
+      ∀ (Q     : Explore m A → ★ p)
+        (Q-kit : ExploreIndKit p Q)
+        (P     : Explore m A → ★ p)
+        (Pε    : P empty-explore)
+        (P∙    : ∀ {e₀ e₁ : Explore m A} → Q e₀ → Q e₁ → P e₀ → P e₁
+                 → P (merge-explore e₀ e₁))
+        (Pf    : ∀ x → P (point-explore x))
+      → P exp
 
-to-extra : ∀ {p m A} {s : Explore m A} → ExploreInd p s → ExploreInd-Extra p s
-to-extra s-ind Q Q-kit P P∙ Pf =
- proj₂ (s-ind (Q ×° P)
-         (λ { (a , b) (c , d) → Q∙ a c , P∙ a c b d })
-         (λ x → Qf x , Pf x))
- where open ExploreIndKit Q-kit renaming (P∙ to Q∙; Pf to Qf)
+    to-extra : ∀ {p m A} {e : Explore m A} → ExploreInd p e → ExploreInd-Extra p e
+    to-extra e-ind Q Q-kit P Pε P∙ Pf =
+     proj₂ (e-ind (Q ×° P)
+             (Qε , Pε)
+             (λ { (a , b) (c , d) → Q∙ a c , P∙ a c b d })
+             (λ x → Qf x , Pf x))
+     where open ExploreIndKit Q-kit renaming (Pε to Qε; P∙ to Q∙; Pf to Qf)
 
 StableUnder : ∀ {ℓ A} → Explore ℓ A → (A → A) → ★ _
-StableUnder explore p = ∀ {M} op (f : _ → M) → explore op f ≡ explore op (f ∘ p)
+StableUnder explore p = ∀ {M} ε op (f : _ → M) → explore ε op f ≡ explore ε op (f ∘ p)
 
 SumStableUnder : ∀ {A} → Sum A → (A → A) → ★ _
 SumStableUnder sum p = ∀ f → sum f ≡ sum (f ∘ p)
@@ -232,27 +251,39 @@ SumStableUnderInjection sum = ∀ p → Injective p → SumStableUnder sum p
 
 SumInd : ∀ {A} → Sum A → ★₁
 SumInd {A} sum = ∀ (P  : Sum A → ★₀)
+                   (P0 : P (λ f → 0))
                    (P+ : ∀ {s₀ s₁ : Sum A} → P s₀ → P s₁ → P (λ f → s₀ f + s₁ f))
                    (Pf : ∀ x → P (λ f → f x))
                 →  P sum
 
 ExploreMono : ∀ r {ℓ A} → Explore ℓ A → ★ _
-ExploreMono r sᴬ = ∀ {C} (_⊆_ : C → C → ★ r)
-                    {_∙_} (∙-mono : _∙_ Preserves₂ _⊆_ ⟶ _⊆_ ⟶ _⊆_)
-                    {f g} →
-                    (∀ x → f x ⊆ g x) → sᴬ _∙_ f ⊆ sᴬ _∙_ g
+ExploreMono r eᴬ = ∀ {C} (_⊆_ : C → C → ★ r)
+                     {z₀ z₁} (z₀⊆z₁ : z₀ ⊆ z₁)
+                     {_∙_} (∙-mono : _∙_ Preserves₂ _⊆_ ⟶ _⊆_ ⟶ _⊆_)
+                     {f g} →
+                     (∀ x → f x ⊆ g x) → eᴬ z₀ _∙_ f ⊆ eᴬ z₁ _∙_ g
 
 
 ExploreExtFun : ∀ {A B} → Explore _ (A → B) → ★₁
-ExploreExtFun {A}{B} sᴬᴮ = ∀ {M} op {f g : (A → B) → M} → (∀ {φ ψ} → φ ≗ ψ → f φ ≡ g ψ) → sᴬᴮ op f ≡ sᴬᴮ op g
+ExploreExtFun {A}{B} eᴬᴮ = ∀ {M} ε op {f g : (A → B) → M} → (∀ {φ ψ} → φ ≗ ψ → f φ ≡ g ψ) → eᴬᴮ ε op f ≡ eᴬᴮ ε op g
 
-ExploreSgExt : ∀ r {ℓ A} → Explore ℓ A → ★ _
-ExploreSgExt r {ℓ} sᴬ = ∀ (sg : Semigroup ℓ r) {f g}
+ExploreMonExt : ∀ r {ℓ A} → Explore ℓ A → ★ _
+ExploreMonExt r {ℓ} exploreᴬ =
+  ∀ (m : Monoid ℓ r) {f g}
+  → let open Mon m
+        explore = exploreᴬ ε _∙_
+    in
+    f ≈° g → explore f ≈ explore g
+
+                         {-
+ExploreSgExt : ∀ r {ℓ A} → ExploreNE ℓ A → ★ _
+ExploreSgExt r {ℓ} eᴬ = ∀ (sg : Semigroup ℓ r) {f g}
                        → let open Sgrp sg in
-                         f ≈° g → sᴬ _∙_ f ≈ sᴬ _∙_ g
+                         f ≈° g → eᴬ _∙_ f ≈ eᴬ _∙_ g
+                         -}
 
 ExploreExt : ∀ {ℓ A} → Explore ℓ A → ★ _
-ExploreExt {ℓ} {A} sᴬ = ∀ {M} op {f g : A → M} → f ≗ g → sᴬ op f ≡ sᴬ op g
+ExploreExt {ℓ} {A} eᴬ = ∀ {M} ε op {f g : A → M} → f ≗ g → eᴬ ε op f ≡ eᴬ ε op g
 
 SumExt : ∀ {A} → Sum A → ★ _
 SumExt sumᴬ = ∀ {f g} → f ≗ g → sumᴬ f ≡ sumᴬ g
@@ -261,40 +292,44 @@ CountExt : ∀ {A} → Count A → ★ _
 CountExt countᴬ = ∀ {f g} → f ≗ g → countᴬ f ≡ countᴬ g
 
 Exploreε : ∀ ℓ r {A} → Explore _ A → ★ _
-Exploreε ℓ r sᴬ = ∀ (m : Monoid ℓ r) →
+Exploreε ℓ r eᴬ = ∀ (m : Monoid ℓ r) →
                        let open Mon m in
-                       sᴬ _∙_ (const ε) ≈ ε
+                       eᴬ ε _∙_ (const ε) ≈ ε
 
 SumZero : ∀ {A} → Sum A → ★ _
 SumZero sumᴬ = sumᴬ (λ _ → 0) ≡ 0
 
 ExploreLinˡ : ∀ ℓ r {A} → Explore _ A → ★ _
-ExploreLinˡ ℓ r sᴬ = ∀ m _◎_ f k →
+ExploreLinˡ ℓ r eᴬ = ∀ m _◎_ f k →
                      let open Mon {ℓ} {r} m
                          open FP _≈_ in
+                     k ◎ ε ≈ ε →
                      _◎_ DistributesOverˡ _∙_ →
-                     sᴬ _∙_ (λ x → k ◎ f x) ≈ k ◎ sᴬ _∙_ f
+                     eᴬ ε _∙_ (λ x → k ◎ f x) ≈ k ◎ eᴬ ε _∙_ f
 
 ExploreLinʳ : ∀ ℓ r {A} → Explore _ A → ★ _
-ExploreLinʳ ℓ r sᴬ =
+ExploreLinʳ ℓ r eᴬ =
   ∀ m _◎_ f k →
     let open Mon {ℓ} {r} m
         open FP _≈_ in
+    ε ◎ k ≈ ε →
     _◎_ DistributesOverʳ _∙_ →
-    sᴬ _∙_ (λ x → f x ◎ k) ≈ sᴬ _∙_ f ◎ k
+    eᴬ ε _∙_ (λ x → f x ◎ k) ≈ eᴬ ε _∙_ f ◎ k
 
 SumLin : ∀ {A} → Sum A → ★ _
 SumLin sumᴬ = ∀ f k → sumᴬ (λ x → k * f x) ≡ k * sumᴬ f
 
-ExploreHom : ∀ r {ℓ A} → Explore ℓ A → ★ _
-ExploreHom r sᴬ = ∀ sg f g → let open Sgrp {_} {r} sg in
-                            sᴬ _∙_ (f ∙° g) ≈ sᴬ _∙_ f ∙ sᴬ _∙_ g
+{-
+ExploreSgHom : ∀ r {ℓ A} → ExploreNE ℓ A → ★ _
+ExploreSgHom r eᴬ = ∀ sg f g → let open Sgrp {_} {r} sg in
+                            eᴬ _∙_ (f ∙° g) ≈ eᴬ _∙_ f ∙ eᴬ _∙_ g
+                            -}
 
-ExploreMonHom : ∀ ℓ r {A} → Explore _ A → ★ _
-ExploreMonHom ℓ r sᴬ =
+ExploreHom : ∀ ℓ r {A} → Explore _ A → ★ _
+ExploreHom ℓ r eᴬ =
   ∀ cm f g →
     let open CMon {ℓ} {r} cm in
-    sᴬ _∙_ (f ∙° g) ≈ sᴬ _∙_ f ∙ sᴬ _∙_ g
+    eᴬ ε _∙_ (f ∙° g) ≈ eᴬ ε _∙_ f ∙ eᴬ ε _∙_ g
 
 SumHom : ∀ {A} → Sum A → ★ _
 SumHom sumᴬ = ∀ f g → sumᴬ (λ x → f x + g x) ≡ sumᴬ f + sumᴬ g
@@ -303,38 +338,39 @@ SumMono : ∀ {A} → Sum A → ★ _
 SumMono sumᴬ = ∀ {f g} → (∀ x → f x ≤ g x) → sumᴬ f ≤ sumᴬ g
 
 ExploreSwap : ∀ r {ℓ A} → Explore ℓ A → ★ _
-ExploreSwap r {ℓ} {A} sᴬ = ∀ {B : ★₀} sg f →
-                            let open Sgrp {_} {r} sg in
-                          ∀ {sᴮ : (B → C) → C}
-                          → (hom : ∀ f g → sᴮ (f ∙° g) ≈ sᴮ f ∙ sᴮ g)
-                          → sᴬ _∙_ (sᴮ ∘ f) ≈ sᴮ (sᴬ _∙_ ∘ flip f)
+ExploreSwap r {ℓ} {A} eᴬ = ∀ {B : ★₀} mon f →
+                            let open Mon {_} {r} mon in
+                          ∀ {eᴮ : (B → C) → C}
+                            (eᴮ-ε : eᴮ (const ε) ≈ ε)
+                            (hom : ∀ f g → eᴮ (f ∙° g) ≈ eᴮ f ∙ eᴮ g)
+                          → eᴬ ε _∙_ (eᴮ ∘ f) ≈ eᴮ (eᴬ ε _∙_ ∘ flip f)
 
 Unique : ∀ {A} → Cmp A → Count A → ★ _
 Unique cmp count = ∀ x → count (cmp x) ≡ 1
 
-module _ {ℓ A} (Aᵉ : Explore (ₛ ℓ) A) where
+module _ {ℓ A} (eᴬ : Explore (ₛ ℓ) A) where
     DataΠ : (A → ★ ℓ) → ★ ℓ
-    DataΠ = Aᵉ _×_
+    DataΠ = eᴬ (Lift 𝟙) _×_
 
     ΣPoint : (A → ★ ℓ) → ★ ℓ
-    ΣPoint = Aᵉ _⊎_
+    ΣPoint = eᴬ (Lift 𝟘) _⊎_
 
-module _ {ℓ A} (Aᵉ : Explore (ₛ ℓ) A) where
+module _ {ℓ A} (eᴬ : Explore (ₛ ℓ) A) where
     Lookup : ★ (ₛ ℓ)
-    Lookup = ∀ {P : A → ★ ℓ} → DataΠ Aᵉ P → Π A P
+    Lookup = ∀ {P : A → ★ ℓ} → DataΠ eᴬ P → Π A P
 
     Reify : ★ (ₛ ℓ)
-    Reify = ∀ {P : A → ★ ℓ} → Π A P → DataΠ Aᵉ P
+    Reify = ∀ {P : A → ★ ℓ} → Π A P → DataΠ eᴬ P
 
     Reified : ★ (ₛ ℓ)
-    Reified = ∀ {P : A → ★ ℓ} → Π A P ↔ DataΠ Aᵉ P
+    Reified = ∀ {P : A → ★ ℓ} → Π A P ↔ DataΠ eᴬ P
 
     Unfocus : ★ (ₛ ℓ)
-    Unfocus = ∀ {P : A → ★ ℓ} → ΣPoint Aᵉ P → Σ A P
+    Unfocus = ∀ {P : A → ★ ℓ} → ΣPoint eᴬ P → Σ A P
 
     Focus : ★ (ₛ ℓ)
-    Focus = ∀ {P : A → ★ ℓ} → Σ A P → ΣPoint Aᵉ P
+    Focus = ∀ {P : A → ★ ℓ} → Σ A P → ΣPoint eᴬ P
 
     Focused : ★ (ₛ ℓ)
-    Focused = ∀ {P : A → ★ ℓ} → Σ A P ↔ ΣPoint Aᵉ P
+    Focused = ∀ {P : A → ★ ℓ} → Σ A P ↔ ΣPoint eᴬ P
 -- -}

@@ -1,5 +1,6 @@
 open import Level.NP
 open import Type
+open import Data.Zero
 open import Data.One
 open import Data.Two
 open import Data.Product
@@ -7,6 +8,7 @@ open import Data.Sum
 open import Data.Nat
 open import Data.Fin using (Fin)
 open import Explore.Type
+open import Explore.Zero
 open import Explore.One
 open import Explore.Two
 open import Explore.Product
@@ -25,11 +27,12 @@ data U : ★
 El : U → ★
 
 data U where
-  𝟙′ 𝟚′ : U
+  𝟘′ 𝟙′ 𝟚′ : U
   _×′_ _⊎′_ : U → U → U
   Σ′ : (t : U) → (El t → U) → U
 --FinS′ : ℕ → U
 
+El 𝟘′ = 𝟘
 El 𝟙′ = 𝟙
 El 𝟚′ = 𝟚
 El (s ×′ t) = El s × El t
@@ -44,6 +47,7 @@ t ^′ suc n = t ×′ t ^′ n
 module _ {ℓ} where
 
     exploreU : ∀ t → Explore ℓ (El t)
+    exploreU 𝟘′ = 𝟘ᵉ
     exploreU 𝟙′ = 𝟙ᵉ
     exploreU 𝟚′ = 𝟚ᵉ
     exploreU (s ×′ t) = exploreU s ×ᵉ exploreU t
@@ -52,6 +56,7 @@ module _ {ℓ} where
   --exploreU (FinS′ n) = FinSᵉ n
 
     exploreU-ind : ∀ {p} t → ExploreInd p (exploreU t)
+    exploreU-ind 𝟘′ = 𝟘ⁱ
     exploreU-ind 𝟙′ = 𝟙ⁱ
     exploreU-ind 𝟚′ = 𝟚ⁱ
     exploreU-ind (s ×′ t) = exploreU-ind s ×ⁱ exploreU-ind t
@@ -70,6 +75,7 @@ module _ (t : U) where
   open Explorable₁₁ tⁱ public using () renaming (unfocus to unfocusU)
 
 adequate-sumU : ∀ t → AdequateSum (sumU t)
+adequate-sumU 𝟘′       = 𝟘ˢ-ok
 adequate-sumU 𝟙′       = 𝟙ˢ-ok
 adequate-sumU 𝟚′       = 𝟚ˢ-ok
 adequate-sumU (s ×′ t) = adequate-sumΣ (adequate-sumU s) (adequate-sumU t)
@@ -79,6 +85,7 @@ adequate-sumU (Σ′ t f) = adequate-sumΣ (adequate-sumU t) (λ {x} → adequat
 
 module _ {ℓ} where
     lookupU : ∀ t → Lookup {ℓ} (exploreU t)
+    lookupU 𝟘′ = 𝟘ˡ
     lookupU 𝟙′ = 𝟙ˡ
     lookupU 𝟚′ = 𝟚ˡ
     lookupU (s ×′ t) = lookup× {_} {_} {_} {exploreU s} {exploreU t} (lookupU s) (lookupU t)
@@ -87,6 +94,7 @@ module _ {ℓ} where
   --lookupU (FinS′ n) = FinSˡ n
 
     focusU : ∀ t → Focus {ℓ} (exploreU t)
+    focusU 𝟘′ = 𝟘ᶠ
     focusU 𝟙′ = 𝟙ᶠ
     focusU 𝟚′ = 𝟚ᶠ
     focusU (s ×′ t) = focus× {_} {_} {_} {exploreU s} {exploreU t} (focusU s) (focusU t)

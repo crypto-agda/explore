@@ -19,10 +19,10 @@ module Explore.Two where
 
 module _ {ℓ} where
     𝟚ᵉ : Explore ℓ 𝟚
-    𝟚ᵉ _∙_ f = f 0₂ ∙ f 1₂
+    𝟚ᵉ _ _∙_ f = f 0₂ ∙ f 1₂
 
     𝟚ⁱ : ∀ {p} → ExploreInd p 𝟚ᵉ
-    𝟚ⁱ _ _P∙_ Pf = Pf 0₂ P∙ Pf 1₂
+    𝟚ⁱ _ _ _P∙_ Pf = Pf 0₂ P∙ Pf 1₂
 
 open Explorable₀  𝟚ⁱ public using () renaming (sum     to 𝟚ˢ)
 open Explorable₁₀ 𝟚ⁱ public using () renaming (reify   to 𝟚ʳ)

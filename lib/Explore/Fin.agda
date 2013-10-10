@@ -20,52 +20,43 @@ open import Explore.Isomorphism
 
 module Explore.Fin where
 
-FinS = Fin ∘ suc
+module _ {ℓ} where
+    Finᵉ : ∀ n → Explore ℓ (Fin n)
+    Finᵉ zero    z _∙_ f = z
+    Finᵉ (suc n) z _∙_ f = f zero ∙ Finᵉ n z _∙_ (f ∘ suc)
 
-{- TODO use Explore.Isomorphism to shorten and finish that
-module _ {ℓ} n where
-
-    iso = Maybe^𝟙↔Fin1+ n
-    FinSᵉ : Explore ℓ (FinS n)
-    FinSᵉ = {!explore-iso iso!}
--}
+    Finⁱ : ∀ {p} n → ExploreInd p (Finᵉ n)
+    Finⁱ zero    P z _∙_ f = z
+    Finⁱ (suc n) P z _∙_ f = f zero ∙ Finⁱ n Psuc z _∙_ (f ∘ suc)
+      where Psuc = λ e → P (λ z op f → e z op (f ∘ suc))
 
 module _ {ℓ} where
-    FinSᵉ : ∀ n → Explore ℓ (FinS n)
-    FinSᵉ zero    _∙_ f = f zero
-    FinSᵉ (suc n) _∙_ f = f zero ∙ FinSᵉ n _∙_ (f ∘ suc)
+    Finˡ : ∀ n → Lookup {ℓ} (Finᵉ n)
+    Finˡ (suc _) (b , _)  zero    = b
+    Finˡ (suc n) (_ , xs) (suc x) = Finˡ n xs x
 
-    FinSⁱ : ∀ {p} n → ExploreInd p (FinSᵉ n)
-    FinSⁱ zero    P _∙_ f = f zero
-    FinSⁱ (suc n) P _∙_ f = f zero ∙ FinSⁱ n Psuc _∙_ (f ∘ suc)
-      where Psuc = λ e → P (λ op f → e op (f ∘ suc))
-
-module _ {ℓ} where
-    FinSˡ : ∀ n → Lookup {ℓ} (FinSᵉ n)
-    FinSˡ zero    b        zero    = b
-    FinSˡ (suc _) (b , _)  zero    = b
-    FinSˡ zero    _        (suc ())
-    FinSˡ (suc n) (_ , xs) (suc x) = FinSˡ n xs x
-
-    FinSᶠ : ∀ n → Focus {ℓ} (FinSᵉ n)
-    FinSᶠ zero    (zero   , b) = b
-    FinSᶠ zero    (suc () , _)
-    FinSᶠ (suc n) (zero   , b) = inj₁ b
-    FinSᶠ (suc n) (suc x  , b) = inj₂ (FinSᶠ n (x , b))
+    Finᶠ : ∀ n → Focus {ℓ} (Finᵉ n)
+    Finᶠ (suc n) (zero   , b) = inj₁ b
+    Finᶠ (suc n) (suc x  , b) = inj₂ (Finᶠ n (x , b))
 
 module _ n where
-    open Explorable₀  (FinSⁱ n) public using () renaming (sum     to FinSˢ; product to FinSᵖ)
-    open Explorable₁₀ (FinSⁱ n) public using () renaming (reify   to FinSʳ)
-    open Explorable₁₁ (FinSⁱ n) public using () renaming (unfocus to FinSᵘ)
+    open Explorable₀  (Finⁱ n) public using () renaming (sum     to Finˢ; product to Finᵖ)
+    open Explorable₁₀ (Finⁱ n) public using () renaming (reify   to Finʳ)
+    open Explorable₁₁ (Finⁱ n) public using () renaming (unfocus to Finᵘ)
+
+postulate
+  Postulate-Finˢ-ok : ★
+  Postulate-FinFunˢ-ok : ★
+
+  Finˢ-ok : ∀ {{_ : Postulate-Finˢ-ok}} n → AdequateSum (Finˢ n)
 
 {-
-FinSˢ-ok : ∀ n → AdequateSum (FinSˢ n)
-
-FinSᵖ-ok : ∀ n → AdequateProduct (FinSᵖ n)
+Finᵖ-ok : ∀ n → AdequateProduct (Finᵖ n)
+-}
 
 module _ {A : ★}(μA : Explorable A) where
 
-  sA = explore μA
+  eᴬ = explore μA
 
   extend : ∀ {n} → A → (Fin n → A) → Fin (suc n) → A
   extend x g zero    = x
@@ -76,58 +67,58 @@ module _ {A : ★}(μA : Explorable A) where
 
   -- There is one function Fin 0 → A (called abs) so this should be fine
   -- if not there is a version below that forces the domain to be non-empty
-  sFun : ∀ n → Explore _ (Fin n → A)
-  sFun zero    op f = f ¬Fin0
-  sFun (suc n) op f = sA op (λ x → sFun n op (f ∘ extend x))
+  FinFunᵉ : ∀ n → Explore _ (Fin n → A)
+  FinFunᵉ zero    z op f = f ¬Fin0
+  FinFunᵉ (suc n) z op f = eᴬ z op (λ x → FinFunᵉ n z op (f ∘ extend x))
 
-  ind : ∀ n → ExploreInd _ (sFun n)
-  ind zero    P P∙ Pf = Pf _
-  ind (suc n) P P∙ Pf =
-    explore-ind μA (λ sa → P (λ op f → sa op (λ x → sFun n op (f ∘ extend x))))
-      P∙
-      (λ x → ind n (λ sf → P (λ op f → sf op (f ∘ extend x)))
-        P∙ (Pf ∘ extend x))
+  FinFunⁱ : ∀ n → ExploreInd _ (FinFunᵉ n)
+  FinFunⁱ zero    P Pz P∙ Pf = Pf _
+  FinFunⁱ (suc n) P Pz P∙ Pf =
+    explore-ind μA (λ sa → P (λ z op f → sa z op (λ x → FinFunᵉ n z op (f ∘ extend x))))
+      Pz P∙
+      (λ x → FinFunⁱ n (λ sf → P (λ z op f → sf z op (f ∘ extend x)))
+        Pz P∙ (Pf ∘ extend x))
 
-  sumFun : ∀ n → Sum (Fin n → A)
-  sumFun n = sFun n _+_
+  FinFunˢ : ∀ n → Sum (Fin n → A)
+  FinFunˢ n = FinFunᵉ n 0 _+_
 
   postulate
-    ade : ∀ n → AdequateSum (sumFun n)
+    FinFunˢ-ok : ∀ {{_ : Postulate-FinFunˢ-ok}} n → AdequateSum (FinFunˢ n)
 
-  μFun : ∀ {n} → Explorable (Fin n → A)
-  μFun = mk _ (ind _) (ade _)
+  μFinFun : ∀ {{_ : Postulate-FinFunˢ-ok}} {n} → Explorable (Fin n → A)
+  μFinFun = mk _ (FinFunⁱ _) (FinFunˢ-ok _)
+
+μFin : ∀ {{_ : Postulate-Finˢ-ok}} n → Explorable (Fin n)
+μFin n = mk _ (Finⁱ n) (Finˢ-ok n)
 
 {-
-μFinS : ∀ n → Explorable (Fin (suc n))
-μFinS n = mk _ (ind n) {!!}
-  where ind : ∀ n → ExploreInd _ (exploreFinS n)
-        ind zero    P P∙ Pf = Pf zero
-        ind (suc n) P P∙ Pf = P∙ (Pf zero) (ind n (λ s → P (λ op f → s op (f ∘ suc))) P∙ (Pf ∘ suc))
+μFinSUI : ∀ {n} → SumStableUnderInjection (sum (μFin n))
 -}
 
-postulate μFinSUI : ∀ {n} → SumStableUnderInjection (sum (μFinS n))
-
 module BigDistr
+  {{_ : Postulate-Finˢ-ok}}
+  {{_ : Postulate-FinFunˢ-ok}}
   {A : ★}(μA : Explorable A)
-  (cm       : CommutativeMonoid ₀ ₀)
+  (cm           : CommutativeMonoid ₀ ₀)
   -- we want (open CMon cm) !!!
-  (_◎_      : let open CMon cm in C → C → C)
-  (distrib  : let open CMon cm in _DistributesOver_ _≈_ _◎_ _∙_)
-  (_◎-cong_ : let open CMon cm in _◎_ Preserves₂ _≈_ ⟶ _≈_ ⟶ _≈_) where
+  (_◎_          : let open CMon cm in C → C → C)
+  (ε-◎          : let open CMon cm in Zero _≈_ ε _◎_)
+  (distrib      : let open CMon cm in _DistributesOver_ _≈_ _◎_ _∙_)
+  (_◎-cong_     : let open CMon cm in _◎_ Preserves₂ _≈_ ⟶ _≈_ ⟶ _≈_) where
 
-  open CMon cm
+  open CMon cm renaming (sym to ≈-sym)
 
-  μF→A = μFun μA
+  μF→A = μFinFun μA
 
   -- Sum over A
-  Σᴬ = explore μA _∙_
+  Σᴬ = explore μA ε _∙_
 
   -- Sum over (Fin(1+I)→A) functions
-  Σ' : ∀ {I} → ((Fin (suc I) → A) → C) → C
-  Σ' = explore μF→A _∙_
+  Σ' : ∀ {I} → ((Fin I → A) → C) → C
+  Σ' = explore μF→A ε _∙_
 
   -- Product over Fin(1+I) values
-  Π' = λ I → explore (μFinS I) _◎_
+  Π' = λ I → explore (μFin I) ε _◎_
 
   bigDistr : ∀ I F → Π' I (Σᴬ ∘ F) ≈ Σ' (Π' I ∘ _ˢ_ F)
   bigDistr zero    _ = refl
@@ -135,14 +126,18 @@ module BigDistr
     = Σᴬ (F zero) ◎ Π' I (Σᴬ ∘ F ∘ suc)
     ≈⟨ refl ◎-cong bigDistr I (F ∘ suc) ⟩
       Σᴬ (F zero) ◎ Σ' (Π' I ∘ _ˢ_ (F ∘ suc))
-    ≈⟨ sym (explore-linʳ μA monoid _◎_ (F zero) (Σ' (Π' I ∘ _ˢ_ (F ∘ suc))) (proj₂ distrib)) ⟩
+    ≈⟨ ≈-sym (explore-linʳ μA monoid _◎_ (F zero) (Σ' (Π' I ∘ _ˢ_ (F ∘ suc))) (proj₁ ε-◎ _) (proj₂ distrib)) ⟩
       Σᴬ (λ j → F zero j ◎ Σ' (Π' I ∘ _ˢ_ (F ∘ suc)))
-    ≈⟨ explore-sg-ext μA semigroup (λ j → sym (explore-linˡ μF→A monoid _◎_ (Π' I ∘ _ˢ_ (F ∘ suc)) (F zero j) (proj₁ distrib))) ⟩
+    ≈⟨ explore-mon-ext μA monoid (λ j → ≈-sym (explore-linˡ μF→A monoid _◎_ (Π' I ∘ _ˢ_ (F ∘ suc)) (F zero j) (proj₂ ε-◎ _) (proj₁ distrib))) ⟩
       (Σᴬ λ j → Σ' λ f → F zero j ◎ Π' I ((F ∘ suc) ˢ f))
     ∎
 
-FinDist : ∀ {n} → DistFun (μFinS n) (λ μX → μFun μX)
-FinDist μB c ◎ distrib ◎-cong f = BigDistr.bigDistr μB c ◎ distrib ◎-cong _ f
+module _
+  {{_ : Postulate-Finˢ-ok}}
+  {{_ : Postulate-FinFunˢ-ok}} where
+
+  FinDist : ∀ {n} → DistFun (μFin n) (λ μX → μFinFun μX)
+  FinDist μB c ◎ distrib ◎-cong f = BigDistr.bigDistr μB c ◎ distrib ◎-cong f _
 -- -}
 -- -}
 -- -}

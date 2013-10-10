@@ -122,19 +122,20 @@ module _ {A B}(GA : Group A)(GB : Group B)(f : A → B)(exploreA : Explore zero 
   -}
 
   -- this proof isn't actually any hard..
-  thm : ∀ {X}(op : X → X → X)(O : B → X) m₀ m₁ → exploreA op (λ x → O (f x * m₀)) ≡ exploreA op (λ x → O (f x * m₁))
-  thm op O m₀ m₁ = exploreA op (λ x → O (f x * m₀))
-                 ≡⟨ sui (- [f] m₀) op (λ x → O (f x * m₀)) ⟩
-                   exploreA op (λ x → O (f (x + - [f] m₀)  * m₀))
-                 ≡⟨ explore-ext op (λ x → cong O (lemma1 x)) ⟩
-                   exploreA op (λ x → O (f x ))
-                 ≡⟨ sui ([f] m₁) op (λ x → O (f x)) ⟩
-                   exploreA op (λ x → O (f (x + [f] m₁)))
-                 ≡⟨ explore-ext op (λ x → cong O (lemma2 x)) ⟩
-                   exploreA op (λ x → O (f x * m₁))
+  thm : ∀ {X}(z : X)(op : X → X → X)(O : B → X) m₀ m₁ → exploreA z op (λ x → O (f x * m₀)) ≡ exploreA z op (λ x → O (f x * m₁))
+  thm z op O m₀ m₁ = explore (λ x → O (f x * m₀))
+                 ≡⟨ sui (- [f] m₀) z op (λ x → O (f x * m₀)) ⟩
+                   explore (λ x → O (f (x + - [f] m₀)  * m₀))
+                 ≡⟨ explore-ext z op (λ x → cong O (lemma1 x)) ⟩
+                   explore (λ x → O (f x ))
+                 ≡⟨ sui ([f] m₁) z op (O ∘ f) ⟩
+                   explore (λ x → O (f (x + [f] m₁)))
+                 ≡⟨ explore-ext z op (λ x → cong O (lemma2 x)) ⟩
+                   explore (λ x → O (f x * m₁))
                  ∎
     where
       open ≡-Reasoning
+      explore = exploreA z op
 
       lemma1 : ∀ x → f (x + - [f] m₀) * m₀ ≡ f x
       lemma1 x rewrite f-homo x (- [f] m₀)

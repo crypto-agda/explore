@@ -41,18 +41,19 @@ module FromSumInd {A : ★}
   open FromSum sum public
 
   sum-ext : SumExt sum
-  sum-ext = sum-ind (λ s → s _ ≡ s _) (≡.cong₂ _+_)
+  sum-ext = sum-ind (λ s → s _ ≡ s _) ≡.refl (≡.cong₂ _+_)
 
   sum-zero : SumZero sum
-  sum-zero = sum-ind (λ s → s (const 0) ≡ 0) (≡.cong₂ _+_) (λ _ → ≡.refl)
+  sum-zero = sum-ind (λ s → s (const 0) ≡ 0) ≡.refl (≡.cong₂ _+_) (λ _ → ≡.refl)
 
   sum-hom : SumHom sum
   sum-hom f g = sum-ind (λ s → s (f +° g) ≡ s f + s g)
+                        ≡.refl
                         (λ {s₀} {s₁} p₀ p₁ → ≡.trans (≡.cong₂ _+_ p₀ p₁) (+-interchange (s₀ _) (s₀ _) _ _))
                         (λ _ → ≡.refl)
 
   sum-mono : SumMono sum
-  sum-mono = sum-ind (λ s → s _ ≤ s _) _+-mono_
+  sum-mono = sum-ind (λ s → s _ ≤ s _) z≤n _+-mono_
 
   sum-lin : SumLin sum
   sum-lin f zero    = sum-zero

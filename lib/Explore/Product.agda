@@ -28,13 +28,13 @@ module Explore.Product where
 module _ {m A} {B : A → ★₀} where
 
     exploreΣ : Explore m A → (∀ {x} → Explore m (B x)) → Explore m (Σ A B)
-    exploreΣ exploreᴬ exploreᴮ op = exploreᴬ op ⟨,⟩ exploreᴮ op
+    exploreΣ exploreᴬ exploreᴮ z op = exploreᴬ z op ⟨,⟩ exploreᴮ z op
 
-    module _ {sᴬ : Explore m A} {sᴮ : ∀ {x} → Explore m (B x)} where
+    module _ {eᴬ : Explore m A} {eᴮ : ∀ {x} → Explore m (B x)} where
 
-        exploreΣ-ind : ∀ {p} → ExploreInd p sᴬ → (∀ {x} → ExploreInd p (sᴮ {x})) → ExploreInd p (exploreΣ sᴬ sᴮ)
-        exploreΣ-ind Psᴬ Psᴮ P P∙ Pf =
-          Psᴬ (λ s → P (λ _ _ → s _ _)) P∙ (λ x → Psᴮ {x} (λ s → P (λ _ _ → s _ _)) P∙ (curry Pf x))
+        exploreΣ-ind : ∀ {p} → ExploreInd p eᴬ → (∀ {x} → ExploreInd p (eᴮ {x})) → ExploreInd p (exploreΣ eᴬ eᴮ)
+        exploreΣ-ind Peᴬ Peᴮ P Pz P∙ Pf =
+          Peᴬ (λ e → P (λ _ _ _ → e _ _ _)) Pz P∙ (λ x → Peᴮ {x} (λ e → P (λ _ _ _ → e _ _ _)) Pz P∙ (curry Pf x))
 
 module _ {A} {B : A → ★₀} {sumᴬ : Sum A} {sumᴮ : ∀ {x} → Sum (B x)} where
 
@@ -59,10 +59,10 @@ module _ {A} {B : A → ★₀} {sumᴬ : Sum A} {sumᴮ : ∀ {x} → Sum (B x)
 explore× : ∀ {m A B} → Explore m A → Explore m B → Explore m (A × B)
 explore× exploreᴬ exploreᴮ = exploreΣ exploreᴬ exploreᴮ
 
-explore×-ind : ∀ {m p A B} {sᴬ : Explore m A} {sᴮ : Explore m B}
-               → ExploreInd p sᴬ → ExploreInd p sᴮ
-               → ExploreInd p (explore× sᴬ sᴮ)
-explore×-ind Psᴬ Psᴮ = exploreΣ-ind Psᴬ Psᴮ
+explore×-ind : ∀ {m p A B} {eᴬ : Explore m A} {eᴮ : Explore m B}
+               → ExploreInd p eᴬ → ExploreInd p eᴮ
+               → ExploreInd p (explore× eᴬ eᴮ)
+explore×-ind Peᴬ Peᴮ = exploreΣ-ind Peᴬ Peᴮ
 
 sumΣ : ∀ {A} {B : A → ★₀} → Sum A → (∀ {x} → Sum (B x)) → Sum (Σ A B)
 sumΣ = _⟨,⟩_
@@ -94,22 +94,22 @@ _×-cmp_ : ∀ {A B : ★₀ } → Cmp A → Cmp B → Cmp (A × B)
     help false = sum-zero μB
 -}
 
-module _ {ℓ} {A} {B : A → _} {sᴬ : Explore (ₛ ℓ) A} {sᴮ : ∀ {x} → Explore (ₛ ℓ) (B x)} where
-  focusΣ : Focus sᴬ → (∀ {x} → Focus (sᴮ {x})) → Focus (exploreΣ sᴬ (λ {x} → sᴮ {x}))
+module _ {ℓ} {A} {B : A → _} {eᴬ : Explore (ₛ ℓ) A} {eᴮ : ∀ {x} → Explore (ₛ ℓ) (B x)} where
+  focusΣ : Focus eᴬ → (∀ {x} → Focus (eᴮ {x})) → Focus (exploreΣ eᴬ (λ {x} → eᴮ {x}))
   focusΣ fᴬ fᴮ ((x , y) , z) = fᴬ (x , fᴮ (y , z))
 
-  lookupΣ : Lookup sᴬ → (∀ {x} → Lookup (sᴮ {x})) → Lookup (exploreΣ sᴬ (λ {x} → sᴮ {x}))
+  lookupΣ : Lookup eᴬ → (∀ {x} → Lookup (eᴮ {x})) → Lookup (exploreΣ eᴬ (λ {x} → eᴮ {x}))
   lookupΣ lookupᴬ lookupᴮ d = uncurry (lookupᴮ ∘ lookupᴬ d)
 
   -- can also be derived from explore-ind
-  reifyΣ : Reify sᴬ → (∀ {x} → Reify (sᴮ {x})) → Reify (exploreΣ sᴬ (λ {x} → sᴮ {x}))
+  reifyΣ : Reify eᴬ → (∀ {x} → Reify (eᴮ {x})) → Reify (exploreΣ eᴬ (λ {x} → eᴮ {x}))
   reifyΣ reifyᴬ reifyᴮ f = reifyᴬ (reifyᴮ ∘ curry f)
 
-module _ {ℓ} {A B} {sᴬ : Explore (ₛ ℓ) A} {sᴮ : Explore (ₛ ℓ) B} where
-  focus× : Focus sᴬ → Focus sᴮ → Focus (explore× sᴬ sᴮ)
-  focus× fᴬ fᴮ = focusΣ {sᴬ = sᴬ} {sᴮ = sᴮ} fᴬ fᴮ
-  lookup× : Lookup sᴬ → Lookup sᴮ → Lookup (explore× sᴬ sᴮ)
-  lookup× fᴬ fᴮ = lookupΣ {sᴬ = sᴬ} {sᴮ = sᴮ} fᴬ fᴮ
+module _ {ℓ} {A B} {eᴬ : Explore (ₛ ℓ) A} {eᴮ : Explore (ₛ ℓ) B} where
+  focus× : Focus eᴬ → Focus eᴮ → Focus (explore× eᴬ eᴮ)
+  focus× fᴬ fᴮ = focusΣ {eᴬ = eᴬ} {eᴮ = eᴮ} fᴬ fᴮ
+  lookup× : Lookup eᴬ → Lookup eᴮ → Lookup (explore× eᴬ eᴮ)
+  lookup× fᴬ fᴮ = lookupΣ {eᴬ = eᴬ} {eᴮ = eᴮ} fᴬ fᴮ
 
 module Operators where
     infixr 4 _×ᵉ_ _×ⁱ_ _×ˢ_
@@ -133,12 +133,12 @@ private
                             f (x₀ , x₁)))
 
     explore×' : ∀ {A B} → Explore₀ A → Explore _ B → Explore _ (A × B)
-    explore×' exploreᴬ exploreᴮ op f = exploreᴬ op (λ x → exploreᴮ op (curry f x))
+    explore×' exploreᴬ exploreᴮ z op f = exploreᴬ z op (λ x → exploreᴮ z op (curry f x))
 
-    explore×-ind' : ∀ {A B} {sᴬ : Explore _ A} {sᴮ : Explore _ B}
-                    → ExploreInd₀ sᴬ → ExploreInd₀ sᴮ → ExploreInd₀ (explore×' sᴬ sᴮ)
-    explore×-ind' Psᴬ Psᴮ P P∙ Pf =
-      Psᴬ (λ s → P (λ _ _ → s _ _)) P∙ (Psᴮ (λ s → P (λ _ _ → s _ _)) P∙ ∘ curry Pf)
+    explore×-ind' : ∀ {A B} {eᴬ : Explore _ A} {eᴮ : Explore _ B}
+                    → ExploreInd₀ eᴬ → ExploreInd₀ eᴮ → ExploreInd₀ (explore×' eᴬ eᴮ)
+    explore×-ind' Peᴬ Peᴮ P Pz P∙ Pf =
+      Peᴬ (λ e → P (λ _ _ _ → e _ _ _)) Pz P∙ (Peᴮ (λ e → P (λ _ _ _ → e _ _ _)) Pz P∙ ∘ curry Pf)
 
     -- liftM2 _,_ in the continuation monad
     sum×' : ∀ {A B} → Sum A → Sum B → Sum (A × B)

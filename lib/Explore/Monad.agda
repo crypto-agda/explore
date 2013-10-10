@@ -1,32 +1,49 @@
 {-# OPTIONS --without-K #-}
+open import Type hiding (★)
 open import Function
 open import Relation.Binary.PropositionalEquality
 
 open import Explore.Type
 
+-- Explore ℓ is not an endo functor because of universe levels
 module Explore.Monad ℓ where
 
 M = Explore ℓ
 
 module _ {A : Set} where
     return : A → M A
-    return x _∙_ f = f x
+    return = point-explore
 
-    return-ind : ∀ {p} x → ExploreInd p (return x)
-    return-ind x P _P∙_ Pf = Pf x
+    mzero : M A
+    mzero = empty-explore
+
+    mplus : M A → M A → M A
+    mplus = merge-explore
+
+    module _ {p} where
+        return-ind : ∀ x → ExploreInd p (return x)
+        return-ind = point-explore-ind
+
+        mzero-ind : ExploreInd p mzero
+        mzero-ind = empty-explore-ind
+
+        mplus-ind : ∀ {e₀ e₁ : M A}
+                    → ExploreInd p e₀ → ExploreInd p e₁
+                    → ExploreInd p (merge-explore e₀ e₁)
+        mplus-ind Pe₀ Pe₁ P Pε _P∙_ Pf = (Pe₀ P Pε _P∙_ Pf) P∙ (Pe₁ P Pε _P∙_ Pf)
 
 module _ {A B : Set} where
 
     infixl 1 _>>=_ _>>=-ind_
     _>>=_ : M A → (A → M B) → M B
-    (expᴬ >>= expᴮ) _∙_ f = expᴬ _∙_ λ x → expᴮ x _∙_ f
+    (expᴬ >>= expᴮ) ε _∙_ f = expᴬ ε _∙_ λ x → expᴮ x ε _∙_ f
 
     _>>=-ind_ : ∀ {p}
                   {expᴬ : M A} → ExploreInd p expᴬ →
                   {expᴮ : A → M B} → (∀ x → ExploreInd p (expᴮ x))
                → ExploreInd p (expᴬ >>= expᴮ)
-    _>>=-ind_ {expᴬ} Pᴬ {expᴮ} Pᴮ P _P∙_ Pf
-      = Pᴬ (λ e → P (e >>= expᴮ)) _P∙_ λ x → Pᴮ x P _P∙_ Pf
+    _>>=-ind_ {expᴬ} Pᴬ {expᴮ} Pᴮ P Pz _P∙_ Pf
+      = Pᴬ (λ e → P (e >>= expᴮ)) Pz _P∙_ λ x → Pᴮ x P Pz _P∙_ Pf
 
     map : (A → B) → M A → M B
     map f e = e >>= return ∘ f
@@ -37,7 +54,7 @@ module _ {A B : Set} where
     private
         {- This law is for free: map f e = e >>= return ∘ f -}
         map' : (A → B) → M A → M B
-        map' f exp _∙_ g = exp _∙_ (g ∘ f)
+        map' f exp ε _∙_ g = exp ε _∙_ (g ∘ f)
 
         map'≡map : map' ≡ map
         map'≡map = refl
