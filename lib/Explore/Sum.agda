@@ -43,23 +43,27 @@ module _ {m A B} where
     explore⊎ : Explore m A → Explore m B → Explore m (A ⊎ B)
     explore⊎ exploreᴬ exploreᴮ ε _∙_ = ⊎ᶜ _∙_ (exploreᴬ ε _∙_) (exploreᴮ ε _∙_)
 
-    module _ {p} {sᴬ : Explore m A} {sᴮ : Explore m B} where
-        explore⊎-ind : ExploreInd p sᴬ → ExploreInd p sᴮ → ExploreInd p (explore⊎ sᴬ sᴮ)
+    module _ {p} {eᴬ : Explore m A} {eᴮ : Explore m B} where
+        explore⊎-ind : ExploreInd p eᴬ → ExploreInd p eᴮ → ExploreInd p (explore⊎ eᴬ eᴮ)
         explore⊎-ind Psᴬ Psᴮ P Pε P∙ Pf
         -- TODO clean this up:
           = P∙ (Psᴬ (λ s → P (λ _ _ f → s _ _ (f ∘ inj₁))) Pε P∙ (Pf ∘ inj₁))
                (Psᴮ (λ s → P (λ _ _ f → s _ _ (f ∘ inj₂))) Pε P∙ (Pf ∘ inj₂))
 
-module _ {A B}{sᴬ : Explore ₀ A}{sᴮ : Explore ₀ B} where
-   explore⊎-adq : AdequateExplore sᴬ → AdequateExplore sᴮ → AdequateExplore (explore⊎ sᴬ sᴮ)
-   explore⊎-adq aᴬ aᴮ F _+_ f F-proof = F (sᴬ _+_ (f ∘ inj₁) +  sᴮ _+_ (f ∘ inj₂))
-                                      ↔⟨ F-proof  ⟩
-                                        (F (sᴬ _+_ (f ∘ inj₁)) ⊎ F (sᴮ _+_ (f ∘ inj₂)))
-                                      ↔⟨ aᴬ F _+_ (f ∘ inj₁) F-proof ⊎-cong aᴮ F _+_ (f ∘ inj₂) F-proof ⟩
-                                        (Σ A (F ∘ f ∘ inj₁) ⊎ Σ B (F ∘ f ∘ inj₂))
-                                      ↔⟨ FI.sym Σ⊎-distrib ⟩
-                                        Σ (A ⊎ B) (F ∘ f) ∎ 
+module _ {A B}{eᴬ : Explore ₀ A}{eᴮ : Explore ₀ B} where
+   explore⊎-adq : AdequateExplore eᴬ → AdequateExplore eᴮ → AdequateExplore (explore⊎ eᴬ eᴮ)
+   explore⊎-adq aᴬ aᴮ F ε _⊕_ f F-proof
+      = F (big⊕ᴬ (f ∘ inj₁) ⊕ big⊕ᴮ (f ∘ inj₂))
+      ↔⟨ F-proof  ⟩
+        (F (big⊕ᴬ (f ∘ inj₁)) ⊎ F (big⊕ᴮ (f ∘ inj₂)))
+      ↔⟨ aᴬ F ε _⊕_ (f ∘ inj₁) F-proof ⊎-cong aᴮ F ε _⊕_ (f ∘ inj₂) F-proof ⟩
+        (Σ A (F ∘ f ∘ inj₁) ⊎ Σ B (F ∘ f ∘ inj₂))
+      ↔⟨ FI.sym Σ⊎-distrib ⟩
+        Σ (A ⊎ B) (F ∘ f)
+      ∎
      where open FR.EquationalReasoning
+           big⊕ᴬ = eᴬ ε _⊕_
+           big⊕ᴮ = eᴮ ε _⊕_
 
 infixr 4 _⊎ᵉ_ _⊎ⁱ_ _⊎ˢ_
 _⊎ᵉ_ = explore⊎
@@ -83,31 +87,31 @@ module _ {A B} {sumᴬ : Sum A} {sumᴮ : Sum B} where
 
     _⊎ᵃ_ = adequate-sum⊎
 
-module _ {ℓ} {A B} {sᴬ : Explore (ₛ ℓ) A} {sᴮ : Explore (ₛ ℓ) B} where
-  sᴬ⁺ᴮ = sᴬ ⊎ᵉ sᴮ
-  focus⊎ : Focus sᴬ → Focus sᴮ → Focus sᴬ⁺ᴮ
+module _ {ℓ} {A B} {eᴬ : Explore (ₛ ℓ) A} {eᴮ : Explore (ₛ ℓ) B} where
+  sᴬ⁺ᴮ = eᴬ ⊎ᵉ eᴮ
+  focus⊎ : Focus eᴬ → Focus eᴮ → Focus sᴬ⁺ᴮ
   focus⊎ fᴬ fᴮ (inj₁ x , y) = inj₁ (fᴬ (x , y))
   focus⊎ fᴬ fᴮ (inj₂ x , y) = inj₂ (fᴮ (x , y))
 
-  unfocus⊎ : Unfocus sᴬ → Unfocus sᴮ → Unfocus sᴬ⁺ᴮ
+  unfocus⊎ : Unfocus eᴬ → Unfocus eᴮ → Unfocus sᴬ⁺ᴮ
   unfocus⊎ fᴬ fᴮ (inj₁ x) = first inj₁ (fᴬ x)
   unfocus⊎ fᴬ fᴮ (inj₂ y) = first inj₂ (fᴮ y)
 
   {-
-  _⊎-focused_ : Focused sᴬ → Focused sᴮ → Focused {L.zero} sᴬ⁺ᴮ
+  _⊎-focused_ : Focused eᴬ → Focused eᴮ → Focused {L.zero} sᴬ⁺ᴮ
   _⊎-focused_ fᴬ fᴮ {B} = inverses (to fᴬ ⊎-focus to fᴮ) (from fᴬ ⊎-unfocus from fᴮ) (⇒) (⇐)
       where
         ⇒ : (x : Σ (A ⊎ {!!}) {!!}) → _
         ⇒ (x , y) = {!!}
-        ⇐ : (x : sᴬ _⊎_ (B ∘ inj₁) ⊎ sᴮ _⊎_ (B ∘ inj₂)) → _
+        ⇐ : (x : eᴬ _⊎_ (B ∘ inj₁) ⊎ eᴮ _⊎_ (B ∘ inj₂)) → _
         ⇐ (inj₁ x) = cong inj₁ {!!}
         ⇐ (inj₂ x) = cong inj₂ {!!}
   -}
 
-  lookup⊎ : Lookup sᴬ → Lookup sᴮ → Lookup (sᴬ ⊎ᵉ sᴮ)
+  lookup⊎ : Lookup eᴬ → Lookup eᴮ → Lookup (eᴬ ⊎ᵉ eᴮ)
   lookup⊎ lookupᴬ lookupᴮ (x , y) = [ lookupᴬ x , lookupᴮ y ]
 
-  reify⊎ : Reify sᴬ → Reify sᴮ → Reify (sᴬ ⊎ᵉ sᴮ)
+  reify⊎ : Reify eᴬ → Reify eᴮ → Reify (eᴬ ⊎ᵉ eᴮ)
   reify⊎ reifyᴬ reifyᴮ f = (reifyᴬ (f ∘ inj₁)) , (reifyᴮ (f ∘ inj₂))
 
 -- DEPRECATED

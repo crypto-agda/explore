@@ -192,8 +192,8 @@ Product : ★₀ → ★₀
 Product A = (A → ℕ) → ℕ
 
 AdequateExplore : ∀ {A} → Explore ₀ A → ★₁
-AdequateExplore {A} expᴬ = ∀ {U : ★₀}(F : U → ★₀) _+_ f
-  → (∀ {x y} → F (x + y) ↔ (F x ⊎  F y)) → F (expᴬ _+_ f) ↔ Σ A (F ∘ f)
+AdequateExplore {A} expᴬ = ∀ {U : ★₀}(F : U → ★₀) ε _⊕_ f
+  → (∀ {x y} → F (x ⊕ y) ↔ (F x ⊎ F y)) → F (expᴬ ε _⊕_ f) ↔ Σ A (F ∘ f)
 
 AdequateSum : ∀ {A} → Sum A → ★₀
 AdequateSum {A} sumᴬ = ∀ f → Fin (sumᴬ f) ↔ Σ A (Fin ∘ f)
@@ -345,12 +345,21 @@ SumConst : ∀ {A} → Sum A → ★ _
 SumConst sumᴬ = ∀ x → sumᴬ (const x) ≡ sumᴬ (const 1) * x
 
 ExploreSwap : ∀ r {ℓ A} → Explore ℓ A → ★ _
-ExploreSwap r {ℓ} {A} eᴬ = ∀ {B : ★₀} mon f →
-                            let open Mon {_} {r} mon in
-                          ∀ {eᴮ : (B → C) → C}
-                            (eᴮ-ε : eᴮ (const ε) ≈ ε)
-                            (hom : ∀ f g → eᴮ (f ∙° g) ≈ eᴮ f ∙ eᴮ g)
-                          → eᴬ ε _∙_ (eᴮ ∘ f) ≈ eᴮ (eᴬ ε _∙_ ∘ flip f)
+ExploreSwap r {ℓ} {A} eᴬ = ∀ {B : ★₀} mon →
+                             let open Mon {_} {r} mon in
+                           ∀ {eᴮ : (B → C) → C}
+                             (eᴮ-ε : eᴮ (const ε) ≈ ε)
+                             (hom : ∀ f g → eᴮ (f ∙° g) ≈ eᴮ f ∙ eᴮ g)
+                             f
+                           → eᴬ ε _∙_ (eᴮ ∘ f) ≈ eᴮ (eᴬ ε _∙_ ∘ flip f)
+
+SumSwap : ∀ {A} → Sum A → ★ _
+SumSwap {A} sᴬ = ∀ {B : ★₀}
+                   {sᴮ : Sum B}
+                   (sᴮ-0 : sᴮ (const 0) ≡ 0)
+                   (hom : ∀ f g → sᴮ (f +° g) ≡ sᴮ f + sᴮ g)
+                   f
+                 → sᴬ (sᴮ ∘ f) ≡ sᴮ (sᴬ ∘ flip f)
 
 Unique : ∀ {A} → Cmp A → Count A → ★ _
 Unique cmp count = ∀ x → count (cmp x) ≡ 1

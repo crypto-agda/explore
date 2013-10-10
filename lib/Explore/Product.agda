@@ -36,17 +36,20 @@ module _ {m A} {B : A → ★₀} where
         exploreΣ-ind Peᴬ Peᴮ P Pz P∙ Pf =
           Peᴬ (λ e → P (λ _ _ _ → e _ _ _)) Pz P∙ (λ x → Peᴮ {x} (λ e → P (λ _ _ _ → e _ _ _)) Pz P∙ (curry Pf x))
 
-module _ {A}{B : A → ★₀}{sᴬ : Explore ₀ A}{sᴮ : ∀ {x} → Explore ₀ (B x)} where
-   explore⊎-adq : AdequateExplore sᴬ → (∀ {x} → AdequateExplore (sᴮ {x})) → AdequateExplore (exploreΣ sᴬ sᴮ)
-   explore⊎-adq aᴬ aᴮ F _+_ f F-proof = F (sᴬ _+_ (λ a → sᴮ _+_ (λ b → f (a , b))))
-                                      ↔⟨ aᴬ F _ _ F-proof ⟩
-                                        Σ A (F ∘ (λ a → sᴮ _+_ (λ b → f (a , b))))
-                                      ↔⟨ second-iso (λ _ → aᴮ F _ _ F-proof) ⟩
-                                        Σ A (λ a → Σ (B a) (λ b → F (f (a , b))))
-                                      ↔⟨ FI.sym Σ-assoc ⟩
-                                        Σ (Σ A B) (F ∘ f)
-                                      ∎
+module _ {A}{B : A → ★₀}{eᴬ : Explore ₀ A}{eᴮ : ∀ {x} → Explore ₀ (B x)} where
+   explore⊎-adq : AdequateExplore eᴬ → (∀ {x} → AdequateExplore (eᴮ {x})) → AdequateExplore (exploreΣ eᴬ eᴮ)
+   explore⊎-adq aᴬ aᴮ F ε _⊕_ f F-proof
+     = F (big⊕ᴬ (λ a → big⊕ᴮ (λ b → f (a , b))))
+     ↔⟨ aᴬ F _ _ _ F-proof ⟩
+         Σ A (F ∘ (λ a → big⊕ᴮ (λ b → f (a , b))))
+     ↔⟨ second-iso (λ _ → aᴮ F _ _ _ F-proof) ⟩
+       Σ A (λ a → Σ (B a) (λ b → F (f (a , b))))
+     ↔⟨ FI.sym Σ-assoc ⟩
+       Σ (Σ A B) (F ∘ f)
+     ∎
      where open FR.EquationalReasoning
+           big⊕ᴬ = eᴬ ε _⊕_
+           big⊕ᴮ = λ {x} → eᴮ {x} ε _⊕_
 
 module _ {A} {B : A → ★₀} {sumᴬ : Sum A} {sumᴮ : ∀ {x} → Sum (B x)} where
 

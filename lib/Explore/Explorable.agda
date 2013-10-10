@@ -102,7 +102,7 @@ module Explorableₘₚ
     explore-ind (λ e → e _ _ f ⊆ e _ _ g) z⊆ _∙-mono_ f⊆°g
 
   explore-swap : ExploreSwap _ explore
-  explore-swap mon f {eᴮ} eᴮ-ε pf =
+  explore-swap mon {eᴮ} eᴮ-ε pf f =
     explore-ind (λ e → e _ _ (eᴮ ∘ f) ≈ eᴮ (e _ _ ∘ flip f))
                 (sym eᴮ-ε)
                 (λ p q → trans (∙-cong p q) (sym (pf _ _)))
@@ -243,10 +243,11 @@ module Explorable₀
   sum-mono : SumMono sum
   sum-mono = explore-mono _≤_ z≤n _+-mono_
 
-  sum-swap' : ∀ {B}{sumμB : Sum B}(μB : SumHom sumμB) f →
-             sum (sumμB ∘ f) ≡ sumμB (sum ∘ flip f)
-  sum-swap' {B}{sumB} μB f = explore-ind (λ E → E _+_ (sumB ∘ f) ≡ sumB (E _+_ ∘ flip f))
-     (λ p q → ≡.trans (≡.cong₂ _+_ p q) (≡.sym (μB _ _))) (λ _ → ≡.refl)
+  sum-swap' : SumSwap sum
+  sum-swap' {sᴮ = sᴮ} sᴮ-0 hom f =
+    sum-ind (λ s → s (sᴮ ∘ f) ≡ sᴮ (s ∘ flip f))
+            (≡.sym sᴮ-0)
+            (λ p q → ≡.trans (≡.cong₂ _+_ p q) (≡.sym (hom _ _))) (λ _ → ≡.refl)
   
   sum-lin : SumLin sum
   sum-lin f zero    = sum-zero
@@ -438,7 +439,7 @@ explore-swap' : ∀ {A B} cm (μA : Explorable A) (μB : Explorable B) f →
                    eᴬ = explore μA ε _∙_
                    eᴮ = explore μB ε _∙_ in
                eᴬ (eᴮ ∘ f) ≈ eᴮ (eᴬ ∘ flip f)
-explore-swap' cm μA μB f = explore-swap μA m f (explore-ε μB m) (explore-hom μB cm)
+explore-swap' cm μA μB = explore-swap μA m (explore-ε μB m) (explore-hom μB cm)
   where open CMon cm
 
 sum-swap : ∀ {A B} (μA : Explorable A) (μB : Explorable B) f →

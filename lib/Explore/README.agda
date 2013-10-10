@@ -41,4 +41,4 @@ open import Explore.Monad
 open import Explore.GroupHomomorphism
 
 -- An example with a specific type: 6 sided dice
-import Explore.Dice
+open import Explore.Dice
