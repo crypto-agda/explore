@@ -36,6 +36,18 @@ module _ {m A} {B : A → ★₀} where
         exploreΣ-ind Peᴬ Peᴮ P Pz P∙ Pf =
           Peᴬ (λ e → P (λ _ _ _ → e _ _ _)) Pz P∙ (λ x → Peᴮ {x} (λ e → P (λ _ _ _ → e _ _ _)) Pz P∙ (curry Pf x))
 
+module _ {A}{B : A → ★₀}{sᴬ : Explore ₀ A}{sᴮ : ∀ {x} → Explore ₀ (B x)} where
+   explore⊎-adq : AdequateExplore sᴬ → (∀ {x} → AdequateExplore (sᴮ {x})) → AdequateExplore (exploreΣ sᴬ sᴮ)
+   explore⊎-adq aᴬ aᴮ F _+_ f F-proof = F (sᴬ _+_ (λ a → sᴮ _+_ (λ b → f (a , b))))
+                                      ↔⟨ aᴬ F _ _ F-proof ⟩
+                                        Σ A (F ∘ (λ a → sᴮ _+_ (λ b → f (a , b))))
+                                      ↔⟨ second-iso (λ _ → aᴮ F _ _ F-proof) ⟩
+                                        Σ A (λ a → Σ (B a) (λ b → F (f (a , b))))
+                                      ↔⟨ FI.sym Σ-assoc ⟩
+                                        Σ (Σ A B) (F ∘ f)
+                                      ∎
+     where open FR.EquationalReasoning
+
 module _ {A} {B : A → ★₀} {sumᴬ : Sum A} {sumᴮ : ∀ {x} → Sum (B x)} where
 
     private
@@ -115,6 +127,7 @@ module Operators where
     infixr 4 _×ᵉ_ _×ⁱ_ _×ˢ_
     _×ᵉ_ = explore×
     _×ⁱ_ = explore×-ind
+    _×ᵃ_ = adequate-sumΣ
     _×ˢ_ = sum×
     _×ᶠ_ = focus×
     _×ˡ_ = lookup×

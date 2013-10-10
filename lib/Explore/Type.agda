@@ -191,6 +191,10 @@ Sum A = (A → ℕ) → ℕ
 Product : ★₀ → ★₀
 Product A = (A → ℕ) → ℕ
 
+AdequateExplore : ∀ {A} → Explore ₀ A → ★₁
+AdequateExplore {A} expᴬ = ∀ {U : ★₀}(F : U → ★₀) _+_ f
+  → (∀ {x y} → F (x + y) ↔ (F x ⊎  F y)) → F (expᴬ _+_ f) ↔ Σ A (F ∘ f)
+
 AdequateSum : ∀ {A} → Sum A → ★₀
 AdequateSum {A} sumᴬ = ∀ f → Fin (sumᴬ f) ↔ Σ A (Fin ∘ f)
 
@@ -336,6 +340,9 @@ SumHom sumᴬ = ∀ f g → sumᴬ (λ x → f x + g x) ≡ sumᴬ f + sumᴬ g
 
 SumMono : ∀ {A} → Sum A → ★ _
 SumMono sumᴬ = ∀ {f g} → (∀ x → f x ≤ g x) → sumᴬ f ≤ sumᴬ g
+
+SumConst : ∀ {A} → Sum A → ★ _
+SumConst sumᴬ = ∀ x → sumᴬ (const x) ≡ sumᴬ (const 1) * x
 
 ExploreSwap : ∀ r {ℓ A} → Explore ℓ A → ★ _
 ExploreSwap r {ℓ} {A} eᴬ = ∀ {B : ★₀} mon f →
