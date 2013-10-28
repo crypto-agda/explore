@@ -6,6 +6,8 @@ open import Function
 open import Algebra
 open import Algebra.FunctionProperties.NP
 open import Data.Fin using (Fin; zero; suc)
+open import Data.Zero
+open import Data.One
 open import Data.Nat
 open import Data.Product
 open import Data.Sum
@@ -17,12 +19,25 @@ open import Relation.Binary.NP
 open import Explore.Core
 open import Explore.Properties
 open import Explore.Explorable
-open import Explore.Isomorphism
+import Explore.Isomorphism as Iso
 --open import Explore.Explorable.Maybe
 import Relation.Binary.PropositionalEquality as ≡
 
 module Explore.Fin where
 
+𝟙⊎^ : ℕ → ★₀
+𝟙⊎^ zero    = 𝟘
+𝟙⊎^ (suc n) = 𝟙 ⊎ 𝟙⊎^ n
+
+Fin↔𝟙⊎^𝟘 : ∀ n → Fin n ↔ 𝟙⊎^ n
+Fin↔𝟙⊎^𝟘 zero    = Fin0↔𝟘
+Fin↔𝟙⊎^𝟘 (suc n) = {!{!Inv.id!} ⊎-cong ?!} Inv.∘ Fin∘suc↔𝟙⊎Fin
+
+{-
+Maybe^𝟘↔Fin
+open Iso (Fin
+
+{-
 module _ {ℓ} where
     Finᵉ : ∀ n → Explore ℓ (Fin n)
     Finᵉ zero    z _∙_ f = z

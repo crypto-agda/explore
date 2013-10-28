@@ -1,0 +1,41 @@
+Starting with:
+
+Explore : ★₀ → ★₁
+Explore A = ∀ (M : ★₀) (ε : M) (_∙_ : M → M → M) → (A → M) → M
+
+ExploreInd : ∀ {A} → Explore A → ★₁
+ExploreInd {A} exp =
+  ∀ (P  : Explore A → ★₀)
+    (Pε : P empty-explore)
+    (P∙ : ∀ {e₀ e₁ : Explore A} → P e₀ → P e₁ → P (merge-explore e₀ e₁))
+    (Pf : ∀ x → P (point-explore x))
+  → P exp
+
+empty-explore : ∀ {A} → Explore A
+empty-explore M ε _∙_ f = ε
+
+point-explore : ∀ {A} → A → Explore A
+point-explore M ε _∙_ f x = f x
+
+merge-explore : ∀ {A} → Explore A → Explore A → Explore A
+merge-explore e₀ e₁ M ε _∙_ f = (e₀ M ε _∙_ f) ∙ (e₁ M ε _∙_ f)
+
+Coloring in blue (using :ᵇ) the explore functions:
+
+ExploreInd : ∀ {A} → (exp :ᵇ Explore A) → ★₁
+ExploreInd {A} exp =
+  ∀ (P  : (exp :ᵇ Explore A) → ★₀)
+    (Pε : P empty-explore)
+    (P∙ : ∀ {e₀ e₁ :ᵇ Explore A} → P e₀ → P e₁ → P (merge-explore e₀ e₁))
+    (Pf : ∀ (x : A) → P (point-explore x))
+  → P exp
+
+⌊ ExploreInd {A} exp ⌋ᵇ =
+  ∀ (P  : ★ p)
+    (Pε : P)
+    (P∙ : P → P → P)
+    (Pf : ∀ (x : A) → P)
+  → P
+  = Explore A
+
+TODO: check that (Explore A)ᵇ = ExploreInd {A}
