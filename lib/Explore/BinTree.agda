@@ -2,7 +2,9 @@
 module Explore.BinTree where
 
 open import Data.Tree.Binary
-open import Explore.Type
+
+open import Explore.Core
+open import Explore.Properties
 
 fromBinTree : ∀ {m A} → BinTree A → Explore m A
 fromBinTree (leaf x)   _ _   f = f x

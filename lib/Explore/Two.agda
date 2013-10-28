@@ -5,15 +5,17 @@ open import Function
 open import Data.Product
 open import Data.Sum
 open import Data.Fin
-open import Explore.Sum
-open import Explore.Type
-open import Explore.One
-open import Explore.Explorable
 open import Relation.Binary.PropositionalEquality using (refl)
 import Function.Inverse.NP as FI
 open FI using (_↔_; inverses; module Inverse) renaming (_$₁_ to to; _$₂_ to from)
 open import Function.Related.TypeIsomorphisms.NP
 open import Relation.Binary.Sum
+
+open import Explore.Sum
+open import Explore.Core
+open import Explore.Properties
+open import Explore.One
+open import Explore.Explorable
 
 module Explore.Two where
 

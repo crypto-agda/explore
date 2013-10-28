@@ -12,11 +12,14 @@ open import Data.Sum
 open import Function.Related.TypeIsomorphisms.NP
 import Function.Inverse.NP as Inv
 open Inv using (_↔_; sym; id; inverses; module Inverse) renaming (_$₁_ to to; _$₂_ to from)
+open import Function.Surjection using (Surjective)
 open import Relation.Binary.NP
-open import Explore.Type
+open import Explore.Core
+open import Explore.Properties
 open import Explore.Explorable
 open import Explore.Isomorphism
 --open import Explore.Explorable.Maybe
+import Relation.Binary.PropositionalEquality as ≡
 
 module Explore.Fin where
 

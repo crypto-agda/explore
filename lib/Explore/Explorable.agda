@@ -27,24 +27,68 @@ open import Function.Related.TypeIsomorphisms.NP
 import Function.Inverse.NP as FI
 open FI using (_↔_; inverses; module Inverse) renaming (_$₁_ to to; _$₂_ to from)
 
-open import Explore.Type
+open import Explore.Core
+open import Explore.Properties
 import Explore.Monad as EM
 
 module Explore.Explorable where
+
+module _ {m} {A : ★₀} where
+  open EM m
+  gfilter-explore : ∀ {B} → (A →? B) → Explore m A → Explore m B
+  gfilter-explore f eᴬ = eᴬ >>= λ x → maybe (λ η → point-explore η) empty-explore (f x)
+
+  filter-explore : (A → 𝟚) → Explore m A → Explore m A
+  filter-explore p = gfilter-explore λ x → [0: nothing 1: just x ] (p x)
+
+  -- monoidal exploration: explore A with a monoid M
+  explore-monoid : ∀ {ℓ} → Explore m A → ExploreMon m ℓ A
+  explore-monoid eᴬ M = eᴬ ε _∙_ where open Mon M
+
+  explore-endo : Explore m A → Explore m A
+  explore-endo eᴬ ε op f = eᴬ id _∘′_ (op ∘ f) ε
+
+  explore-endo-monoid : ∀ {ℓ} → Explore m A → ExploreMon m ℓ A
+  explore-endo-monoid = explore-monoid ∘ explore-endo
+
+  explore-backward : Explore m A → Explore m A
+  explore-backward eᴬ ε _∙_ f = eᴬ ε (flip _∙_) f
+
+  -- explore-backward ∘ explore-backward = id
+  -- (m : a comm monoid) → explore-backward m = explore m
 
 module FromExplore
     {m A}
     (explore : Explore m A) where
 
-  exploreMon : ∀ {ℓ} (M : Monoid m ℓ) → ExploreMon M A
-  exploreMon M = explore ε _∙_
-    where open Mon M
+  with-monoid : ∀ {ℓ} → ExploreMon m ℓ A
+  with-monoid = explore-monoid explore
 
-  explore∘ : Explore m A
-  explore∘ = explore∘FromExplore explore
+  with∘ : Explore m A
+  with∘ = explore-endo explore
 
-  exploreMon∘ : ∀ {ℓ} (M : Monoid m ℓ) → ExploreMon M A
-  exploreMon∘ M f = explore∘ ε _∙_ f where open Mon M
+  with-endo-monoid : ∀ {ℓ} → ExploreMon m ℓ A
+  with-endo-monoid = explore-endo-monoid explore
+
+  backward : Explore m A
+  backward = explore-backward explore
+
+  gfilter : ∀ {B} → (A →? B) → Explore _ B
+  gfilter f = gfilter-explore f explore
+
+  filter : (A → 𝟚) → Explore _ A
+  filter p = filter-explore p explore
+
+private
+  module FindForward {A} (explore : Explore₀ A) where
+    find? : Find? A
+    find? = explore nothing (M?._∣_ _)
+
+    first : Maybe A
+    first = find? just
+
+    findKey : FindKey A
+    findKey pred = find? (λ x → [0: nothing 1: just x ] (pred x))
 
 module FromExplore₀ {A} (explore : Explore₀ A) where
   open FromExplore explore
@@ -74,17 +118,21 @@ module FromExplore₀ {A} (explore : Explore₀ A) where
   -- toBinTree : BinTree A
   -- toBinTree = explore fork leaf
 
-  toList : List A
-  toList = explore List.[] _++_ List.[_]
+  list : List A
+  list = explore List.[] _++_ List.[_]
 
-  toList∘ : List A
-  toList∘ = explore∘ List.[] _++_ List.[_]
+  module FindBackward = FindForward backward
 
-  find? : Find? A
-  find? = explore nothing (M?._∣_ _)
+  findLast? : Find? A
+  findLast? = FindBackward.find?
 
-  findKey : FindKey A
-  findKey pred = find? (λ x → [0: nothing 1: just x ] (pred x))
+  last : Maybe A
+  last = FindBackward.first
+
+  findLastKey : FindKey A
+  findLastKey = FindBackward.findKey
+
+  open FindForward explore public
 
 module Explorableₘₚ
     {m p A}
@@ -109,6 +157,11 @@ module Explorableₘₚ
                 (λ _ → refl)
     where open Mon mon
 
+ExplorePlug : ∀ {m ℓ A} (M : Monoid m ℓ) (e : Explore _ A) → ★ _
+ExplorePlug M e = ∀ f x → e∘ ε _∙_ f ∙ x ≈ e∘ x _∙_ f
+   where open Mon M
+         e∘ = explore-endo e
+
 plugKit : ∀ {m p A} (M : Monoid m p) → ExploreIndKit _ {A = A} (ExplorePlug M)
 plugKit M = mk (λ _ → proj₁ identity)
                (λ Ps Ps' _ x →
@@ -127,11 +180,12 @@ module Explorableₘ
   explore∘-plug : (M : Monoid m m) → ExplorePlug M explore
   explore∘-plug M = explore-ind $kit plugKit M
 
-  exploreMon∘-spec : ∀ (M : Monoid _ m) →
+  explore-endo-monoid-spec : ∀ (M : Monoid _ m) →
                       let open Mon M in
-                      (f : A → C) → exploreMon M f ≈ exploreMon∘ M f
-  exploreMon∘-spec M f = proj₂ (explore-ind
-                     (λ e → ExplorePlug M e × e ε _∙_ f ≈ explore∘FromExplore e ε _∙_ f)
+                      (f : A → C) → with-monoid M f ≈ with-endo-monoid M f
+  explore-endo-monoid-spec M f =
+           proj₂ (explore-ind
+                     (λ e → ExplorePlug M e × e ε _∙_ f ≈ explore-endo e ε _∙_ f)
                      ((const (proj₁ identity)) , refl)
                      (λ {e} {s'} Ps Ps' →
                         P∙ {e} {s'} (proj₁ Ps) (proj₁ Ps')
@@ -140,7 +194,7 @@ module Explorableₘ
                         where open Mon M
                               open ExploreIndKit (plugKit M)
 
-  explore∘-ind : ∀ (M : Monoid m m) → ExploreMonInd m M (exploreMon∘ M)
+  explore∘-ind : ∀ (M : Monoid m m) → BigOpMonInd m M (with-endo-monoid M)
   explore∘-ind M P Pε P∙ Pf P≈ =
     proj₂ (explore-ind (λ e → ExplorePlug M e × P (λ f → e id _∘′_ (_∙_ ∘ f) ε))
                (const (proj₁ identity) , Pε)
@@ -265,8 +319,10 @@ module Explorable₀
   countStableUnder : ∀ {p} → SumStableUnder sum p → CountStableUnder count p
   countStableUnder sumSU-p f = sumSU-p (𝟚▹ℕ ∘ f)
 
-  toList≡toList∘ : toList ≡ toList∘
-  toList≡toList∘ = exploreMon∘-spec (List.monoid A) List.[_]
+  diff-list = with-endo-monoid (List.monoid A) List.[_]
+
+  toList≡toList∘ : list ≡ diff-list
+  toList≡toList∘ = explore-endo-monoid-spec (List.monoid A) List.[_]
 
 module AdequateSum₀
   {A}{B}
@@ -445,3 +501,7 @@ explore-swap' cm μA μB = explore-swap μA m (explore-ε μB m) (explore-hom μ
 sum-swap : ∀ {A B} (μA : Explorable A) (μB : Explorable B) f →
            sum μA (sum μB ∘ f) ≡ sum μB (sum μA ∘ flip f)
 sum-swap = explore-swap' ℕ°.+-commutativeMonoid
+-- -}
+-- -}
+-- -}
+-- -}

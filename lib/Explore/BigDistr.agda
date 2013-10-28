@@ -7,7 +7,7 @@ open import Function.NP
 open import Data.Nat
 open import Data.Product
 open import Data.Fin using (Fin)
-open import Explore.Type
+open import Explore.Core
 import Function.Related as FR
 import Relation.Binary.PropositionalEquality as ≡
 open ≡ using (_≡_)

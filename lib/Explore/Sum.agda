@@ -24,8 +24,9 @@ open import Relation.Binary.Sum
 import Relation.Binary.PropositionalEquality.NP as ≡
 open ≡ using (_≡_ ; module ≡-Reasoning; cong)
 
-open import Explore.Type
-open import Explore.Explorable
+open import Explore.Core
+open import Explore.Properties
+open import Explore.Explorable hiding (first)
 
 module Explore.Sum where
 

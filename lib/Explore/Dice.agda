@@ -4,15 +4,17 @@ open import Function as F
 open import Data.Nat
 open import Data.Fin hiding (_+_)
 open import Data.Product
-open import Explore.Type
-open import Explore.Explorable
-open import Explore.Fin
 open import Level.NP
-open import Explore.Monad ₀ renaming (map to map-explore)
 import Function.Inverse.NP as FI
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open FI using (_↔_; inverses; module Inverse) renaming (_$₁_ to to; _$₂_ to from)
 open import Function.Related.TypeIsomorphisms.NP
+
+open import Explore.Core
+open import Explore.Properties
+open import Explore.Explorable
+open import Explore.Fin
+open import Explore.Monad ₀ renaming (map to map-explore)
 
 module Explore.Dice {-{_ : Postulate-Finˢ-ok}-} where
 

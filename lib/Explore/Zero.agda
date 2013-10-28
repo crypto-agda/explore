@@ -1,6 +1,7 @@
 open import Type
 open import Level.NP
-open import Explore.Type
+open import Explore.Core
+open import Explore.Properties
 open import Explore.Explorable
 open import Data.Zero
 open import Function.NP

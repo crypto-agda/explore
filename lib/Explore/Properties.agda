@@ -1,29 +1,26 @@
 {-# OPTIONS --without-K #-}
--- The core types behind exploration functions
-module Explore.Type where
+-- The core properties behind exploration functions
+module Explore.Properties where
 
 open import Level.NP
 open import Type hiding (★)
-open import Function.NP
+open import Function.NP using (id; _∘′_; _∘_; flip; const; Π; Cmp)
 open import Function.Inverse using (_↔_)
-open import Data.Nat.NP hiding (_⊔_)
-open import Data.Indexed
 open import Algebra
-open import Relation.Binary.NP
-open import Data.Product
-open import Data.Sum
-open import Data.Zero using (𝟘)
-open import Data.One using (𝟙)
-open import Data.Two using (𝟚; ✓)
-open import Data.Maybe.NP using (_→?_)
-open import Data.Fin using (Fin)
 import Algebra.FunctionProperties.NP as FP
 open FP using (Op₂)
-open import Relation.Unary.Logical
-open import Relation.Binary.Logical
+open import Data.Nat.NP using (_+_; _*_; _≤_; _+°_)
+open import Data.Indexed
+open import Data.Product using (Σ; _×_; _,_; proj₁; proj₂)
+open import Data.Sum  using (_⊎_)
+open import Data.Zero using (𝟘)
+open import Data.One  using (𝟙)
+open import Data.Fin  using (Fin)
 open import Relation.Binary.NP
 import Relation.Binary.PropositionalEquality as ≡
 open ≡ using (_≡_; _≗_)
+
+open import Explore.Core
 
 module SgrpExtra {c ℓ} (sg : Semigroup c ℓ) where
   open Semigroup sg
@@ -66,40 +63,6 @@ module CMon {c ℓ} (cm : CommutativeMonoid c ℓ) where
                     isEquivalence
                     _∙_ assoc comm (λ _ → flip ∙-cong refl)
 
-Explore : ∀ ℓ → ★₀ → ★ ₛ ℓ
-Explore ℓ A = ∀ {M : ★ ℓ} (ε : M) (_∙_ : M → M → M) → (A → M) → M
-
-Explore₀ : ★₀ → ★₁
-Explore₀ = Explore _
-
-Explore₁ : ★₀ → ★₂
-Explore₁ = Explore _
-
-[Explore] : ([★₀] [→] [★₁]) (Explore _)
-[Explore] Aₚ = ∀⟨ Mₚ ∶ [★₀] ⟩[→] Mₚ [→] [Op₂] Mₚ [→] (Aₚ [→] Mₚ) [→] Mₚ
-
-⟦Explore⟧ : (⟦★₀⟧ ⟦→⟧ ⟦★₁⟧) (Explore _) (Explore _)
-⟦Explore⟧ Aᵣ = ∀⟨ Mᵣ ∶ ⟦★₀⟧ ⟩⟦→⟧ Mᵣ ⟦→⟧ ⟦Op₂⟧ Mᵣ ⟦→⟧ (Aᵣ ⟦→⟧ Mᵣ) ⟦→⟧ Mᵣ
-
-⟦Explore⟧ᵤ : ∀ {ℓ} → (⟦★₀⟧ ⟦→⟧ ⟦★⟧ (ₛ ℓ)) (Explore ℓ) (Explore ℓ)
-⟦Explore⟧ᵤ {ℓ} Aᵣ = ∀⟨ Mᵣ ∶ ⟦★⟧ ℓ ⟩⟦→⟧ Mᵣ ⟦→⟧ ⟦Op₂⟧ Mᵣ ⟦→⟧ (Aᵣ ⟦→⟧ Mᵣ) ⟦→⟧ Mᵣ
-
--- Trimmed down version of ⟦Explore⟧
-⟦Explore⟧₁ : ∀ {A : ★_ _} (Aᵣ : A → A → ★_ _) → Explore _ A → ★₁
-⟦Explore⟧₁ Aᵣ e = ⟦Explore⟧ Aᵣ e e
-
--- These three basic combinators are defined here
--- since they are used to define ExploreInd
-module _ {ℓ A} where
-    merge-explore : Explore ℓ A → Explore ℓ A → Explore ℓ A
-    merge-explore e₀ e₁ ε _∙_ f = e₀ ε _∙_ f ∙ e₁ ε _∙_ f
-
-    empty-explore : Explore ℓ A
-    empty-explore ε _ _ = ε
-
-    point-explore : A → Explore ℓ A
-    point-explore x _ _ f = f x
-
 ExploreInd : ∀ p {ℓ A} → Explore ℓ A → ★ _
 ExploreInd p {ℓ} {A} exp =
   ∀ (P  : Explore ℓ A → ★ p)
@@ -137,59 +100,15 @@ ExploreInd₀ = ExploreInd ₀
 ExploreInd₁ : ∀ {ℓ A} → Explore ℓ A → ★ _
 ExploreInd₁ = ExploreInd ₁
 
-ExploreMon : ∀ {c ℓ} → Monoid c ℓ → ★₀ → ★ _
-ExploreMon M A = (A → C) → C
-  where open Mon M
-
-ExploreMonInd : ∀ p {c ℓ} {A} (M : Monoid c ℓ) → ExploreMon M A → ★ _
-ExploreMonInd p {c} {ℓ} {A} M exp =
-  ∀ (P  : ExploreMon M A → ★ p)
+BigOpMonInd : ∀ p {c ℓ} {A} (M : Monoid c ℓ) → BigOpMon M A → ★ _
+BigOpMonInd p {c} {ℓ} {A} M exp =
+  ∀ (P  : BigOpMon M A → ★ p)
     (Pε : P (const ε))
-    (P∙ : ∀ {e₀ e₁ : ExploreMon M A} → P e₀ → P e₁ → P (λ f → e₀ f ∙ e₁ f))
+    (P∙ : ∀ {e₀ e₁ : BigOpMon M A} → P e₀ → P e₁ → P (λ f → e₀ f ∙ e₁ f))
     (Pf : ∀ x → P (λ f → f x))
     (P≈ : ∀ {e e'} → e ≈° e' → P e → P e')
   → P exp
   where open Mon M
-
-  {-
-explore∘FromExploreNE : ∀ {m A} → ExploreNE m A → Explore m A
-explore∘FromExploreNE explore ε op f = explore _∘′_ (op ∘ f) ε
--}
-
-explore∘FromExplore : ∀ {m A} → Explore m A → Explore m A
-explore∘FromExplore explore ε op f = explore id _∘′_ (op ∘ f) ε
-
-ExplorePlug : ∀ {m ℓ A} (M : Monoid m ℓ) (e : Explore _ A) → ★ _
-ExplorePlug M e = ∀ f x → e∘ ε _∙_ f ∙ x ≈ e∘ x _∙_ f
-   where open Mon M
-         e∘ = explore∘FromExplore e
-
-  {-
-ExploreMon : ∀ m → ★₀ → ★ _
-ExploreMon m A = ∀ {M : ★ m} → M × Op₂ M → (A → M) → M
-
-ExploreMonInd : ∀ p {ℓ} {A} → ExploreMon ℓ A → ★ _
-ExploreMonInd p {ℓ} {A} exp =
-  ∀ (P  : ExploreMon _ A → ★ p)
-    (P∙ : ∀ {e₀ e₁ : ExploreMon _ A} → P e₀ → P e₁ → P (λ M f → let _∙_ = proj₂ M in
-                                                               e₀ M f ∙ e₁ M f))
-    (Pf : ∀ x → P (λ _ f → f x))
-  → P exp
-
-exploreMonFromExplore : ∀ {ℓ A}
-                      → Explore ℓ A → ExploreMon ℓ A
-exploreMonFromExplore e = e ∘ proj₂
-  -}
-
-exploreMonFromExplore : ∀ {c ℓ A}
-                      → Explore c A → (M : Monoid c ℓ) → ExploreMon M A
-exploreMonFromExplore e M f = e ε _∙_ f where open Mon M
-
-Sum : ★₀ → ★₀
-Sum A = (A → ℕ) → ℕ
-
-Product : ★₀ → ★₀
-Product A = (A → ℕ) → ℕ
 
 AdequateExplore : ∀ {A} → Explore ₀ A → ★₁
 AdequateExplore {A} expᴬ = ∀ {U : ★₀}(F : U → ★₀) ε _⊕_ f
@@ -200,15 +119,6 @@ AdequateSum {A} sumᴬ = ∀ f → Fin (sumᴬ f) ↔ Σ A (Fin ∘ f)
 
 AdequateProduct : ∀ {A} → Product A → ★₀
 AdequateProduct {A} productᴬ = ∀ f → Fin (productᴬ f) ↔ Π A (Fin ∘ f)
-
-Count : ★₀ → ★₀
-Count A = (A → 𝟚) → ℕ
-
-Find? : ★₀ → ★₁
-Find? A = ∀ {B : ★₀} → (A →? B) →? B
-
-FindKey : ★₀ → ★₀
-FindKey A = (A → 𝟚) →? A
 
 _,-kit_ : ∀ {m p A} {P : Explore m A → ★ p}{Q : Explore m A → ★ p}
           → ExploreIndKit p P → ExploreIndKit p Q → ExploreIndKit p (P ×° Q)
@@ -389,4 +299,3 @@ module _ {ℓ A} (eᴬ : Explore (ₛ ℓ) A) where
 
     Focused : ★ (ₛ ℓ)
     Focused = ∀ {P : A → ★ ℓ} → Σ A P ↔ ΣPoint eᴬ P
--- -}

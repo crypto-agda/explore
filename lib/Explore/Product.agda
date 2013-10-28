@@ -19,7 +19,8 @@ open import Data.Fin
 open import Relation.Binary.PropositionalEquality.NP using (_≡_ ; module ≡-Reasoning)
 open import Category.Monad.Continuation.Alias
 
-open import Explore.Type
+open import Explore.Core
+open import Explore.Properties
 import Explore.Monad as EM
 open import Explore.Explorable
 

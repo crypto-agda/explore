@@ -7,7 +7,8 @@ open import Type
 open import Function.NP
 import Relation.Binary.PropositionalEquality.NP as ≡
 open ≡ using (_≡_ ; _≗_ ; _≗₂_)
-open import Explore.Type
+open import Explore.Core
+open import Explore.Properties
 open import Explore.Product
 open import Data.Product
 open import Data.Nat.NP

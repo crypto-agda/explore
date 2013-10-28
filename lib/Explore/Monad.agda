@@ -3,7 +3,8 @@ open import Type hiding (★)
 open import Function
 open import Relation.Binary.PropositionalEquality
 
-open import Explore.Type
+open import Explore.Core
+open import Explore.Properties
 
 -- Explore ℓ is not an endo functor because of universe levels
 module Explore.Monad ℓ where

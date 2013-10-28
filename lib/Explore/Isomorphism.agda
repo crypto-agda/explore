@@ -9,7 +9,9 @@ open import Function.Related.TypeIsomorphisms.NP
 import Function.Inverse.NP as Inv
 open Inv using (_↔_; inverses; module Inverse) renaming (_$₁_ to to; _$₂_ to from)
 open import Relation.Binary.NP
-open import Explore.Type
+
+open import Explore.Core
+open import Explore.Properties
 open import Explore.Explorable
 import Explore.Monad
 

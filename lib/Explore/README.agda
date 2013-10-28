@@ -2,7 +2,10 @@
 module Explore.README where
 
 -- The core types behind exploration functions
-open import Explore.Type
+open import Explore.Core
+
+-- The core properties behind exploration functions
+open import Explore.Properties
 
 -- Constructions on top of exploration functions
 open import Explore.Explorable

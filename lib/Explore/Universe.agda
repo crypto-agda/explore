@@ -7,7 +7,9 @@ open import Data.Product
 open import Data.Sum
 open import Data.Nat
 open import Data.Fin using (Fin)
-open import Explore.Type
+
+open import Explore.Core
+open import Explore.Properties
 open import Explore.Zero
 open import Explore.One
 open import Explore.Two
