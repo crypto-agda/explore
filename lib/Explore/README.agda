@@ -23,10 +23,7 @@ open import Explore.Sum
 open import Explore.Zero
 open import Explore.One
 open import Explore.Two
-open import Explore.Fin -- 2 postulates remains
-
--- TODO unfinished
-open import Explore.Subset
+open import Explore.Fin
 
 -- A type universe of explorable types
 open import Explore.Universe
@@ -45,3 +42,7 @@ open import Explore.GroupHomomorphism
 
 -- An example with a specific type: 6 sided dice
 open import Explore.Dice
+
+-- TODO unfinished
+open import Explore.Function.Fin
+open import Explore.Subset

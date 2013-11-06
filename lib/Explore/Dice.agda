@@ -1,38 +1,33 @@
 {-# OPTIONS --without-K #-}
 open import Type
-open import Function as F
-open import Data.Nat
-open import Data.Fin hiding (_+_)
-open import Data.Product
-open import Level.NP
-import Function.Inverse.NP as FI
+open import Data.Fin using (Fin; zero; suc; #_)
+import Function.Inverse.NP as Inv
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-open FI using (_↔_; inverses; module Inverse) renaming (_$₁_ to to; _$₂_ to from)
-open import Function.Related.TypeIsomorphisms.NP
+open Inv using (_↔_)
 
 open import Explore.Core
 open import Explore.Properties
 open import Explore.Explorable
-open import Explore.Fin
-open import Explore.Monad ₀ renaming (map to map-explore)
+open import Explore.Universe
 
-module Explore.Dice {-{_ : Postulate-Finˢ-ok}-} where
+module Explore.Dice where
 
 data Dice : ★₀ where
   ⚀ ⚁ ⚂ ⚃ ⚄ ⚅ : Dice
 
-exploreDice : ∀ {m} → Explore m Dice
-exploreDice ε _∙_ f = f ⚀ ∙ (f ⚁ ∙ (f ⚂ ∙ (f ⚃ ∙ (f ⚄ ∙ f ⚅))))
+module ByHand where
+    exploreDice : ∀ {m} → Explore m Dice
+    exploreDice ε _∙_ f = f ⚀ ∙ (f ⚁ ∙ (f ⚂ ∙ (f ⚃ ∙ (f ⚄ ∙ f ⚅))))
 
-exploreDice-ind : ∀ {m p} → ExploreInd p (exploreDice {m})
-exploreDice-ind P ε _∙_ f = f ⚀ ∙ (f ⚁ ∙ (f ⚂ ∙ (f ⚃ ∙ (f ⚄ ∙ f ⚅))))
+    exploreDice-ind : ∀ {m p} → ExploreInd p (exploreDice {m})
+    exploreDice-ind P ε _∙_ f = f ⚀ ∙ (f ⚁ ∙ (f ⚂ ∙ (f ⚃ ∙ (f ⚄ ∙ f ⚅))))
 
-open Explorable₀  exploreDice-ind public using () renaming (sum     to sumDice; product to productDice)
-open Explorable₁₀ exploreDice-ind public using () renaming (reify   to reifyDice)
-open Explorable₁₁ exploreDice-ind public using () renaming (unfocus to unfocusDice)
+    open Explorable₀  exploreDice-ind public using () renaming (sum     to sumDice; product to productDice)
+    open Explorable₁₀ exploreDice-ind public using () renaming (reify   to reifyDice)
+    open Explorable₁₁ exploreDice-ind public using () renaming (unfocus to unfocusDice)
 
 Dice↔Fin6 : Dice ↔ Fin 6
-Dice↔Fin6 = inverses (⇒) (⇐) ⇐⇒ ⇒⇐
+Dice↔Fin6 = Inv.inverses (⇒) (⇐) ⇐⇒ ⇒⇐
   module Dice↔Fin6 where
     S = Dice
     T = Fin 6
@@ -67,41 +62,17 @@ Dice↔Fin6 = inverses (⇒) (⇐) ⇐⇒ ⇒⇐
     ⇒⇐ (suc (suc (suc (suc (suc zero))))) = refl
     ⇒⇐ (suc (suc (suc (suc (suc (suc ()))))))
 
-    {-
--- This is unfinished it shows two ways:
--- 1) use the Fin 6 ↔ Dice iso
--- 2) do the adequacy directly
-exploreDice-ok : AdequateSum sumDice
-exploreDice-ok f = p FI.∘ {!Dice↔Fin6.!}
-  where
-    p : Fin (map-explore Dice↔Fin6.⇐ (explore (μFin 6)) 0 _+_ f) ↔ Σ Dice (Fin ∘ f)
-    p = adequate-sum (μ-iso (FI.sym Dice↔Fin6) (μFin 6)) f
-
-    direct = inverses (⇒) (⇐) ⇐⇒ ⇒⇐
-    S = Fin (sumDice f)
-    T = Σ Dice (Fin F.∘ f)
-    ⇒ : S → T
-    ⇒ x with sumDice f
-    ⇒ (zero {n})   | .(suc n) = {!!}
-    ⇒ (suc {n} x₁) | .(suc n) = {!!}
-    ⇐ : T → S
-    ⇐ (⚀ , x) = inject+ _ x
-    ⇐ (⚁ , x) = raise (f ⚀) (inject+ _ x)
-    ⇐ (⚂ , x) = raise (f ⚀) (raise (f ⚁) (inject+ _ x))
-    ⇐ (⚃ , x) = raise (f ⚀) (raise (f ⚁) (raise (f ⚂) (inject+ _ x)))
-    ⇐ (⚄ , x) = raise (f ⚀) (raise (f ⚁) (raise (f ⚂) (raise (f ⚃) (inject+ _ x))))
-    ⇐ (⚅ , x) = raise (f ⚀) (raise (f ⚁) (raise (f ⚂) (raise (f ⚃) (raise (f ⚄) x))))
-    ⇐⇒ : ∀ x → ⇐ (⇒ x) ≡ x
-    ⇐⇒ x = {!!}
-    ⇒⇐ : ∀ x → ⇒ (⇐ x) ≡ x
-    ⇒⇐ (⚀ , x) = {!!}
-    ⇒⇐ (⚁ , x) = {!!}
-    ⇒⇐ (⚂ , x) = {!!}
-    ⇒⇐ (⚃ , x) = {!!}
-    ⇒⇐ (⚄ , x) = {!!}
-    ⇒⇐ (⚅ , x) = {!!}
-
-μDice : Explorable Dice
-μDice = mk _ exploreDice-ind exploreDice-ok
-
--}
+open Explore.Universe.Isomorphism (FinU 6) (Inv.sym Dice↔Fin6 Inv.∘ FinU↔Fin 6)
+  public
+  renaming ( isoᵉ to Diceᵉ
+           ; isoⁱ to Diceⁱ
+           ; isoˡ to Diceˡ
+           ; isoᶠ to Diceᶠ
+           ; isoˢ to Diceˢ
+           ; isoᵖ to Diceᵖ
+           ; isoʳ to Diceʳ
+           ; isoᵘ to Diceᵘ
+           ; isoˢ-ok to Diceˢ-ok
+           ; isoˢ-stableUnder to Diceˢ-stableUnder
+           ; μiso to μDice
+           )
