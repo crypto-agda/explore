@@ -13,7 +13,8 @@ open import Relation.Binary.NP
 open import Explore.Core
 open import Explore.Properties
 open import Explore.Explorable
-open import Explore.Fin
+import Explore.Fin
+open Explore.Fin.Regular
 
 module Explore.Function.Fin where
 
