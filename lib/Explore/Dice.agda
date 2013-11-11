@@ -62,7 +62,9 @@ Dice↔Fin6 = Inv.inverses (⇒) (⇐) ⇐⇒ ⇒⇐
     ⇒⇐ (suc (suc (suc (suc (suc zero))))) = refl
     ⇒⇐ (suc (suc (suc (suc (suc (suc ()))))))
 
-open Explore.Universe.Isomorphism (FinU 6) (Inv.sym Dice↔Fin6 Inv.∘ FinU↔Fin 6)
+-- By using FinU' instead of FinU one get a special case for Fin 1 thus avoiding
+-- a final ε in the exploration function.
+open Explore.Universe.Isomorphism (FinU' 6) (Inv.sym Dice↔Fin6 Inv.∘ FinU'↔Fin 6)
   public
   renaming ( isoᵉ to Diceᵉ
            ; isoⁱ to Diceⁱ
@@ -76,3 +78,11 @@ open Explore.Universe.Isomorphism (FinU 6) (Inv.sym Dice↔Fin6 Inv.∘ FinU↔F
            ; isoˢ-stableUnder to Diceˢ-stableUnder
            ; μiso to μDice
            )
+
+module _ {m} where
+  open ByHand
+  _≡ᵉ_ : (e₀ e₁ : Explore m Dice) → ★_ _
+  _≡ᵉ_ = _≡_
+
+  same-as-by-hand : exploreDice ≡ᵉ Diceᵉ
+  same-as-by-hand = refl
