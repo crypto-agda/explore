@@ -149,4 +149,12 @@ FinU↔Fin : ∀ n → El (FinU n) ↔ Fin n
 FinU↔Fin zero    = Inv.sym Fin0↔𝟘
 FinU↔Fin (suc n) = Inv.sym Fin∘suc↔𝟙⊎Fin Inv.∘ Inv.id ⊎-cong FinU↔Fin n
 
--- -}
+FinU' : ℕ → U
+FinU' zero          = 𝟘′
+FinU' (suc zero)    = 𝟙′
+FinU' (suc (suc n)) = 𝟙′ ⊎′ FinU' (suc n)
+
+FinU'↔Fin : ∀ n → El (FinU' n) ↔ Fin n
+FinU'↔Fin zero          = Inv.sym Fin0↔𝟘
+FinU'↔Fin (suc zero)    = Inv.sym Fin1↔𝟙
+FinU'↔Fin (suc (suc n)) = Inv.sym Fin∘suc↔𝟙⊎Fin Inv.∘ Inv.id ⊎-cong FinU'↔Fin (suc n)
