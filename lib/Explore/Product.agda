@@ -38,8 +38,8 @@ module _ {m A} {B : A → ★₀} where
           Peᴬ (λ e → P (λ _ _ _ → e _ _ _)) Pz P∙ (λ x → Peᴮ {x} (λ e → P (λ _ _ _ → e _ _ _)) Pz P∙ (curry Pf x))
 
 module _ {A}{B : A → ★₀}{eᴬ : Explore ₀ A}{eᴮ : ∀ {x} → Explore ₀ (B x)} where
-   explore⊎-adq : AdequateExplore eᴬ → (∀ {x} → AdequateExplore (eᴮ {x})) → AdequateExplore (exploreΣ eᴬ eᴮ)
-   explore⊎-adq aᴬ aᴮ F ε _⊕_ f F-proof
+   exploreΣ-adq : AdequateExplore eᴬ → (∀ {x} → AdequateExplore (eᴮ {x})) → AdequateExplore (exploreΣ eᴬ eᴮ)
+   exploreΣ-adq aᴬ aᴮ F ε _⊕_ f F-proof
      = F (big⊕ᴬ (λ a → big⊕ᴮ (λ b → f (a , b))))
      ↔⟨ aᴬ F _ _ _ F-proof ⟩
          Σ A (F ∘ (λ a → big⊕ᴮ (λ b → f (a , b))))
