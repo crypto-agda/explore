@@ -8,7 +8,6 @@ open import Function.NP
 open import Data.Product
 import Function.Inverse.NP as FI
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-open FI using (_↔_; inverses; module Inverse) renaming (_$₁_ to to; _$₂_ to from)
 open import Function.Related.TypeIsomorphisms.NP
 import Explore.Monad
 

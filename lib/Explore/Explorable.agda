@@ -22,6 +22,7 @@ open import Relation.Binary.Sum using (_⊎-cong_)
 open import Relation.Binary.Product.Pointwise using (_×-cong_)
 import Function.Related as FR
 import Relation.Binary.PropositionalEquality as ≡
+import Relation.Binary.PropositionalEquality.K as K≡
 open ≡ using (_≡_)
 open import Function.Related.TypeIsomorphisms.NP
 import Function.Inverse.NP as FI
@@ -330,12 +331,18 @@ module AdequateSum₀
   (sumᴬ-adq : AdequateSum sumᴬ)
   (sumᴮ-adq : AdequateSum sumᴮ) where
 
-  sumStableUnder : (p : A ↔ B)(f : A → ℕ)
-                 → sumᴬ f ≡ sumᴮ (f ∘ from p)
-  sumStableUnder p f = Fin-injective (FI.sym (sumᴮ-adq (f ∘ from p))
+  -- TODO use HoTT.Σ=-fst...
+  postulate
+    sumStableUnder : (p : A ↔ B)(f : A → ℕ)
+                        → sumᴬ f ≡ sumᴮ (f ∘ from p)
+                        {-
+  sumStableUnder p f = Fin-injective ({!FI.reflexive {! FI.sym (sumᴮ-adq (f ∘ from p))
                                   FI.∘ first-iso p
-                                  FI.∘ sumᴬ-adq f)
-module EndoAdequateSum₀
+                                  FI.∘ sumᴬ-adq f!}!})
+                                  -}
+
+
+{- TODO restore module EndoAdequateSum₀
   {A}
   {sum : Sum A}
   (sum-adq : AdequateSum sum) where
@@ -354,7 +361,7 @@ module EndoAdequateSum₀
         Fin-reflexive eq rewrite eq = FI.id
     
         Fin↔≡1₂ : ∀ b → Fin (𝟚▹ℕ b) ↔ b ≡ 1₂
-        Fin↔≡1₂ 1₂ = inverses (λ x → ≡.refl) (λ _ → _) (λ x → ≡.refl) (λ x → ≡.proof-irrelevance ≡.refl x) FI.∘ Fin1↔𝟙
+        Fin↔≡1₂ 1₂ = inverses (λ x → ≡.refl) (λ _ → _) (λ x → ≡.refl) (λ x → K≡.proof-irrelevance ≡.refl x) FI.∘ Fin1↔𝟙
         Fin↔≡1₂ 0₂ = inverses (λ ()) (λ ()) (λ ()) (λ ())
 
         Fin↔≡0₂ : ∀ b → Fin (𝟚▹ℕ (not b)) ↔ b ≡ 0₂
@@ -418,7 +425,8 @@ module EndoAdequateSum₀
       
     indIsIso : ∀ x → p x ≡ q (from indIso x)
     indIsIso x = M.prop x
-  
+-}
+
 module Explorable₁₀ {A} {explore₁ : Explore₁ A}
                     (explore-ind₀ : ExploreInd ₀ explore₁) where
 
@@ -477,15 +485,21 @@ DistFun μA μA→ = ∀ {B} (μB : Explorable B) c → let open CMon {₀}{₀}
 DistFunable : ∀ {A} → Funable A → ★₁
 DistFunable (μA , μA→) = DistFun μA μA→
 
-μ-iso : ∀ {A B} → (A ↔ B) → Explorable A → Explorable B
+-- μ-iso = ap Explorable
+postulate
+    μ-iso : ∀ {A B} → (A ↔ B) → Explorable A → Explorable B
+    {-
 μ-iso {A}{B} A↔B μA = mk (EM.map _ A→B (explore μA)) (EM.map-ind _ A→B (explore-ind μA)) ade
   where
     A→B = to A↔B
-    ade = λ f → sym-first-iso A↔B FI.∘ adequate-sum μA (f ∘ A→B)
+    ade = λ f → {!{!sym-first-iso A↔B!} FI.∘ adequate-sum μA (f ∘ A→B)!}
+-}
 
 -- I guess this could be more general
-μ-iso-preserve : ∀ {A B} (A↔B : A ↔ B) f (μA : Explorable A) → sum μA f ≡ sum (μ-iso A↔B μA) (f ∘ from A↔B)
+    μ-iso-preserve : ∀ {A B} (A↔B : A ↔ B) f (μA : Explorable A) → sum μA f ≡ sum (μ-iso A↔B μA) (f ∘ from A↔B)
+    {-
 μ-iso-preserve A↔B f μA = sum-ext μA (≡.cong f ∘ ≡.sym ∘ Inverse.left-inverse-of A↔B)
+-}
 
 μLift : ∀ {A} → Explorable A → Explorable (Lift A)
 μLift = μ-iso (FI.sym Lift↔id)

@@ -5,7 +5,6 @@ module Explore.Properties where
 open import Level.NP
 open import Type hiding (★)
 open import Function.NP using (id; _∘′_; _∘_; flip; const; Π; Cmp)
-open import Function.Inverse using (_↔_)
 open import Algebra
 import Algebra.FunctionProperties.NP as FP
 open FP using (Op₂)
@@ -110,15 +109,16 @@ BigOpMonInd p {c} {ℓ} {A} M exp =
   → P exp
   where open Mon M
 
-AdequateExplore : ∀ {A} → Explore ₀ A → ★₁
-AdequateExplore {A} expᴬ = ∀ {U : ★₀}(F : U → ★₀) ε _⊕_ f
-  → (∀ {x y} → F (x ⊕ y) ↔ (F x ⊎ F y)) → F (expᴬ ε _⊕_ f) ↔ Σ A (F ∘ f)
+module _ {A} where
+    AdequateExplore : Explore ₀ A → ★₁
+    AdequateExplore expᴬ = ∀ {U : ★₀}(F : U → ★₀) ε _⊕_ f
+      → (∀ {x y} → F (x ⊕ y) ≡ (F x ⊎ F y)) → F (expᴬ ε _⊕_ f) ≡ Σ A (F ∘ f)
 
-AdequateSum : ∀ {A} → Sum A → ★₀
-AdequateSum {A} sumᴬ = ∀ f → Fin (sumᴬ f) ↔ Σ A (Fin ∘ f)
+    AdequateSum : Sum A → ★₁
+    AdequateSum sumᴬ = ∀ f → Fin (sumᴬ f) ≡ Σ A (Fin ∘ f)
 
-AdequateProduct : ∀ {A} → Product A → ★₀
-AdequateProduct {A} productᴬ = ∀ f → Fin (productᴬ f) ↔ Π A (Fin ∘ f)
+    AdequateProduct : Product A → ★₁
+    AdequateProduct productᴬ = ∀ f → Fin (productᴬ f) ≡ Π A (Fin ∘ f)
 
 _,-kit_ : ∀ {m p A} {P : Explore m A → ★ p}{Q : Explore m A → ★ p}
           → ExploreIndKit p P → ExploreIndKit p Q → ExploreIndKit p (P ×° Q)
@@ -289,7 +289,7 @@ module _ {ℓ A} (eᴬ : Explore (ₛ ℓ) A) where
     Reify = ∀ {P : A → ★ ℓ} → Π A P → DataΠ eᴬ P
 
     Reified : ★ (ₛ ℓ)
-    Reified = ∀ {P : A → ★ ℓ} → Π A P ↔ DataΠ eᴬ P
+    Reified = ∀ {P : A → ★ ℓ} → Π A P ≡ DataΠ eᴬ P
 
     Unfocus : ★ (ₛ ℓ)
     Unfocus = ∀ {P : A → ★ ℓ} → ΣPoint eᴬ P → Σ A P
@@ -298,4 +298,4 @@ module _ {ℓ A} (eᴬ : Explore (ₛ ℓ) A) where
     Focus = ∀ {P : A → ★ ℓ} → Σ A P → ΣPoint eᴬ P
 
     Focused : ★ (ₛ ℓ)
-    Focused = ∀ {P : A → ★ ℓ} → Σ A P ↔ ΣPoint eᴬ P
+    Focused = ∀ {P : A → ★ ℓ} → Σ A P ≡ ΣPoint eᴬ P
