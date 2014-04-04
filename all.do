@@ -1,2 +1,2 @@
-exec 1>&2
-agda-pkg -i. -pstdlib -pcrypto-agda/agda-nplib -ilib explore.agda
+#!/bin/bash -eu
+exec agda-pkg -i. -pstdlib -pcrypto-agda/agda-nplib -ilib explore.agda
