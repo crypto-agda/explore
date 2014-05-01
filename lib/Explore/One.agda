@@ -30,6 +30,8 @@ module _ {ℓ} where
     𝟙ⁱ _ _ Pf = Pf _
     -}
 
+open Explorable₀  𝟙ⁱ public using () renaming (sum     to 𝟙ˢ; product to 𝟙ᵖ)
+
 module _ {ℓ} where
     𝟙ˡ : Lookup {ℓ} 𝟙ᵉ
     𝟙ˡ = const
@@ -37,9 +39,8 @@ module _ {ℓ} where
     𝟙ᶠ : Focus {ℓ} 𝟙ᵉ
     𝟙ᶠ = proj₂
 
-open Explorable₀  𝟙ⁱ public using () renaming (sum     to 𝟙ˢ; product to 𝟙ᵖ)
-open Explorable₁₀ 𝟙ⁱ public using () renaming (reify   to 𝟙ʳ)
-open Explorable₁₁ 𝟙ⁱ public using () renaming (unfocus to 𝟙ᵘ)
+    open Explorableₛ  {ℓ} 𝟙ⁱ public using () renaming (reify   to 𝟙ʳ)
+    open Explorableₛₛ {ℓ} 𝟙ⁱ public using () renaming (unfocus to 𝟙ᵘ)
 
 𝟙ˢ-ok : AdequateSum 𝟙ˢ
 𝟙ˢ-ok _ = FI.sym 𝟙×A↔A

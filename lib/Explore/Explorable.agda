@@ -11,17 +11,20 @@ open import Data.Nat.Properties
 open import Data.Fin using (Fin) renaming (zero to fzero)
 open import Data.Maybe.NP
 open import Algebra
-open import Data.Product
+open import Data.Product renaming (map to ×-map)
 open import Data.Sum
+open import Data.Zero using (𝟘)
 open import Data.One using (𝟙)
 open import Data.Tree.Binary
 import Data.List as List
 open List using (List; _++_)
+open import Relation.Nullary.NP
 open import Relation.Binary
 open import Relation.Binary.Sum using (_⊎-cong_)
 open import Relation.Binary.Product.Pointwise using (_×-cong_)
 import Function.Related as FR
 import Relation.Binary.PropositionalEquality as ≡
+import Relation.Binary.PropositionalEquality.K as K
 open ≡ using (_≡_)
 open import Function.Related.TypeIsomorphisms.NP
 import Function.Inverse.NP as FI
@@ -157,6 +160,28 @@ module Explorableₘₚ
                 (λ _ → refl)
     where open Mon mon
 
+  module LiftHom
+       {S T : ★ m}
+       (_≈_ : T → T → ★ p)
+       (≈-refl : Reflexive _≈_)
+       (≈-trans : Transitive _≈_)
+       (zero : S)
+       (_+_  : Op₂ S)
+       (one  : T)
+       (_*_  : Op₂ T)
+       (≈-cong-* : _*_ Preserves₂ _≈_ ⟶ _≈_ ⟶ _≈_)
+       (f   : S → T)
+       (g   : A → S)
+       (hom-0-1 : f zero ≈ one)
+       (hom-+-* : ∀ x y → (f (x + y)) ≈ (f x * f y))
+       where
+
+        lift-hom : f (explore zero _+_ g) ≈ explore one _*_ (f ∘ g)
+        lift-hom = explore-ind (λ e → f (e zero _+_ g) ≈ e one _*_ (f ∘ g))
+                               hom-0-1
+                               (λ p q → ≈-trans (hom-+-* _ _) (≈-cong-* p q))
+                               (λ _ → ≈-refl)
+
 ExplorePlug : ∀ {m ℓ A} (M : Monoid m ℓ) (e : Explore _ A) → ★ _
 ExplorePlug M e = ∀ f x → e∘ ε _∙_ f ∙ x ≈ e∘ x _∙_ f
    where open Mon M
@@ -234,28 +259,6 @@ module Explorableₘ
   explore-linʳ m _◎_ f k ide dist = explore-ind (λ e → e ε _∙_ (λ x → f x ◎ k) ≈ e ε _∙_ f ◎ k) (sym ide) (λ x x₁ → trans (∙-cong x x₁) (sym (dist k _ _))) (λ x → refl)
     where open Mon m
 
-  module _
-       {S T : ★ m}
-       (_≈_ : T → T → ★ m)
-       (≈-refl : Reflexive _≈_)
-       (≈-trans : Transitive _≈_)
-       (zero : S)
-       (_+_  : Op₂ S)
-       (one  : T)
-       (_*_  : Op₂ T)
-       (≈-cong-* : _*_ Preserves₂ _≈_ ⟶ _≈_ ⟶ _≈_)
-       (f   : S → T)
-       (g   : A → S)
-       (hom-0-1 : f zero ≈ one)
-       (hom-+-* : ∀ x y → (f (x + y)) ≈ (f x * f y))
-       where
-
-        lift-hom : f (explore zero _+_ g) ≈ explore one _*_ (f ∘ g)
-        lift-hom = explore-ind (λ e → f (e zero _+_ g) ≈ e one _*_ (f ∘ g))
-                               hom-0-1
-                               (λ p q → ≈-trans (hom-+-* _ _) (≈-cong-* p q))
-                               (λ _ → ≈-refl)
-
   lift-hom-≡ :
       ∀ {S T}
         (zero : S)
@@ -267,7 +270,7 @@ module Explorableₘ
         (hom-0-1 : f zero ≡ one)
         (hom-+-* : ∀ x y → f (x + y) ≡ f x * f y)
       → f (explore zero _+_ g) ≡ explore one _*_ (f ∘ g)
-  lift-hom-≡ z _+_ o _*_ = lift-hom _≡_ ≡.refl ≡.trans z _+_ o _*_ (≡.cong₂ _*_)
+  lift-hom-≡ z _+_ o _*_ = LiftHom.lift-hom _≡_ ≡.refl ≡.trans z _+_ o _*_ (≡.cong₂ _*_)
 
 module Explorable₀
     {A}
@@ -419,17 +422,20 @@ module EndoAdequateSum₀
     indIsIso : ∀ x → p x ≡ q (from indIso x)
     indIsIso x = M.prop x
   
-module Explorable₁₀ {A} {explore₁ : Explore₁ A}
-                    (explore-ind₀ : ExploreInd ₀ explore₁) where
+module Explorableₛ {ℓ A} {exploreₛ : Explore (ₛ ℓ) A}
+                   (explore-ind : ExploreInd ℓ exploreₛ) where
 
-  reify : Reify explore₁
-  reify = explore-ind₀ (λ s → DataΠ s _) _ _,_
+  reify : Reify exploreₛ
+  reify = explore-ind (λ s → DataΠ s _) _ _,_
 
-module Explorable₁₁ {A} {explore₁ : Explore₁ A}
-                    (explore-ind₁ : ExploreInd ₁ explore₁) where
+  open Explorableₘₚ explore-ind
 
-  unfocus : Unfocus explore₁
-  unfocus = explore-ind₁ Unfocus (λ{ (lift ()) }) (λ P Q → [ P , Q ]) (λ η → _,_ η)
+
+module Explorableₛₛ {ℓ A} {exploreₛ : Explore (ₛ ℓ) A}
+                    (explore-indₛ : ExploreInd (ₛ ℓ) exploreₛ) where
+
+  unfocus : Unfocus exploreₛ
+  unfocus = explore-indₛ Unfocus (λ{ (lift ()) }) (λ P Q → [ P , Q ]) (λ η → _,_ η)
 
 record Explorable A : ★₁ where
   constructor mk

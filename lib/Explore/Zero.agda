@@ -28,16 +28,18 @@ module _ {ℓ} where
     𝟘ⁱ _ Pε _ _ = Pε
     -}
 
+open Explorable₀  𝟘ⁱ public using () renaming (sum     to 𝟘ˢ; product to 𝟘ᵖ)
+
 module _ {ℓ} where
+    open Explorableₛ  {ℓ} 𝟘ⁱ public using () renaming (reify    to 𝟘ʳ)
+    open Explorableₛₛ {ℓ} 𝟘ⁱ public using () renaming (unfocus  to 𝟘ᵘ)
+
     𝟘ˡ : Lookup {ℓ} 𝟘ᵉ
     𝟘ˡ _ ()
 
     𝟘ᶠ : Focus {ℓ} 𝟘ᵉ
     𝟘ᶠ ((), _)
 
-open Explorable₀  𝟘ⁱ public using () renaming (sum     to 𝟘ˢ; product to 𝟘ᵖ)
-open Explorable₁₀ 𝟘ⁱ public using () renaming (reify   to 𝟘ʳ)
-open Explorable₁₁ 𝟘ⁱ public using () renaming (unfocus to 𝟘ᵘ)
 
 𝟘ˢ-ok : AdequateSum 𝟘ˢ
 𝟘ˢ-ok _ = FI.sym (Σ𝟘↔𝟘 _) FI.∘ Fin0↔𝟘

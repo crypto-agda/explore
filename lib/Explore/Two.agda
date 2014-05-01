@@ -27,10 +27,11 @@ module _ {ℓ} where
     𝟚ⁱ _ _ _P∙_ Pf = Pf 0₂ P∙ Pf 1₂
 
 open Explorable₀  𝟚ⁱ public using () renaming (sum     to 𝟚ˢ)
-open Explorable₁₀ 𝟚ⁱ public using () renaming (reify   to 𝟚ʳ)
-open Explorable₁₁ 𝟚ⁱ public using () renaming (unfocus to 𝟚ᵘ)
 
 module _ {ℓ} where
+    open Explorableₛ  {ℓ} 𝟚ⁱ public using () renaming (reify   to 𝟚ʳ)
+    open Explorableₛₛ {ℓ} 𝟚ⁱ public using () renaming (unfocus to 𝟚ᵘ)
+
     𝟚ˡ : Lookup {ℓ} 𝟚ᵉ
     𝟚ˡ = proj
 

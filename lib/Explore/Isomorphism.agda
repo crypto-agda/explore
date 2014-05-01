@@ -57,11 +57,11 @@ module _ (Aᵖ : Product A) where
   product-iso : Product B
   product-iso f = Aᵖ (f ∘ to A↔B)
 
-module _ {Aᵉ : Explore₁ A} (Aⁱ : ExploreInd₀ Aᵉ) where
-  open Explorable₁₀ (Bⁱ Aⁱ) public using () renaming (reify   to reify-iso)
+module _ {ℓ} {Aᵉ : Explore (ₛ ℓ) A} (Aⁱ : ExploreInd ℓ Aᵉ) where
+  open Explorableₛ (Bⁱ Aⁱ) public using () renaming (reify   to reify-iso)
 
-module _ {Aᵉ : Explore₁ A} (Aⁱ : ExploreInd₁ Aᵉ) where
-  open Explorable₁₁ (Bⁱ Aⁱ) public using () renaming (unfocus to unfocus-iso)
+module _ {ℓ} {Aᵉ : Explore (ₛ ℓ) A} (Aⁱ : ExploreInd (ₛ ℓ) Aᵉ) where
+  open Explorableₛₛ (Bⁱ Aⁱ) public using () renaming (unfocus to unfocus-iso)
 
 module _ {Aˢ : Sum A} (Aˢ-ok : AdequateSum Aˢ) where
   sum-iso-ok : AdequateSum (sum-iso Aˢ)

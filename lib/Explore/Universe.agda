@@ -1,5 +1,6 @@
 open import Level.NP
 open import Type
+open import Function.NP
 open import Data.Zero
 open import Data.One
 open import Data.Two
@@ -73,8 +74,11 @@ module _ (t : U) where
     tⁱ : ∀ {ℓ p} → ExploreInd p {ℓ} tᵉ
     tⁱ = exploreU-ind t
   open Explorable₀  tⁱ public using () renaming (sum     to sumU; product to productU)
-  open Explorable₁₀ tⁱ public using () renaming (reify   to reifyU)
-  open Explorable₁₁ tⁱ public using () renaming (unfocus to unfocusU)
+
+  module _ {ℓ} where
+    open Explorableₛ  {ℓ} tⁱ public using () renaming (reify    to reifyU;
+                                                       lift-Dec to lift-DecU)
+    open Explorableₛₛ {ℓ} tⁱ public using () renaming (unfocus  to unfocusU)
 
 adequate-sumU : ∀ t → AdequateSum (sumU t)
 adequate-sumU 𝟘′       = 𝟘ˢ-ok
@@ -120,17 +124,17 @@ module Isomorphism {A : ★₀} u (u↔A : El u ↔ A) where
     isoᶠ : Focus {ℓ} isoᵉ
     isoᶠ = focus-iso {ℓ} {exploreU u} (focusU u)
 
+    isoʳ : Reify {ℓ} isoᵉ
+    isoʳ = reify-iso (exploreU-ind u)
+
+    isoᵘ : Unfocus {ℓ} isoᵉ
+    isoᵘ = unfocus-iso (exploreU-ind u)
+
   isoˢ : Sum A
   isoˢ = sum-iso (sumU u)
 
   isoᵖ : Product A
   isoᵖ = product-iso (sumU u)
-
-  isoʳ : Reify isoᵉ
-  isoʳ = reify-iso (exploreU-ind u)
-
-  isoᵘ : Unfocus isoᵉ
-  isoᵘ = unfocus-iso (exploreU-ind u)
 
   isoˢ-ok : AdequateSum isoˢ
   isoˢ-ok = sum-iso-ok (adequate-sumU u)
