@@ -430,6 +430,12 @@ module Explorableₛ {ℓ A} {exploreₛ : Explore (ₛ ℓ) A}
 
   open Explorableₘₚ explore-ind
 
+  module _ (P : A → ★_ ℓ) where
+     open LiftHom {★_ ℓ} {★_ ℓ} (λ A B → B → A) id _∘′_
+                  (Lift 𝟘) _⊎_ (Lift 𝟙) _×_
+                  (λ f g → ×-map f g) Dec P (const (no (λ{ (lift ()) })))
+                  (λ _ _ → uncurry Dec-⊎)
+                  public renaming (lift-hom to lift-Dec)
 
 module Explorableₛₛ {ℓ A} {exploreₛ : Explore (ₛ ℓ) A}
                     (explore-indₛ : ExploreInd (ₛ ℓ) exploreₛ) where

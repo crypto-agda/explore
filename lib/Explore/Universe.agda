@@ -105,6 +105,10 @@ module _ {ℓ} where
     focusU (s ⊎′ t) = focus⊎ {_} {_} {_} {exploreU s} {exploreU t} (focusU s) (focusU t)
     focusU (Σ′ t f) = focusΣ {_} {_} {_} {exploreU t} {λ {x} → exploreU (f x)} (focusU t) (λ {x} → focusU (f x))
 
+module _ (A : U) (P : El A → ★₀) where
+    Dec-Σ : Π (El A) (Dec ∘ P) → Dec (Σ (El A) P)
+    Dec-Σ = map-Dec (unfocusU A) (focusU A) ∘ lift-DecU A P ∘ reifyU A
+
 -- See Explore.Fin for an example of the use of this module
 module Isomorphism {A : ★₀} u (u↔A : El u ↔ A) where
   open Explore.Isomorphism u↔A
