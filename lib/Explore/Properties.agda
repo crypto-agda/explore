@@ -5,7 +5,6 @@ module Explore.Properties where
 open import Level.NP
 open import Type hiding (★)
 open import Function.NP using (id; _∘′_; _∘_; flip; const; Π; Cmp)
-open import Function.Inverse using (_↔_)
 open import Algebra
 import Algebra.FunctionProperties.NP as FP
 open FP using (Op₂)
@@ -15,12 +14,22 @@ open import Data.Product using (Σ; _×_; _,_; proj₁; proj₂)
 open import Data.Sum  using (_⊎_)
 open import Data.Zero using (𝟘)
 open import Data.One  using (𝟙)
+open import Data.Two  using (𝟚; ✓)
 open import Data.Fin  using (Fin)
 open import Relation.Binary.NP
 import Relation.Binary.PropositionalEquality as ≡
 open ≡ using (_≡_; _≗_)
 
 open import Explore.Core
+
+-- TODO: move elsewhere
+module _ {a b} where
+
+    Injective : ∀ {A : ★ a}{B : ★ b}(f : A → B) → ★ _
+    Injective f = ∀ {x y} → f x ≡ f y → x ≡ y
+
+    _↔_ : (A : ★ a) (B : ★ b) → ★ _
+    A ↔ B = (A → B) × (B → A)
 
 module SgrpExtra {c ℓ} (sg : Semigroup c ℓ) where
   open Semigroup sg
@@ -63,7 +72,7 @@ module CMon {c ℓ} (cm : CommutativeMonoid c ℓ) where
                     isEquivalence
                     _∙_ assoc comm (λ _ → flip ∙-cong refl)
 
-ExploreInd : ∀ p {ℓ A} → Explore ℓ A → ★ _
+ExploreInd : ∀ p {ℓ A} → Explore ℓ A → ★ (ₛ (ℓ ⊔ p))
 ExploreInd p {ℓ} {A} exp =
   ∀ (P  : Explore ℓ A → ★ p)
     (Pε : P empty-explore)
@@ -83,17 +92,6 @@ module _ {ℓ p A} where
                         → ExploreInd p (merge-explore e₀ e₁)
     merge-explore-ind Pe₀ Pe₁ P Pε _P∙_ Pf = (Pe₀ P Pε _P∙_ Pf) P∙ (Pe₁ P Pε _P∙_ Pf)
 
-record ExploreIndKit p {ℓ A} (P : Explore ℓ A → ★ p) : ★ (ₛ ℓ ⊔ p) where
-  constructor mk
-  field
-    Pε : P empty-explore
-    P∙ : ∀ {e₀ e₁ : Explore ℓ A} → P e₀ → P e₁ → P (merge-explore e₀ e₁)
-    Pf : ∀ x → P (point-explore x)
-
-_$kit_ : ∀ {p ℓ A} {P : Explore ℓ A → ★ p} {e : Explore ℓ A}
-         → ExploreInd p e → ExploreIndKit p P → P e
-_$kit_ {P = P} ind (mk Pε P∙ Pf) = ind P Pε P∙ Pf
-
 ExploreInd₀ : ∀ {ℓ A} → Explore ℓ A → ★ _
 ExploreInd₀ = ExploreInd ₀
 
@@ -110,42 +108,45 @@ BigOpMonInd p {c} {ℓ} {A} M exp =
   → P exp
   where open Mon M
 
-AdequateExplore : ∀ {A} → Explore ₀ A → ★₁
-AdequateExplore {A} expᴬ = ∀ {U : ★₀}(F : U → ★₀) ε _⊕_ f
-  → (∀ {x y} → F (x ⊕ y) ↔ (F x ⊎ F y)) → F (expᴬ ε _⊕_ f) ↔ Σ A (F ∘ f)
+module _ {ℓ A} (eᴬ : Explore (ₛ ℓ) A) where
+    Πᵉ : (A → ★ ℓ) → ★ ℓ
+    Πᵉ = eᴬ (Lift 𝟙) _×_
 
-AdequateSum : ∀ {A} → Sum A → ★₀
-AdequateSum {A} sumᴬ = ∀ f → Fin (sumᴬ f) ↔ Σ A (Fin ∘ f)
+    Σᵉ : (A → ★ ℓ) → ★ ℓ
+    Σᵉ = eᴬ (Lift 𝟘) _⊎_
 
-AdequateProduct : ∀ {A} → Product A → ★₀
-AdequateProduct {A} productᴬ = ∀ f → Fin (productᴬ f) ↔ Π A (Fin ∘ f)
+module _ {ℓ A} (eᴬ : Explore (ₛ ℓ) A) where
+    Lookup : ★ (ₛ ℓ)
+    Lookup = ∀ {P : A → ★ ℓ} → Πᵉ eᴬ P → Π A P
 
-_,-kit_ : ∀ {m p A} {P : Explore m A → ★ p}{Q : Explore m A → ★ p}
-          → ExploreIndKit p P → ExploreIndKit p Q → ExploreIndKit p (P ×° Q)
-Pk ,-kit Qk = mk (Pε Pk , Pε Qk)
-                 (λ x y → P∙ Pk (proj₁ x) (proj₁ y) , P∙ Qk (proj₂ x) (proj₂ y))
-                 (λ x → Pf Pk x , Pf Qk x)
-             where open ExploreIndKit
+    -- alternative name suggestion: tabulate
+    Reify : ★ (ₛ ℓ)
+    Reify = ∀ {P : A → ★ ℓ} → Π A P → Πᵉ eᴬ P
 
-module Extra where
-    ExploreInd-Extra : ∀ p {m A} → Explore m A → ★ _
-    ExploreInd-Extra p {m} {A} exp =
-      ∀ (Q     : Explore m A → ★ p)
-        (Q-kit : ExploreIndKit p Q)
-        (P     : Explore m A → ★ p)
-        (Pε    : P empty-explore)
-        (P∙    : ∀ {e₀ e₁ : Explore m A} → Q e₀ → Q e₁ → P e₀ → P e₁
-                 → P (merge-explore e₀ e₁))
-        (Pf    : ∀ x → P (point-explore x))
-      → P exp
+    Unfocus : ★ (ₛ ℓ)
+    Unfocus = ∀ {P : A → ★ ℓ} → Σᵉ eᴬ P → Σ A P
 
-    to-extra : ∀ {p m A} {e : Explore m A} → ExploreInd p e → ExploreInd-Extra p e
-    to-extra e-ind Q Q-kit P Pε P∙ Pf =
-     proj₂ (e-ind (Q ×° P)
-             (Qε , Pε)
-             (λ { (a , b) (c , d) → Q∙ a c , P∙ a c b d })
-             (λ x → Qf x , Pf x))
-     where open ExploreIndKit Q-kit renaming (Pε to Qε; P∙ to Q∙; Pf to Qf)
+    -- alternative name suggestion: inject
+    Focus : ★ (ₛ ℓ)
+    Focus = ∀ {P : A → ★ ℓ} → Σ A P → Σᵉ eᴬ P
+
+    Adequate-Σᵉ : ★ _
+    Adequate-Σᵉ = ∀ F → Σᵉ eᴬ F ≡ Σ A F
+
+    Adequate-Πᵉ : ★ _
+    Adequate-Πᵉ = ∀ F → Πᵉ eᴬ F ≡ Π A F
+
+Adequate-sum : ∀ {A} → Sum A → ★₁
+Adequate-sum {A} sumᴬ = ∀ f → Fin (sumᴬ f) ≡ Σ A (Fin ∘ f)
+
+Adequate-product : ∀ {A} → Product A → ★₁
+Adequate-product {A} productᴬ = ∀ f → Fin (productᴬ f) ≡ Π A (Fin ∘ f)
+
+Adequate-any : ∀ {A} (any : BigOp 𝟚 A) → ★₀
+Adequate-any {A} anyᴬ = ∀ f → ✓ (anyᴬ f) ↔ Σ A (✓ ∘ f)
+
+Adequate-all : ∀ {A} (all : BigOp 𝟚 A) → ★₀
+Adequate-all {A} allᴬ = ∀ f → ✓ (allᴬ f) ↔ Π A (✓ ∘ f)
 
 StableUnder : ∀ {ℓ A} → Explore ℓ A → (A → A) → ★ _
 StableUnder explore p = ∀ {M} ε op (f : _ → M) → explore ε op f ≡ explore ε op (f ∘ p)
@@ -155,10 +156,6 @@ SumStableUnder sum p = ∀ f → sum f ≡ sum (f ∘ p)
 
 CountStableUnder : ∀ {A} → Count A → (A → A) → ★ _
 CountStableUnder count p = ∀ f → count f ≡ count (f ∘ p)
-
--- TODO: remove the hard-wired ≡
-Injective : ∀ {a b}{A : ★ a}{B : ★ b}(f : A → B) → ★ _
-Injective f = ∀ {x y} → f x ≡ f y → x ≡ y
 
 SumStableUnderInjection : ∀ {A} → Sum A → ★ _
 SumStableUnderInjection sum = ∀ p → Injective p → SumStableUnder sum p
@@ -273,29 +270,3 @@ SumSwap {A} sᴬ = ∀ {B : ★₀}
 
 Unique : ∀ {A} → Cmp A → Count A → ★ _
 Unique cmp count = ∀ x → count (cmp x) ≡ 1
-
-module _ {ℓ A} (eᴬ : Explore (ₛ ℓ) A) where
-    DataΠ : (A → ★ ℓ) → ★ ℓ
-    DataΠ = eᴬ (Lift 𝟙) _×_
-
-    ΣPoint : (A → ★ ℓ) → ★ ℓ
-    ΣPoint = eᴬ (Lift 𝟘) _⊎_
-
-module _ {ℓ A} (eᴬ : Explore (ₛ ℓ) A) where
-    Lookup : ★ (ₛ ℓ)
-    Lookup = ∀ {P : A → ★ ℓ} → DataΠ eᴬ P → Π A P
-
-    Reify : ★ (ₛ ℓ)
-    Reify = ∀ {P : A → ★ ℓ} → Π A P → DataΠ eᴬ P
-
-    Reified : ★ (ₛ ℓ)
-    Reified = ∀ {P : A → ★ ℓ} → Π A P ↔ DataΠ eᴬ P
-
-    Unfocus : ★ (ₛ ℓ)
-    Unfocus = ∀ {P : A → ★ ℓ} → ΣPoint eᴬ P → Σ A P
-
-    Focus : ★ (ₛ ℓ)
-    Focus = ∀ {P : A → ★ ℓ} → Σ A P → ΣPoint eᴬ P
-
-    Focused : ★ (ₛ ℓ)
-    Focused = ∀ {P : A → ★ ℓ} → Σ A P ↔ ΣPoint eᴬ P

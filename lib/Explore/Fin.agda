@@ -18,12 +18,12 @@ open import Explore.Two
 module Explore.Fin where
 
 module Regular n where
-    open Explore.Universe.Isomorphism (FinU n) (FinU↔Fin n)
+    open Explore.Universe.Isomorphism (FinU n) (FinU-Fin n)
       public
       renaming ( isoᵉ to Finᵉ
                ; isoⁱ to Finⁱ
-               ; isoˡ to Finˡ
-               ; isoᶠ to Finᶠ
+               --; isoˡ to Finˡ
+               --; isoᶠ to Finᶠ
                ; isoˢ to Finˢ
                ; isoᵖ to Finᵖ
                ; isoʳ to Finʳ
@@ -35,12 +35,12 @@ module Regular n where
 
 module Custom where
   module _ n where
-    open Explore.Universe.Isomorphism (FinU' n) (FinU'↔Fin n)
+    open Explore.Universe.Isomorphism (FinU' n) (FinU'-Fin n)
       public
       renaming ( isoᵉ to Finᵉ
                ; isoⁱ to Finⁱ
-               ; isoˡ to Finˡ
-               ; isoᶠ to Finᶠ
+               --; isoˡ to Finˡ
+               --; isoᶠ to Finᶠ
                ; isoˢ to Finˢ
                ; isoᵖ to Finᵖ
                ; isoʳ to Finʳ

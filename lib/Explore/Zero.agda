@@ -1,15 +1,17 @@
 open import Type
+open import Type.Identities
 open import Level.NP
 open import Explore.Core
 open import Explore.Properties
 open import Explore.Explorable
 open import Data.Zero
 open import Function.NP
+open import Function.Extensionality
 open import Data.Product
-import Function.Inverse.NP as FI
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-open FI using (_↔_; inverses; module Inverse) renaming (_$₁_ to to; _$₂_ to from)
-open import Function.Related.TypeIsomorphisms.NP
+open import Relation.Binary.PropositionalEquality.NP using (_≡_; refl; _∙_; !_)
+open import HoTT
+open Equivalences
+
 import Explore.Monad
 
 module Explore.Zero where
@@ -28,6 +30,10 @@ module _ {ℓ} where
     𝟘ⁱ _ Pε _ _ = Pε
     -}
 
+module _ {ℓ₁ ℓ₂ ℓᵣ} {R : 𝟘 → 𝟘 → ★₀} where
+    ⟦𝟘ᵉ⟧ : ⟦Explore⟧ᵤ ℓ₁ ℓ₂ ℓᵣ R 𝟘ᵉ 𝟘ᵉ
+    ⟦𝟘ᵉ⟧ _ εᵣ _ _ = εᵣ
+
 open Explorable₀  𝟘ⁱ public using () renaming (sum     to 𝟘ˢ; product to 𝟘ᵖ)
 
 module _ {ℓ} where
@@ -40,12 +46,21 @@ module _ {ℓ} where
     𝟘ᶠ : Focus {ℓ} 𝟘ᵉ
     𝟘ᶠ ((), _)
 
+    module _ {{_ : UA}} where
+        Σᵉ𝟘-ok : Adequate-Σᵉ {ℓ} 𝟘ᵉ
+        Σᵉ𝟘-ok _ = ! Σ𝟘-lift∘fst
 
-𝟘ˢ-ok : AdequateSum 𝟘ˢ
-𝟘ˢ-ok _ = FI.sym (Σ𝟘↔𝟘 _) FI.∘ Fin0↔𝟘
+    module _ {{_ : UA}}{{_ : FunExt}} where
+        Πᵉ𝟘-ok : Adequate-Πᵉ {ℓ} 𝟘ᵉ
+        Πᵉ𝟘-ok _ = ! Π𝟘-uniq _
 
-𝟘ᵖ-ok : (ext𝟘 : ∀ {F} (f g : Π 𝟘 F) → f ≡ g) → AdequateProduct 𝟘ᵖ
-𝟘ᵖ-ok ext𝟘 _ = FI.sym (Π𝟘↔𝟙 ext𝟘) FI.∘ Fin1↔𝟙
+module _ {{_ : UA}} where
+    𝟘ˢ-ok : Adequate-sum 𝟘ˢ
+    𝟘ˢ-ok _ = Fin0≡𝟘 ∙ ! Σ𝟘-fst
+
+module _ {{_ : UA}}{{_ : FunExt}} where
+    𝟘ᵖ-ok : Adequate-product 𝟘ᵖ
+    𝟘ᵖ-ok _ = Fin1≡𝟙 ∙ ! (Π𝟘-uniq₀ _)
 
 explore𝟘          = 𝟘ᵉ
 explore𝟘-ind      = 𝟘ⁱ
@@ -59,6 +74,8 @@ product𝟘          = 𝟘ᵖ
 adequate-product𝟘 = 𝟘ᵖ-ok
 
 -- DEPRECATED
-μ𝟘 : Explorable 𝟘
-μ𝟘 = mk _ 𝟘ⁱ 𝟘ˢ-ok
+module _ {{_ : UA}} where
+    open ExplorableRecord
+    μ𝟘 : Explorable 𝟘
+    μ𝟘 = mk _ 𝟘ⁱ 𝟘ˢ-ok
 -- -}

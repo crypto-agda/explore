@@ -1,9 +1,9 @@
 {-# OPTIONS --without-K #-}
 open import Type
 open import Data.Fin using (Fin; zero; suc; #_)
-import Function.Inverse.NP as Inv
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-open Inv using (_↔_)
+open import Relation.Binary.PropositionalEquality.NP using (_≡_; refl)
+open import HoTT
+open Equivalences
 
 open import Explore.Core
 open import Explore.Properties
@@ -22,12 +22,14 @@ module ByHand where
     exploreDice-ind : ∀ {m p} → ExploreInd p (exploreDice {m})
     exploreDice-ind P ε _∙_ f = f ⚀ ∙ (f ⚁ ∙ (f ⚂ ∙ (f ⚃ ∙ (f ⚄ ∙ f ⚅))))
 
-    open Explorable₀  exploreDice-ind public using () renaming (sum     to sumDice; product to productDice)
-    open Explorable₁₀ exploreDice-ind public using () renaming (reify   to reifyDice)
-    open Explorable₁₁ exploreDice-ind public using () renaming (unfocus to unfocusDice)
+    open Explorable₀ exploreDice-ind public using () renaming (sum     to sumDice; product to productDice)
 
-Dice↔Fin6 : Dice ↔ Fin 6
-Dice↔Fin6 = Inv.inverses (⇒) (⇐) ⇐⇒ ⇒⇐
+    module _ {ℓ} where
+        open Explorableₛ  {ℓ} exploreDice-ind public using () renaming (reify   to reifyDice)
+        open Explorableₛₛ {ℓ} exploreDice-ind public using () renaming (unfocus to unfocusDice)
+
+Dice↔Fin6 : Dice ≃ Fin 6
+Dice↔Fin6 = equiv (⇒) (⇐) ⇒⇐ ⇐⇒
   module Dice↔Fin6 where
     S = Dice
     T = Fin 6
@@ -64,12 +66,12 @@ Dice↔Fin6 = Inv.inverses (⇒) (⇐) ⇐⇒ ⇒⇐
 
 -- By using FinU' instead of FinU one get a special case for Fin 1 thus avoiding
 -- a final ε in the exploration function.
-open Explore.Universe.Isomorphism (FinU' 6) (Inv.sym Dice↔Fin6 Inv.∘ FinU'↔Fin 6)
+open Explore.Universe.Isomorphism (FinU' 6) (FinU'-Fin 6 ≃-∙ {!Dice↔Fin6!})
   public
   renaming ( isoᵉ to Diceᵉ
            ; isoⁱ to Diceⁱ
-           ; isoˡ to Diceˡ
-           ; isoᶠ to Diceᶠ
+           -- ; isoˡ to Diceˡ
+           -- ; isoᶠ to Diceᶠ
            ; isoˢ to Diceˢ
            ; isoᵖ to Diceᵖ
            ; isoʳ to Diceʳ

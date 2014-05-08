@@ -10,23 +10,23 @@
 -}
 open import Type hiding (★)
 open import Function.NP
+open import Function.Extensionality
 open import Data.Nat using (_+_)
 open import Level.NP
-import Function.Inverse.NP as FI
-import Function.Related as FR
-open FI using (_↔_; inverses; module Inverse) renaming (_$₁_ to to; _$₂_ to from)
-open import Function.Related.TypeIsomorphisms.NP
+open import Type.Identities
 open import Data.Product.NP
-open import Data.Sum
--- open import Data.Bit
+open import Data.Sum using (_⊎_) renaming (inj₁ to inl; inj₂ to inr; [_,_] to [inl:_,inr:_])
+open import Data.Sum.Logical
+open import HoTT
 open import Data.Fin using (Fin)
+open import Relation.Binary.Logical
 open import Relation.Binary.Sum
 import Relation.Binary.PropositionalEquality.NP as ≡
-open ≡ using (_≡_ ; module ≡-Reasoning; cong)
+open ≡ using (_≡_ ; module ≡-Reasoning; cong; !_; _∙_; refl; ap)
 
 open import Explore.Core
 open import Explore.Properties
-open import Explore.Explorable hiding (first)
+open import Explore.Explorable
 
 module Explore.Sum where
 
@@ -38,7 +38,7 @@ module _ {a b u} {A : ★ a} {B : ★ b} {U : ★ u}
   where
       -- find a better place/name for it
       ⊎ᶜ : U
-      ⊎ᶜ = e₁ (f ∘ inj₁) ∙ e₂ (f ∘ inj₂)
+      ⊎ᶜ = e₁ (f ∘ inl) ∙ e₂ (f ∘ inr)
 
 module _ {m A B} where
     explore⊎ : Explore m A → Explore m B → Explore m (A ⊎ B)
@@ -48,23 +48,19 @@ module _ {m A B} where
         explore⊎-ind : ExploreInd p eᴬ → ExploreInd p eᴮ → ExploreInd p (explore⊎ eᴬ eᴮ)
         explore⊎-ind Psᴬ Psᴮ P Pε P∙ Pf
         -- TODO clean this up:
-          = P∙ (Psᴬ (λ s → P (λ _ _ f → s _ _ (f ∘ inj₁))) Pε P∙ (Pf ∘ inj₁))
-               (Psᴮ (λ s → P (λ _ _ f → s _ _ (f ∘ inj₂))) Pε P∙ (Pf ∘ inj₂))
+          = P∙ (Psᴬ (λ s → P (λ _ _ f → s _ _ (f ∘ inl))) Pε P∙ (Pf ∘ inl))
+               (Psᴮ (λ s → P (λ _ _ f → s _ _ (f ∘ inr))) Pε P∙ (Pf ∘ inr))
 
-module _ {A B}{eᴬ : Explore ₀ A}{eᴮ : Explore ₀ B} where
-   explore⊎-adq : AdequateExplore eᴬ → AdequateExplore eᴮ → AdequateExplore (explore⊎ eᴬ eᴮ)
-   explore⊎-adq aᴬ aᴮ F ε _⊕_ f F-proof
-      = F (big⊕ᴬ (f ∘ inj₁) ⊕ big⊕ᴮ (f ∘ inj₂))
-      ↔⟨ F-proof  ⟩
-        (F (big⊕ᴬ (f ∘ inj₁)) ⊎ F (big⊕ᴮ (f ∘ inj₂)))
-      ↔⟨ aᴬ F ε _⊕_ (f ∘ inj₁) F-proof ⊎-cong aᴮ F ε _⊕_ (f ∘ inj₂) F-proof ⟩
-        (Σ A (F ∘ f ∘ inj₁) ⊎ Σ B (F ∘ f ∘ inj₂))
-      ↔⟨ FI.sym Σ⊎-distrib ⟩
-        Σ (A ⊎ B) (F ∘ f)
-      ∎
-     where open FR.EquationalReasoning
-           big⊕ᴬ = eᴬ ε _⊕_
-           big⊕ᴮ = eᴮ ε _⊕_
+module _ {ℓ₀ ℓ₁ ℓᵣ}
+         {A₀ A₁} {Aᵣ : ⟦★₀⟧ A₀ A₁}
+         {B₀ B₁} {Bᵣ : ⟦★₀⟧ B₀ B₁}
+         {eᴬ₀ : Explore ℓ₀ A₀} {eᴬ₁ : Explore ℓ₁ A₁}(eᴬᵣ : ⟦Explore⟧ᵤ ℓ₀ ℓ₁ ℓᵣ Aᵣ eᴬ₀ eᴬ₁)
+         {eᴮ₀ : Explore ℓ₀ B₀} {eᴮ₁ : Explore ℓ₁ B₁}(eᴮᵣ : ⟦Explore⟧ᵤ ℓ₀ ℓ₁ ℓᵣ Bᵣ eᴮ₀ eᴮ₁)
+         where
+    ⟦explore⊎⟧ : ⟦Explore⟧ᵤ _ _ ℓᵣ (Aᵣ ⟦⊎⟧ Bᵣ) (explore⊎ eᴬ₀ eᴮ₀) (explore⊎ eᴬ₁ eᴮ₁)
+    ⟦explore⊎⟧ P Pε P∙ Pf
+       = P∙ (eᴬᵣ P Pε P∙ (Pf ∘ ⟦inl⟧))
+            (eᴮᵣ P Pε P∙ (Pf ∘ ⟦inr⟧))
 
 infixr 4 _⊎ᵉ_ _⊎ⁱ_ _⊎ˢ_
 _⊎ᵉ_ = explore⊎
@@ -73,50 +69,46 @@ _⊎ⁱ_ = explore⊎-ind
 _⊎ˢ_ : ∀ {A B} → Sum A → Sum B → Sum (A ⊎ B)
 _⊎ˢ_ = ⊎ᶜ _+_
 
-module _ {A B} {sumᴬ : Sum A} {sumᴮ : Sum B} where
+module _ {A B} {sumᴬ : Sum A} {sumᴮ : Sum B}{{_ : UA}} where
 
-    adequate-sum⊎ : AdequateSum sumᴬ → AdequateSum sumᴮ → AdequateSum (sumᴬ ⊎ˢ sumᴮ)
-    adequate-sum⊎ asumᴬ asumᴮ f    = (Fin (sumᴬ (f ∘ inj₁) + sumᴮ (f ∘ inj₂)))
-                                   ↔⟨ FI.sym (Fin-⊎-+ _ _) ⟩
-                                     (Fin (sumᴬ (f ∘ inj₁)) ⊎ Fin (sumᴮ (f ∘ inj₂)))
-                                   ↔⟨ asumᴬ (f ∘ inj₁) ⊎-cong asumᴮ (f ∘ inj₂) ⟩
-                                     (Σ A (Fin ∘ f ∘ inj₁) ⊎ Σ B (Fin ∘ f ∘ inj₂))
-                                   ↔⟨ FI.sym Σ⊎-distrib ⟩
+    adequate-sum⊎ : Adequate-sum sumᴬ → Adequate-sum sumᴮ → Adequate-sum (sumᴬ ⊎ˢ sumᴮ)
+    adequate-sum⊎ asumᴬ asumᴮ f    = (Fin (sumᴬ (f ∘ inl) + sumᴮ (f ∘ inr)))
+                                   ≡⟨ ! Fin-⊎-+ ⟩
+                                     (Fin (sumᴬ (f ∘ inl)) ⊎ Fin (sumᴮ (f ∘ inr)))
+                                   ≡⟨ ⊎= (asumᴬ (f ∘ inl)) (asumᴮ (f ∘ inr)) ⟩
+                                     (Σ A (Fin ∘ f ∘ inl) ⊎ Σ B (Fin ∘ f ∘ inr))
+                                   ≡⟨ ! dist-⊎-Σ ⟩
                                      Σ (A ⊎ B) (Fin ∘ f)
                                    ∎
-      where open FR.EquationalReasoning
+      where open ≡-Reasoning
 
     _⊎ᵃ_ = adequate-sum⊎
 
 module _ {ℓ} {A B} {eᴬ : Explore (ₛ ℓ) A} {eᴮ : Explore (ₛ ℓ) B} where
-  sᴬ⁺ᴮ = eᴬ ⊎ᵉ eᴮ
-  focus⊎ : Focus eᴬ → Focus eᴮ → Focus sᴬ⁺ᴮ
-  focus⊎ fᴬ fᴮ (inj₁ x , y) = inj₁ (fᴬ (x , y))
-  focus⊎ fᴬ fᴮ (inj₂ x , y) = inj₂ (fᴮ (x , y))
+  eᴬ⁺ᴮ = eᴬ ⊎ᵉ eᴮ
+  focus⊎ : Focus eᴬ → Focus eᴮ → Focus eᴬ⁺ᴮ
+  focus⊎ fᴬ fᴮ (inl x , y) = inl (fᴬ (x , y))
+  focus⊎ fᴬ fᴮ (inr x , y) = inr (fᴮ (x , y))
 
-  unfocus⊎ : Unfocus eᴬ → Unfocus eᴮ → Unfocus sᴬ⁺ᴮ
-  unfocus⊎ fᴬ fᴮ (inj₁ x) = first inj₁ (fᴬ x)
-  unfocus⊎ fᴬ fᴮ (inj₂ y) = first inj₂ (fᴮ y)
+  unfocus⊎ : Unfocus eᴬ → Unfocus eᴮ → Unfocus eᴬ⁺ᴮ
+  unfocus⊎ fᴬ fᴮ (inl x) = first inl (fᴬ x)
+  unfocus⊎ fᴬ fᴮ (inr y) = first inr (fᴮ y)
 
-  {-
-  _⊎-focused_ : Focused eᴬ → Focused eᴮ → Focused {L.zero} sᴬ⁺ᴮ
-  _⊎-focused_ fᴬ fᴮ {B} = inverses (to fᴬ ⊎-focus to fᴮ) (from fᴬ ⊎-unfocus from fᴮ) (⇒) (⇐)
-      where
-        ⇒ : (x : Σ (A ⊎ {!!}) {!!}) → _
-        ⇒ (x , y) = {!!}
-        ⇐ : (x : eᴬ _⊎_ (B ∘ inj₁) ⊎ eᴮ _⊎_ (B ∘ inj₂)) → _
-        ⇐ (inj₁ x) = cong inj₁ {!!}
-        ⇐ (inj₂ x) = cong inj₂ {!!}
-  -}
+  Σᵉ⊎-ok : {{_ : UA}} → Adequate-Σᵉ eᴬ → Adequate-Σᵉ eᴮ → Adequate-Σᵉ eᴬ⁺ᴮ
+  Σᵉ⊎-ok fᴬ fᴮ _ = ⊎= (fᴬ _) (fᴮ _) ∙ ! dist-⊎-Σ
 
   lookup⊎ : Lookup eᴬ → Lookup eᴮ → Lookup (eᴬ ⊎ᵉ eᴮ)
-  lookup⊎ lookupᴬ lookupᴮ (x , y) = [ lookupᴬ x , lookupᴮ y ]
+  lookup⊎ lookupᴬ lookupᴮ (x , y) = [inl: lookupᴬ x ,inr: lookupᴮ y ]
 
   reify⊎ : Reify eᴬ → Reify eᴮ → Reify (eᴬ ⊎ᵉ eᴮ)
-  reify⊎ reifyᴬ reifyᴮ f = (reifyᴬ (f ∘ inj₁)) , (reifyᴮ (f ∘ inj₂))
+  reify⊎ reifyᴬ reifyᴮ f = (reifyᴬ (f ∘ inl)) , (reifyᴮ (f ∘ inr))
+
+  Πᵉ⊎-ok : {{_ : UA}}{{_ : FunExt}} → Adequate-Πᵉ eᴬ → Adequate-Πᵉ eᴮ → Adequate-Πᵉ eᴬ⁺ᴮ
+  Πᵉ⊎-ok fᴬ fᴮ _ = ×= (fᴬ _) (fᴮ _) ∙ ! dist-×-Π
 
 -- DEPRECATED
-_⊎-μ_ : ∀ {A B} → Explorable A → Explorable B → Explorable (A ⊎ B)
+open ExplorableRecord
+_⊎-μ_ : ∀ {{_ : UA}} {A B} → Explorable A → Explorable B → Explorable (A ⊎ B)
 μA ⊎-μ μB = mk _ (explore-ind μA ⊎ⁱ explore-ind μB)
                  (adequate-sum⊎ (adequate-sum μA) (adequate-sum μB))
 

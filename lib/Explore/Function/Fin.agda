@@ -1,6 +1,7 @@
 {-# OPTIONS --without-K #-}
 open import Type
 open import Function
+open import Function.Extensionality
 open import Data.Fin using (Fin)
 open import Level.NP
 open import Algebra
@@ -15,11 +16,13 @@ open import Explore.Properties
 open import Explore.Explorable
 import Explore.Fin
 open Explore.Fin.Regular
+open import HoTT
 
 module Explore.Function.Fin where
 
 postulate
   Postulate-FinFunˢ-ok : ★
+open ExplorableRecord
 
 module _ {A : ★}(μA : Explorable A) where
 
@@ -50,13 +53,13 @@ module _ {A : ★}(μA : Explorable A) where
   FinFunˢ n = FinFunᵉ n 0 _+_
 
   postulate
-    FinFunˢ-ok : ∀ {{_ : Postulate-FinFunˢ-ok}} n → AdequateSum (FinFunˢ n)
+    FinFunˢ-ok : ∀ {{_ : Postulate-FinFunˢ-ok}} n → Adequate-sum (FinFunˢ n)
 
   μFinFun : ∀ {{_ : Postulate-FinFunˢ-ok}} {n} → Explorable (Fin n → A)
   μFinFun = mk _ (FinFunⁱ _) (FinFunˢ-ok _)
 
 module BigDistr
-  {{_ : Postulate-FinFunˢ-ok}}
+  {{_ : Postulate-FinFunˢ-ok}} {{_ : FunExt}} {{_ : UA}}
   {A : ★}(μA : Explorable A)
   (cm           : CommutativeMonoid ₀ ₀)
   -- we want (open CMon cm) !!!
@@ -92,7 +95,7 @@ module BigDistr
     ∎
 
 module _
-  {{_ : Postulate-FinFunˢ-ok}} where
+  {{_ : Postulate-FinFunˢ-ok}}{{_ : UA}}{{_ : FunExt}} where
 
   FinDist : ∀ {n} → DistFun (μFin n) (λ μX → μFinFun μX)
   FinDist μB c ◎ distrib ◎-cong f = BigDistr.bigDistr μB c ◎ distrib ◎-cong f _

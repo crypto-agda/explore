@@ -8,15 +8,15 @@
 
 open import Level.NP
 open import Type hiding (★)
+open import Type.Identities
 open import Function.NP
-import Function.Related as FR
-import Function.Inverse.NP as FI
-open FI using (_↔_; inverses; module Inverse) renaming (_$₁_ to to; _$₂_ to from)
-open import Function.Related.TypeIsomorphisms.NP
-open import Data.Bool using (true ; false ; _∧_ ; if_then_else_)
-open import Data.Product
+open import Function.Extensionality
+open import Data.Two
+open import Data.Product.NP
 open import Data.Fin
-open import Relation.Binary.PropositionalEquality.NP using (_≡_ ; module ≡-Reasoning)
+open import Relation.Binary.Logical
+open import Relation.Binary.PropositionalEquality.NP using (_≡_ ; module ≡-Reasoning; !_; _∙_; coe; tr)
+open import HoTT
 open import Category.Monad.Continuation.Alias
 
 open import Explore.Core
@@ -37,43 +37,48 @@ module _ {m A} {B : A → ★₀} where
         exploreΣ-ind Peᴬ Peᴮ P Pz P∙ Pf =
           Peᴬ (λ e → P (λ _ _ _ → e _ _ _)) Pz P∙ (λ x → Peᴮ {x} (λ e → P (λ _ _ _ → e _ _ _)) Pz P∙ (curry Pf x))
 
-module _ {A}{B : A → ★₀}{eᴬ : Explore ₀ A}{eᴮ : ∀ {x} → Explore ₀ (B x)} where
-   exploreΣ-adq : AdequateExplore eᴬ → (∀ {x} → AdequateExplore (eᴮ {x})) → AdequateExplore (exploreΣ eᴬ eᴮ)
-   exploreΣ-adq aᴬ aᴮ F ε _⊕_ f F-proof
-     = F (big⊕ᴬ (λ a → big⊕ᴮ (λ b → f (a , b))))
-     ↔⟨ aᴬ F _ _ _ F-proof ⟩
-         Σ A (F ∘ (λ a → big⊕ᴮ (λ b → f (a , b))))
-     ↔⟨ second-iso (λ _ → aᴮ F _ _ _ F-proof) ⟩
-       Σ A (λ a → Σ (B a) (λ b → F (f (a , b))))
-     ↔⟨ FI.sym Σ-assoc ⟩
-       Σ (Σ A B) (F ∘ f)
-     ∎
-     where open FR.EquationalReasoning
-           big⊕ᴬ = eᴬ ε _⊕_
-           big⊕ᴮ = λ {x} → eᴮ {x} ε _⊕_
+module _
+    {ℓ₀ ℓ₁ ℓᵣ}
+    {A₀ A₁} {Aᵣ : ⟦★₀⟧ A₀ A₁}
+    {B₀ : A₀ → _} {B₁ : A₁ → _} {Bᵣ : (Aᵣ ⟦→⟧ ⟦★₀⟧) B₀ B₁}
+    {eᴬ₀ : Explore ℓ₀ A₀} {eᴬ₁ : Explore ℓ₁ A₁}(eᴬᵣ : ⟦Explore⟧ᵤ ℓ₀ ℓ₁ ℓᵣ Aᵣ eᴬ₀ eᴬ₁)
+    {eᴮ₀ : ∀ {x} → Explore ℓ₀ (B₀ x)} {eᴮ₁ : ∀ {x} → Explore ℓ₁ (B₁ x)}(eᴮᵣ : ∀ {x₀ x₁}(x : Aᵣ x₀ x₁) → ⟦Explore⟧ᵤ ℓ₀ ℓ₁ ℓᵣ (Bᵣ x) (eᴮ₀ {x₀}) (eᴮ₁ {x₁}))
+    where
+   ⟦exploreΣ⟧ : ⟦Explore⟧ᵤ _ _ ℓᵣ (⟦Σ⟧ Aᵣ Bᵣ) (exploreΣ eᴬ₀ (λ {x} → eᴮ₀ {x})) (exploreΣ eᴬ₁ (λ {x} → eᴮ₁ {x}))
+   ⟦exploreΣ⟧ P Pε P∙ Pf = eᴬᵣ P Pε P∙ (λ {x₀} {x₁} x → eᴮᵣ x P Pε P∙ (λ xᵣ → Pf (x ⟦,⟧ xᵣ)))
 
-module _ {A} {B : A → ★₀} {sumᴬ : Sum A} {sumᴮ : ∀ {x} → Sum (B x)} where
+module _ {A} {B : A → ★₀} {sumᴬ : Sum A} {sumᴮ : ∀ {x} → Sum (B x)}{{_ : FunExt}}{{_ : UA}} where
 
     private
         sumᴬᴮ = sumᴬ ⟨,⟩ (λ {x} → sumᴮ {x})
 
-    adequate-sumΣ : AdequateSum sumᴬ → (∀ {x} → AdequateSum (sumᴮ {x})) → AdequateSum sumᴬᴮ
-    adequate-sumΣ asumᴬ asumᴮ f = Fin (sumᴬᴮ f)
-                                ↔⟨ FI.id ⟩
-                                  Fin (sumᴬ (λ a → sumᴮ (λ b → f (a , b))))
-                                ↔⟨ asumᴬ _ ⟩
-                                  Σ A (λ a → Fin (sumᴮ (λ b → f (a , b))))
-                                ↔⟨ second-iso (λ _ → asumᴮ _) ⟩
-                                  Σ A (λ a → Σ (B a) (λ b → Fin (f (a , b))))
-                                ↔⟨ FI.sym Σ-assoc ⟩
-                                  Σ (Σ A B) (Fin ∘ f)
-                                ∎
-      where open FR.EquationalReasoning
+    adequate-sumΣ : Adequate-sum sumᴬ → (∀ {x} → Adequate-sum (sumᴮ {x})) → Adequate-sum sumᴬᴮ
+    adequate-sumΣ asumᴬ asumᴮ f
+      = Fin (sumᴬᴮ f)
+      ≡⟨by-definition⟩
+        Fin (sumᴬ (λ a → sumᴮ (λ b → f (a , b))))
+      ≡⟨ asumᴬ _ ⟩
+        Σ A (λ a → Fin (sumᴮ (λ b → f (a , b))))
+      ≡⟨ Σ=′ _ (λ _ → asumᴮ _) ⟩
+        Σ A (λ a → Σ (B a) (λ b → Fin (f (a , b))))
+      ≡⟨ Σ-assoc ⟩
+        Σ (Σ A B) (Fin ∘ f)
+      ∎
+      where open ≡-Reasoning
 
 -- From now on, these are derived definitions for convenience and pedagogical reasons
 
 explore× : ∀ {m A B} → Explore m A → Explore m B → Explore m (A × B)
 explore× exploreᴬ exploreᴮ = exploreΣ exploreᴬ exploreᴮ
+
+module _ {ℓ₀ ℓ₁ ℓᵣ A₀ A₁ B₀ B₁}
+         {Aᵣ  : ⟦★₀⟧ A₀ A₁}
+         {Bᵣ  : ⟦★₀⟧ B₀ B₁}
+         {eᴬ₀ : Explore ℓ₀ A₀} {eᴬ₁ : Explore ℓ₁ A₁}(eᴬᵣ : ⟦Explore⟧ᵤ ℓ₀ ℓ₁ ℓᵣ Aᵣ eᴬ₀ eᴬ₁)
+         {eᴮ₀ : Explore ℓ₀ B₀} {eᴮ₁ : Explore ℓ₁ B₁}(eᴮᵣ : ⟦Explore⟧ᵤ ℓ₀ ℓ₁ ℓᵣ Bᵣ eᴮ₀ eᴮ₁)
+    where
+    ⟦explore×⟧ : ⟦Explore⟧ᵤ _ _ ℓᵣ (Aᵣ ⟦×⟧ Bᵣ) (explore× eᴬ₀ eᴮ₀) (explore× eᴬ₁ eᴮ₁)
+    ⟦explore×⟧ P Pε P∙ Pf = eᴬᵣ P Pε P∙ (λ x → eᴮᵣ P Pε P∙ (λ y → Pf (_⟦,⟧_ x y)))
 
 explore×-ind : ∀ {m p A B} {eᴬ : Explore m A} {eᴮ : Explore m B}
                → ExploreInd p eᴬ → ExploreInd p eᴮ
@@ -106,26 +111,58 @@ _×-cmp_ : ∀ {A B : ★₀ } → Cmp A → Cmp B → Cmp (A × B)
   where
     open ≡-Reasoning
     help : ∀ b → count μB (λ y' → b ∧ cB y y') ≡ (if b then 1 else 0)
-    help true = uB y
-    help false = sum-zero μB
+    help = [0: sum-zero μB 1: uB y ]
+-}
+
+{-
+module _ {A} {Aₚ : A → ★₀} {B : A → _} {eᴬ : Explore ₁ A} (eᴬₚ : [Explore] _ _ Aₚ eᴬ) (eᴬ-ind : ExploreInd (ₛ ₀) eᴬ) {eᴮ : ∀ {x} → Explore ₀ (B x)} where
+  open import Explore.One
+  --open import Explore.Product
+  exploreΠᵉ : Explore ₀ (Πᵉ eᴬ B)
+  exploreΠᵉ = eᴬ-ind (λ e → Explore ₀ (Πᵉ e B)) (λ ε _∙₁_ x → x _) explore× (λ x → eᴮ {x})
+
+  exploreΠᵉ' : Explore ₀ (Πᵉ eᴬ B)
+  exploreΠᵉ' = λ {M} ε _∙₁_ x → {!eᴬₚ (const (Lift M))!}
+
+  exploreΠᵉ-ind : ExploreInd ₁ exploreΠᵉ
+  exploreΠᵉ-ind = {!⟦Explore⟧ᵤ _ _ _ eᴬ!}
 -}
 
 module _ {ℓ} {A} {B : A → _} {eᴬ : Explore (ₛ ℓ) A} {eᴮ : ∀ {x} → Explore (ₛ ℓ) (B x)} where
-  focusΣ : Focus eᴬ → (∀ {x} → Focus (eᴮ {x})) → Focus (exploreΣ eᴬ (λ {x} → eᴮ {x}))
+  private
+    eᴬᴮ = exploreΣ eᴬ λ {x} → eᴮ {x}
+
+  focusΣ : Focus eᴬ → (∀ {x} → Focus (eᴮ {x})) → Focus eᴬᴮ
   focusΣ fᴬ fᴮ ((x , y) , z) = fᴬ (x , fᴮ (y , z))
 
-  lookupΣ : Lookup eᴬ → (∀ {x} → Lookup (eᴮ {x})) → Lookup (exploreΣ eᴬ (λ {x} → eᴮ {x}))
+  lookupΣ : Lookup eᴬ → (∀ {x} → Lookup (eᴮ {x})) → Lookup eᴬᴮ
   lookupΣ lookupᴬ lookupᴮ d = uncurry (lookupᴮ ∘ lookupᴬ d)
 
   -- can also be derived from explore-ind
-  reifyΣ : Reify eᴬ → (∀ {x} → Reify (eᴮ {x})) → Reify (exploreΣ eᴬ (λ {x} → eᴮ {x}))
+  reifyΣ : Reify eᴬ → (∀ {x} → Reify (eᴮ {x})) → Reify eᴬᴮ
   reifyΣ reifyᴬ reifyᴮ f = reifyᴬ (reifyᴮ ∘ curry f)
 
+  ΣᵉΣ-ok : {{_ : UA}}{{_ : FunExt}} → Adequate-Σᵉ eᴬ → (∀ {x} → Adequate-Σᵉ (eᴮ {x})) → Adequate-Σᵉ eᴬᴮ
+  ΣᵉΣ-ok eᴬ eᴮ f = eᴬ _ ∙ Σ=′ _ (λ _ → eᴮ _) ∙ Σ-assoc
+
+  ΠᵉΣ-ok : {{_ : UA}}{{_ : FunExt}} → Adequate-Πᵉ eᴬ → (∀ {x} → Adequate-Πᵉ (eᴮ {x})) → Adequate-Πᵉ eᴬᴮ
+  ΠᵉΣ-ok eᴬ eᴮ f = eᴬ _ ∙ Π=′ _ (λ _ → eᴮ _) ∙ ! ΠΣ-curry
+
 module _ {ℓ} {A B} {eᴬ : Explore (ₛ ℓ) A} {eᴮ : Explore (ₛ ℓ) B} where
-  focus× : Focus eᴬ → Focus eᴮ → Focus (explore× eᴬ eᴮ)
+  private
+    eᴬᴮ = explore× eᴬ eᴮ
+
+  focus× : Focus eᴬ → Focus eᴮ → Focus eᴬᴮ
   focus× fᴬ fᴮ = focusΣ {eᴬ = eᴬ} {eᴮ = eᴮ} fᴬ fᴮ
-  lookup× : Lookup eᴬ → Lookup eᴮ → Lookup (explore× eᴬ eᴮ)
+
+  lookup× : Lookup eᴬ → Lookup eᴮ → Lookup eᴬᴮ
   lookup× fᴬ fᴮ = lookupΣ {eᴬ = eᴬ} {eᴮ = eᴮ} fᴬ fᴮ
+
+  Σᵉ×-ok : {{_ : UA}}{{_ : FunExt}} → Adequate-Σᵉ eᴬ → Adequate-Σᵉ eᴮ → Adequate-Σᵉ eᴬᴮ
+  Σᵉ×-ok eᴬ eᴮ f = eᴬ _ ∙ Σ=′ _ (λ _ → eᴮ _) ∙ Σ-assoc
+
+  Πᵉ×-ok : {{_ : UA}}{{_ : FunExt}} → Adequate-Πᵉ eᴬ → Adequate-Πᵉ eᴮ → Adequate-Πᵉ eᴬᴮ
+  Πᵉ×-ok eᴬ eᴮ f = eᴬ _ ∙ Π=′ _ (λ _ → eᴮ _) ∙ ! ΠΣ-curry
 
 module Operators where
     infixr 4 _×ᵉ_ _×ⁱ_ _×ˢ_

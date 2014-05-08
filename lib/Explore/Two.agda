@@ -1,23 +1,23 @@
 open import Type
+open import Type.Identities
 open import Level.NP
 open import Data.Two
 open import Function
+open import Function.Extensionality
 open import Data.Product
 open import Data.Sum
 open import Data.Fin
-open import Relation.Binary.PropositionalEquality using (refl)
-import Function.Inverse.NP as FI
-open FI using (_↔_; inverses; module Inverse) renaming (_$₁_ to to; _$₂_ to from)
-open import Function.Related.TypeIsomorphisms.NP
+open import Relation.Binary.PropositionalEquality.NP using (_≡_; refl; !_; _∙_)
 open import Relation.Binary.Sum
+open import HoTT
 
 open import Explore.Sum
 open import Explore.Core
 open import Explore.Properties
-open import Explore.One
 open import Explore.Explorable
 
 module Explore.Two where
+
 
 module _ {ℓ} where
     𝟚ᵉ : Explore ℓ 𝟚
@@ -26,9 +26,20 @@ module _ {ℓ} where
     𝟚ⁱ : ∀ {p} → ExploreInd p 𝟚ᵉ
     𝟚ⁱ _ _ _P∙_ Pf = Pf 0₂ P∙ Pf 1₂
 
+module _ {ℓ₁ ℓ₂ ℓᵣ} {R : 𝟚 → 𝟚 → ★₀} {r0 : R 0₂ 0₂}{r1 : R 1₂ 1₂} where
+    ⟦𝟚ᵉ⟧ : ⟦Explore⟧ᵤ ℓ₁ ℓ₂ ℓᵣ R 𝟚ᵉ 𝟚ᵉ
+    ⟦𝟚ᵉ⟧ _ _ _∙ᵣ_ fᵣ = fᵣ r0 ∙ᵣ fᵣ r1
+
 open Explorable₀  𝟚ⁱ public using () renaming (sum     to 𝟚ˢ)
 
 module _ {ℓ} where
+    module _ {{_ : UA}}{{_ : FunExt}} where
+        Σᵉ𝟚-ok : Adequate-Σᵉ {ℓ} 𝟚ᵉ
+        Σᵉ𝟚-ok _ = ! Σ𝟚-⊎
+
+        Πᵉ𝟚-ok : Adequate-Πᵉ {ℓ} 𝟚ᵉ
+        Πᵉ𝟚-ok _ = ! Π𝟚-×
+
     open Explorableₛ  {ℓ} 𝟚ⁱ public using () renaming (reify   to 𝟚ʳ)
     open Explorableₛₛ {ℓ} 𝟚ⁱ public using () renaming (unfocus to 𝟚ᵘ)
 
@@ -39,18 +50,6 @@ module _ {ℓ} where
     𝟚ᶠ (0₂ , x) = inj₁ x
     𝟚ᶠ (1₂ , x) = inj₂ x
 
-focused𝟚 : Focused {₀} 𝟚ᵉ
-focused𝟚 = inverses 𝟚ᶠ 𝟚ᵘ (⇒) (⇐)
-  where ⇒ : (x : Σ _ _) → _
-        ⇒ (0₂ , x) = refl
-        ⇒ (1₂ , x) = refl
-        ⇐ : (x : _ ⊎ _) → _
-        ⇐ (inj₁ x) = refl
-        ⇐ (inj₂ x) = refl
-
-𝟚ˢ-ok : AdequateSum 𝟚ˢ
-𝟚ˢ-ok f = FI.sym (Fin-⊎-+ (f 0₂) (f 1₂) FI.∘ Σ𝟚↔⊎ (Fin ∘ f))
-
 explore𝟚     = 𝟚ᵉ
 explore𝟚-ind = 𝟚ⁱ
 lookup𝟚      = 𝟚ˡ
@@ -59,6 +58,11 @@ focus𝟚       = 𝟚ᶠ
 unfocus𝟚     = 𝟚ᵘ
 sum𝟚         = 𝟚ˢ
 
--- DEPRECATED
-μ𝟚 : Explorable 𝟚
-μ𝟚 = mk _ 𝟚ⁱ 𝟚ˢ-ok
+module _ {{_ : UA}}{{_ : FunExt}} where
+    𝟚ˢ-ok : Adequate-sum 𝟚ˢ
+    𝟚ˢ-ok f = ! (Σ𝟚-⊎ ∙ Fin-⊎-+)
+
+    -- DEPRECATED
+    open ExplorableRecord
+    μ𝟚 : Explorable 𝟚
+    μ𝟚 = mk _ 𝟚ⁱ 𝟚ˢ-ok
