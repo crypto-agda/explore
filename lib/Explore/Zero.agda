@@ -13,6 +13,7 @@ open import HoTT
 open Equivalences
 
 import Explore.Monad
+open import Explore.Isomorphism
 
 module Explore.Zero where
 
@@ -72,6 +73,13 @@ sum𝟘              = 𝟘ˢ
 adequate-sum𝟘     = 𝟘ˢ-ok
 product𝟘          = 𝟘ᵖ
 adequate-product𝟘 = 𝟘ᵖ-ok
+
+
+Lift𝟘ᵉ : ∀ {m} → Explore m (Lift 𝟘)
+Lift𝟘ᵉ = explore-iso (≃-sym Lift≃id) 𝟘ᵉ
+
+ΣᵉLift𝟘-ok : ∀ {{_ : UA}}{{_ : FunExt}}{m} → Adequate-Σᵉ {m} Lift𝟘ᵉ
+ΣᵉLift𝟘-ok = Σ-iso-ok (≃-sym Lift≃id) {Aᵉ = 𝟘ᵉ} Σᵉ𝟘-ok
 
 -- DEPRECATED
 module _ {{_ : UA}} where
