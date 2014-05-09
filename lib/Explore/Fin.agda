@@ -18,7 +18,7 @@ open import Explore.Two
 module Explore.Fin where
 
 module Regular n where
-    open Explore.Universe.Isomorphism (FinU n) (FinU-Fin n)
+    open Explore.Universe.Isomorphism (Finᵁ n) (Finᵁ-Fin n)
       public
       renaming ( isoᵉ to Finᵉ
                ; isoⁱ to Finⁱ
@@ -35,7 +35,7 @@ module Regular n where
 
 module Custom where
   module _ n where
-    open Explore.Universe.Isomorphism (FinU' n) (FinU'-Fin n)
+    open Explore.Universe.Isomorphism (Finᵁ' n) (Finᵁ'-Fin n)
       public
       renaming ( isoᵉ to Finᵉ
                ; isoⁱ to Finⁱ

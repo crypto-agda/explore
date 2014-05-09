@@ -42,15 +42,15 @@ module FromSumInd {A : ★}
   open FromSum sum public
 
   sum-ext : SumExt sum
-  sum-ext = sum-ind (λ s → s _ ≡ s _) ≡.refl (≡.cong₂ _+_)
+  sum-ext = sum-ind (λ s → s _ ≡ s _) ≡.refl (≡.ap₂ _+_)
 
   sum-zero : SumZero sum
-  sum-zero = sum-ind (λ s → s (const 0) ≡ 0) ≡.refl (≡.cong₂ _+_) (λ _ → ≡.refl)
+  sum-zero = sum-ind (λ s → s (const 0) ≡ 0) ≡.refl (≡.ap₂ _+_) (λ _ → ≡.refl)
 
   sum-hom : SumHom sum
   sum-hom f g = sum-ind (λ s → s (f +° g) ≡ s f + s g)
                         ≡.refl
-                        (λ {s₀} {s₁} p₀ p₁ → ≡.trans (≡.cong₂ _+_ p₀ p₁) (+-interchange (s₀ _) (s₀ _) _ _))
+                        (λ {s₀} {s₁} p₀ p₁ → ≡.trans (≡.ap₂ _+_ p₀ p₁) (+-interchange (s₀ _) (s₀ _) _ _))
                         (λ _ → ≡.refl)
 
   sum-mono : SumMono sum
@@ -58,7 +58,7 @@ module FromSumInd {A : ★}
 
   sum-lin : SumLin sum
   sum-lin f zero    = sum-zero
-  sum-lin f (suc k) = ≡.trans (sum-hom f (λ x → k * f x)) (≡.cong₂ _+_ (≡.refl {x = sum f}) (sum-lin f k))
+  sum-lin f (suc k) = ≡.trans (sum-hom f (λ x → k * f x)) (≡.ap₂ _+_ (≡.refl {x = sum f}) (sum-lin f k))
 
   module _ (f g : A → ℕ) where
     open ≡.≡-Reasoning

@@ -66,7 +66,7 @@ Dice↔Fin6 = equiv (⇒) (⇐) ⇒⇐ ⇐⇒
 
 -- By using FinU' instead of FinU one get a special case for Fin 1 thus avoiding
 -- a final ε in the exploration function.
-open Explore.Universe.Isomorphism (FinU' 6) (FinU'-Fin 6 ≃-∙ {!Dice↔Fin6!})
+open Explore.Universe.Isomorphism (Finᵁ' 6) (Finᵁ'-Fin 6 ≃-∙ ≃-sym Dice↔Fin6)
   public
   renaming ( isoᵉ to Diceᵉ
            ; isoⁱ to Diceⁱ
