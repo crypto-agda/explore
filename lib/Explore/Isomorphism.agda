@@ -20,10 +20,11 @@ import Explore.Monad
 -- function by an extensionally equivalent one. Combined with this module one could both
 -- pick the reduction behavior we want and save some proof effort.
 module Explore.Isomorphism
-  {A B : ★₀} (e : A ≃ B) where
+  {-a-} {A B : ★₀ {-a-}} (e : A ≃ B) where
+a = ₀
 
 private
-  module M {ℓ} = Explore.Monad ℓ
+  module M {ℓ} = Explore.Monad {a} ℓ
   e⁻ = ≃-sym e
   f = –> e
   g = <– e
@@ -61,18 +62,21 @@ module _ (Aᵖ : Product A) where
   product-iso : Product B
   product-iso h = Aᵖ (h ∘ f)
 
-module _ {ℓ} {Aᵉ : Explore (ₛ ℓ) A} (Aⁱ : ExploreInd ℓ Aᵉ) where
-  open Explorableₛ (Bⁱ Aⁱ) public using () renaming (reify   to reify-iso)
+module FromExplore-iso
+         (Aᵉ : ∀ {ℓ} → Explore ℓ A)
+       = FromExplore (Bᵉ Aᵉ)
 
-module _ {ℓ} {Aᵉ : Explore (ₛ ℓ) A} (Aⁱ : ExploreInd (ₛ ℓ) Aᵉ) where
-  open Explorableₛₛ (Bⁱ Aⁱ) public using () renaming (unfocus to unfocus-iso)
+module FromExploreInd-iso
+         {Aᵉ : ∀ {ℓ} → Explore ℓ A}
+         (Aⁱ : ∀ {ℓ p} → ExploreInd {ℓ} p Aᵉ)
+       = FromExploreInd (Bⁱ Aⁱ)
 
-module _ {ℓ} {Aᵉ : Explore (ₛ ℓ) A} (ΣAᵉ-ok : Adequate-Σᵉ Aᵉ) {{_ : UA}} {{_ : FunExt}} where
-  Σ-iso-ok : Adequate-Σᵉ (Bᵉ Aᵉ)
+module _ {ℓ} {Aᵉ : Explore (ₛ ℓ) A} (ΣAᵉ-ok : Adequate-Σ (Σᵉ Aᵉ)) {{_ : UA}} {{_ : FunExt}} where
+  Σ-iso-ok : Adequate-Σ (Σᵉ (Bᵉ Aᵉ))
   Σ-iso-ok F = ΣAᵉ-ok (F ∘ f) ∙ Σ-fst≃ e _
 
-module _ {ℓ} {Aᵉ : Explore (ₛ ℓ) A} (ΠAᵉ-ok : Adequate-Πᵉ Aᵉ) {{_ : UA}} {{_ : FunExt}} where
-  Π-iso-ok : Adequate-Πᵉ (Bᵉ Aᵉ)
+module _ {ℓ} {Aᵉ : Explore (ₛ ℓ) A} (ΠAᵉ-ok : Adequate-Π (Πᵉ Aᵉ)) {{_ : UA}} {{_ : FunExt}} where
+  Π-iso-ok : Adequate-Π (Πᵉ (Bᵉ Aᵉ))
   Π-iso-ok F = ΠAᵉ-ok (F ∘ f) ∙ Π-dom≃ e _
 
 module _ {Aˢ : Sum A} (Aˢ-ok : Adequate-sum Aˢ) {{_ : UA}} {{_ : FunExt}} where

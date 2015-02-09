@@ -4,7 +4,7 @@ import Explore.Core
 import Explore.Dice
 import Explore.Explorable
 import Explore.Fin
-import Explore.Function.Fin
+-- BROKEN import Explore.Function.Fin
 import Explore.GroupHomomorphism
 import Explore.Isomorphism
 import Explore.Monad

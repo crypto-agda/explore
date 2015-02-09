@@ -7,11 +7,11 @@ open import Explore.Core
 open import Explore.Properties
 
 -- Explore ℓ is not an endo functor because of universe levels
-module Explore.Monad ℓ where
+module Explore.Monad {a} ℓ where
 
-M = Explore ℓ
+M = Explore {a} ℓ
 
-module _ {A : Set} where
+module _ {A : ★ a} where
     return : A → M A
     return = point-explore
 
@@ -33,7 +33,7 @@ module _ {A : Set} where
                     → ExploreInd p (merge-explore e₀ e₁)
         mplus-ind Pe₀ Pe₁ P Pε _P∙_ Pf = (Pe₀ P Pε _P∙_ Pf) P∙ (Pe₁ P Pε _P∙_ Pf)
 
-module _ {A B : Set} where
+module _ {A B : ★ a} where
 
     infixl 1 _>>=_ _>>=-ind_
     _>>=_ : M A → (A → M B) → M B
@@ -63,7 +63,7 @@ module _ {A B : Set} where
 -- universe issues...
 -- join : M (M A) → M A
 
-module _ {A B C : Set} (m : M A) (f : A → M B) (g : B → M C) where
+module _ {A B C : ★ a} (m : M A) (f : A → M B) (g : B → M C) where
     infix 0 _≡e_
     _≡e_ = λ {A} → _≡_ {A = M A}
 

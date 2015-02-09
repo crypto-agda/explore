@@ -30,7 +30,7 @@ module Regular n where
                ; isoᵘ to Finᵘ
                ; isoˢ-ok to Finˢ-ok
                ; isoˢ-stableUnder to Finˢ-stableUnder
-               ; μiso to μFin
+               -- ; μiso to μFin
                )
 
 module Custom where
@@ -47,7 +47,7 @@ module Custom where
                ; isoᵘ to Finᵘ
                ; isoˢ-ok to Finˢ-ok
                ; isoˢ-stableUnder to Finˢ-stableUnder
-               ; μiso to μFin
+               -- ; μiso to μFin
                )
 
   Finᵉ0-𝟘ᵉ : (λ {M : ★₀} (ε : M) op f → Finᵉ 0 ε op (f ∘ Fin▹𝟘)) ≡ 𝟘ᵉ

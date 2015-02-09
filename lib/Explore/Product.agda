@@ -26,30 +26,29 @@ open import Explore.Explorable
 
 module Explore.Product where
 
-module _ {m A} {B : A → ★₀} where
-
+module _ {m a b} {A : ★ a} {B : A → ★ b} where
     exploreΣ : Explore m A → (∀ {x} → Explore m (B x)) → Explore m (Σ A B)
-    exploreΣ exploreᴬ exploreᴮ z op = exploreᴬ z op ⟨,⟩ exploreᴮ z op
+    exploreΣ exploreᴬ exploreᴮ ε _⊕_ = exploreᴬ ε _⊕_ ⟨,⟩ exploreᴮ ε _⊕_
 
     module _ {eᴬ : Explore m A} {eᴮ : ∀ {x} → Explore m (B x)} where
 
         exploreΣ-ind : ∀ {p} → ExploreInd p eᴬ → (∀ {x} → ExploreInd p (eᴮ {x})) → ExploreInd p (exploreΣ eᴬ eᴮ)
-        exploreΣ-ind Peᴬ Peᴮ P Pz P∙ Pf =
-          Peᴬ (λ e → P (λ _ _ _ → e _ _ _)) Pz P∙ (λ x → Peᴮ {x} (λ e → P (λ _ _ _ → e _ _ _)) Pz P∙ (curry Pf x))
+        exploreΣ-ind Peᴬ Peᴮ P Pε P⊕ Pf =
+          Peᴬ (λ e → P (λ _ _ _ → e _ _ _)) Pε P⊕ (λ x → Peᴮ {x} (λ e → P (λ _ _ _ → e _ _ _)) Pε P⊕ (curry Pf x))
 
 module _
     {ℓ₀ ℓ₁ ℓᵣ}
-    {A₀ A₁} {Aᵣ : ⟦★₀⟧ A₀ A₁}
-    {B₀ : A₀ → _} {B₁ : A₁ → _} {Bᵣ : (Aᵣ ⟦→⟧ ⟦★₀⟧) B₀ B₁}
-    {eᴬ₀ : Explore ℓ₀ A₀} {eᴬ₁ : Explore ℓ₁ A₁}(eᴬᵣ : ⟦Explore⟧ᵤ ℓ₀ ℓ₁ ℓᵣ Aᵣ eᴬ₀ eᴬ₁)
-    {eᴮ₀ : ∀ {x} → Explore ℓ₀ (B₀ x)} {eᴮ₁ : ∀ {x} → Explore ℓ₁ (B₁ x)}(eᴮᵣ : ∀ {x₀ x₁}(x : Aᵣ x₀ x₁) → ⟦Explore⟧ᵤ ℓ₀ ℓ₁ ℓᵣ (Bᵣ x) (eᴮ₀ {x₀}) (eᴮ₁ {x₁}))
+    {a₀ a₁ aᵣ} {A₀ : ★ a₀} {A₁ : ★ a₁} {Aᵣ : ⟦★⟧ aᵣ A₀ A₁}
+    {b₀ b₁ bᵣ} {B₀ : A₀ → ★ b₀} {B₁ : A₁ → ★ b₁} {Bᵣ : (Aᵣ ⟦→⟧ ⟦★⟧ bᵣ) B₀ B₁}
+    {eᴬ₀ : Explore ℓ₀ A₀} {eᴬ₁ : Explore ℓ₁ A₁}(eᴬᵣ : ⟦Explore⟧ ℓᵣ Aᵣ eᴬ₀ eᴬ₁)
+    {eᴮ₀ : ∀ {x} → Explore ℓ₀ (B₀ x)} {eᴮ₁ : ∀ {x} → Explore ℓ₁ (B₁ x)}(eᴮᵣ : ∀ {x₀ x₁}(x : Aᵣ x₀ x₁) → ⟦Explore⟧ ℓᵣ (Bᵣ x) (eᴮ₀ {x₀}) (eᴮ₁ {x₁}))
     where
-   ⟦exploreΣ⟧ : ⟦Explore⟧ᵤ _ _ ℓᵣ (⟦Σ⟧ Aᵣ Bᵣ) (exploreΣ eᴬ₀ (λ {x} → eᴮ₀ {x})) (exploreΣ eᴬ₁ (λ {x} → eᴮ₁ {x}))
-   ⟦exploreΣ⟧ P Pε P∙ Pf = eᴬᵣ P Pε P∙ (λ {x₀} {x₁} x → eᴮᵣ x P Pε P∙ (λ xᵣ → Pf (x ⟦,⟧ xᵣ)))
+   ⟦exploreΣ⟧ : ⟦Explore⟧ ℓᵣ (⟦Σ⟧ Aᵣ Bᵣ) (exploreΣ eᴬ₀ (λ {x} → eᴮ₀ {x})) (exploreΣ eᴬ₁ (λ {x} → eᴮ₁ {x}))
+   ⟦exploreΣ⟧ P Pε P⊕ Pf = eᴬᵣ P Pε P⊕ (λ {x₀} {x₁} x → eᴮᵣ x P Pε P⊕ (λ xᵣ → Pf (x ⟦,⟧ xᵣ)))
 
-module _ {A} {B : A → ★₀} {sumᴬ : Sum A} {sumᴮ : ∀ {x} → Sum (B x)}{{_ : FunExt}}{{_ : UA}} where
-
+module _ {A : ★₀} {B : A → ★₀} {sumᴬ : Sum A} {sumᴮ : ∀ {x} → Sum (B x)}{{_ : FunExt}}{{_ : UA}} where
     private
+        sumᴬᴮ : Sum (Σ A B)
         sumᴬᴮ = sumᴬ ⟨,⟩ (λ {x} → sumᴮ {x})
 
     adequate-sumΣ : Adequate-sum sumᴬ → (∀ {x} → Adequate-sum (sumᴮ {x})) → Adequate-sum sumᴬᴮ
@@ -68,28 +67,28 @@ module _ {A} {B : A → ★₀} {sumᴬ : Sum A} {sumᴮ : ∀ {x} → Sum (B x)
 
 -- From now on, these are derived definitions for convenience and pedagogical reasons
 
-explore× : ∀ {m A B} → Explore m A → Explore m B → Explore m (A × B)
+explore× : ∀ {m a b} {A : ★ a} {B : ★ b} → Explore m A → Explore m B → Explore m (A × B)
 explore× exploreᴬ exploreᴮ = exploreΣ exploreᴬ exploreᴮ
 
-module _ {ℓ₀ ℓ₁ ℓᵣ A₀ A₁ B₀ B₁}
-         {Aᵣ  : ⟦★₀⟧ A₀ A₁}
-         {Bᵣ  : ⟦★₀⟧ B₀ B₁}
-         {eᴬ₀ : Explore ℓ₀ A₀} {eᴬ₁ : Explore ℓ₁ A₁}(eᴬᵣ : ⟦Explore⟧ᵤ ℓ₀ ℓ₁ ℓᵣ Aᵣ eᴬ₀ eᴬ₁)
-         {eᴮ₀ : Explore ℓ₀ B₀} {eᴮ₁ : Explore ℓ₁ B₁}(eᴮᵣ : ⟦Explore⟧ᵤ ℓ₀ ℓ₁ ℓᵣ Bᵣ eᴮ₀ eᴮ₁)
-    where
-    ⟦explore×⟧ : ⟦Explore⟧ᵤ _ _ ℓᵣ (Aᵣ ⟦×⟧ Bᵣ) (explore× eᴬ₀ eᴮ₀) (explore× eᴬ₁ eᴮ₁)
-    ⟦explore×⟧ P Pε P∙ Pf = eᴬᵣ P Pε P∙ (λ x → eᴮᵣ P Pε P∙ (λ y → Pf (_⟦,⟧_ x y)))
-
-explore×-ind : ∀ {m p A B} {eᴬ : Explore m A} {eᴮ : Explore m B}
+explore×-ind : ∀ {m p a b} {A : ★ a} {B : ★ b} {eᴬ : Explore m A} {eᴮ : Explore m B}
                → ExploreInd p eᴬ → ExploreInd p eᴮ
                → ExploreInd p (explore× eᴬ eᴮ)
 explore×-ind Peᴬ Peᴮ = exploreΣ-ind Peᴬ Peᴮ
 
-sumΣ : ∀ {A} {B : A → ★₀} → Sum A → (∀ {x} → Sum (B x)) → Sum (Σ A B)
+sumΣ : ∀ {a b} {A : ★ a} {B : A → ★ b} → Sum A → (∀ {x} → Sum (B x)) → Sum (Σ A B)
 sumΣ = _⟨,⟩_
 
-sum× : ∀ {A B} → Sum A → Sum B → Sum (A × B)
+sum× : ∀ {a b} {A : ★ a} {B : ★ b} → Sum A → Sum B → Sum (A × B)
 sum× = _⟨,⟩′_
+
+module _ {ℓ₀ ℓ₁ ℓᵣ A₀ A₁ B₀ B₁}
+         {Aᵣ  : ⟦★₀⟧ A₀ A₁}
+         {Bᵣ  : ⟦★₀⟧ B₀ B₁}
+         {eᴬ₀ : Explore ℓ₀ A₀} {eᴬ₁ : Explore ℓ₁ A₁}(eᴬᵣ : ⟦Explore⟧ ℓᵣ Aᵣ eᴬ₀ eᴬ₁)
+         {eᴮ₀ : Explore ℓ₀ B₀} {eᴮ₁ : Explore ℓ₁ B₁}(eᴮᵣ : ⟦Explore⟧ ℓᵣ Bᵣ eᴮ₀ eᴮ₁)
+    where
+    ⟦explore×⟧ : ⟦Explore⟧ ℓᵣ (Aᵣ ⟦×⟧ Bᵣ) (explore× eᴬ₀ eᴮ₀) (explore× eᴬ₁ eᴮ₁)
+    ⟦explore×⟧ P Pε P⊕ Pf = eᴬᵣ P Pε P⊕ (λ x → eᴮᵣ P Pε P⊕ (λ y → Pf (_⟦,⟧_ x y)))
 
 {-
 μΣ : ∀ {A} {B : A → ★ _} → Explorable A → (∀ {x} → Explorable (B x)) → Explorable (Σ A B)
@@ -128,7 +127,7 @@ module _ {A} {Aₚ : A → ★₀} {B : A → _} {eᴬ : Explore ₁ A} (eᴬₚ
   exploreΠᵉ-ind = {!⟦Explore⟧ᵤ _ _ _ eᴬ!}
 -}
 
-module _ {ℓ} {A} {B : A → _} {eᴬ : Explore (ₛ ℓ) A} {eᴮ : ∀ {x} → Explore (ₛ ℓ) (B x)} where
+module _ {ℓ a b} {A : ★ a} {B : A → ★ b} {eᴬ : Explore (ₛ ℓ) A} {eᴮ : ∀ {x} → Explore (ₛ ℓ) (B x)} where
   private
     eᴬᴮ = exploreΣ eᴬ λ {x} → eᴮ {x}
 
@@ -142,13 +141,19 @@ module _ {ℓ} {A} {B : A → _} {eᴬ : Explore (ₛ ℓ) A} {eᴮ : ∀ {x} �
   reifyΣ : Reify eᴬ → (∀ {x} → Reify (eᴮ {x})) → Reify eᴬᴮ
   reifyΣ reifyᴬ reifyᴮ f = reifyᴬ (reifyᴮ ∘ curry f)
 
-  ΣᵉΣ-ok : {{_ : UA}}{{_ : FunExt}} → Adequate-Σᵉ eᴬ → (∀ {x} → Adequate-Σᵉ (eᴮ {x})) → Adequate-Σᵉ eᴬᴮ
+module _ {ℓ} {A : ★₀} {B : A → ★₀}
+         {eᴬ : Explore (ₛ ℓ) A} {eᴮ : ∀ {x} → Explore (ₛ ℓ) (B x)}
+         {{_ : UA}}{{_ : FunExt}} where
+  private
+    eᴬᴮ = exploreΣ eᴬ λ {x} → eᴮ {x}
+
+  ΣᵉΣ-ok : Adequate-Σ (Σᵉ eᴬ) → (∀ {x} → Adequate-Σ (Σᵉ (eᴮ {x}))) → Adequate-Σ (Σᵉ eᴬᴮ)
   ΣᵉΣ-ok eᴬ eᴮ f = eᴬ _ ∙ Σ=′ _ (λ _ → eᴮ _) ∙ Σ-assoc
 
-  ΠᵉΣ-ok : {{_ : UA}}{{_ : FunExt}} → Adequate-Πᵉ eᴬ → (∀ {x} → Adequate-Πᵉ (eᴮ {x})) → Adequate-Πᵉ eᴬᴮ
+  ΠᵉΣ-ok : Adequate-Π (Πᵉ eᴬ) → (∀ {x} → Adequate-Π (Πᵉ (eᴮ {x}))) → Adequate-Π (Πᵉ eᴬᴮ)
   ΠᵉΣ-ok eᴬ eᴮ f = eᴬ _ ∙ Π=′ _ (λ _ → eᴮ _) ∙ ! ΠΣ-curry
 
-module _ {ℓ} {A B} {eᴬ : Explore (ₛ ℓ) A} {eᴮ : Explore (ₛ ℓ) B} where
+module _ {ℓ a b} {A : ★ a} {B : ★ b} {eᴬ : Explore (ₛ ℓ) A} {eᴮ : Explore (ₛ ℓ) B} where
   private
     eᴬᴮ = explore× eᴬ eᴮ
 
@@ -158,10 +163,14 @@ module _ {ℓ} {A B} {eᴬ : Explore (ₛ ℓ) A} {eᴮ : Explore (ₛ ℓ) B} w
   lookup× : Lookup eᴬ → Lookup eᴮ → Lookup eᴬᴮ
   lookup× fᴬ fᴮ = lookupΣ {eᴬ = eᴬ} {eᴮ = eᴮ} fᴬ fᴮ
 
-  Σᵉ×-ok : {{_ : UA}}{{_ : FunExt}} → Adequate-Σᵉ eᴬ → Adequate-Σᵉ eᴮ → Adequate-Σᵉ eᴬᴮ
+module _ {ℓ} {A B : ★₀} {eᴬ : Explore (ₛ ℓ) A} {eᴮ : Explore (ₛ ℓ) B} where
+  private
+    eᴬᴮ = explore× eᴬ eᴮ
+
+  Σᵉ×-ok : {{_ : UA}}{{_ : FunExt}} → Adequate-Σ (Σᵉ eᴬ) → Adequate-Σ (Σᵉ eᴮ) → Adequate-Σ (Σᵉ eᴬᴮ)
   Σᵉ×-ok eᴬ eᴮ f = eᴬ _ ∙ Σ=′ _ (λ _ → eᴮ _) ∙ Σ-assoc
 
-  Πᵉ×-ok : {{_ : UA}}{{_ : FunExt}} → Adequate-Πᵉ eᴬ → Adequate-Πᵉ eᴮ → Adequate-Πᵉ eᴬᴮ
+  Πᵉ×-ok : {{_ : UA}}{{_ : FunExt}} → Adequate-Π (Πᵉ eᴬ) → Adequate-Π (Πᵉ eᴮ) → Adequate-Π (Πᵉ eᴬᴮ)
   Πᵉ×-ok eᴬ eᴮ f = eᴬ _ ∙ Π=′ _ (λ _ → eᴮ _) ∙ ! ΠΣ-curry
 
 module Operators where
@@ -175,27 +184,27 @@ module Operators where
 
 -- Those are here only for pedagogical use
 private
-    proj₁-explore : ∀ {m A} {B : A → ★ _} → Explore m (Σ A B) → Explore m A
-    proj₁-explore = EM.map _ proj₁
+    fst-explore : ∀ {m} {A : ★₀} {B : A → ★₀} → Explore m (Σ A B) → Explore m A
+    fst-explore = EM.map _ fst
 
-    proj₂-explore : ∀ {m A B} → Explore m (A × B) → Explore m B
-    proj₂-explore = EM.map _ proj₂
+    snd-explore : ∀ {m} {A B : ★₀} → Explore m (A × B) → Explore m B
+    snd-explore = EM.map _ snd
 
-    sum'Σ : ∀ {A} {B : A → ★₀} → Sum A → (∀ x → Sum (B x)) → Sum (Σ A B)
+    sum'Σ : ∀ {A : ★₀} {B : A → ★₀} → Sum A → (∀ x → Sum (B x)) → Sum (Σ A B)
     sum'Σ sumᴬ sumᴮ f = sumᴬ (λ x₀ →
                           sumᴮ x₀ (λ x₁ →
                             f (x₀ , x₁)))
 
-    explore×' : ∀ {A B} → Explore₀ A → Explore _ B → Explore _ (A × B)
-    explore×' exploreᴬ exploreᴮ z op f = exploreᴬ z op (λ x → exploreᴮ z op (curry f x))
+    explore×' : ∀ {A B : ★₀} → Explore₀ A → Explore _ B → Explore _ (A × B)
+    explore×' exploreᴬ exploreᴮ ε _⊕_ f = exploreᴬ ε _⊕_ (λ x → exploreᴮ ε _⊕_ (curry f x))
 
     explore×-ind' : ∀ {A B} {eᴬ : Explore _ A} {eᴮ : Explore _ B}
                     → ExploreInd₀ eᴬ → ExploreInd₀ eᴮ → ExploreInd₀ (explore×' eᴬ eᴮ)
-    explore×-ind' Peᴬ Peᴮ P Pz P∙ Pf =
-      Peᴬ (λ e → P (λ _ _ _ → e _ _ _)) Pz P∙ (Peᴮ (λ e → P (λ _ _ _ → e _ _ _)) Pz P∙ ∘ curry Pf)
+    explore×-ind' Peᴬ Peᴮ P Pε P⊕ Pf =
+      Peᴬ (λ e → P (λ _ _ _ → e _ _ _)) Pε P⊕ (Peᴮ (λ e → P (λ _ _ _ → e _ _ _)) Pε P⊕ ∘ curry Pf)
 
     -- liftM2 _,_ in the continuation monad
-    sum×' : ∀ {A B} → Sum A → Sum B → Sum (A × B)
+    sum×' : ∀ {A B : ★₀} → Sum A → Sum B → Sum (A × B)
     sum×' sumᴬ sumᴮ f = sumᴬ λ x₀ →
                           sumᴮ λ x₁ →
                             f (x₀ , x₁)

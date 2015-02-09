@@ -27,21 +27,24 @@ module _ {ℓ} where
     𝟚ⁱ _ _ _P∙_ Pf = Pf 0₂ P∙ Pf 1₂
 
 module _ {ℓ₁ ℓ₂ ℓᵣ} {R : 𝟚 → 𝟚 → ★₀} {r0 : R 0₂ 0₂}{r1 : R 1₂ 1₂} where
-    ⟦𝟚ᵉ⟧ : ⟦Explore⟧ᵤ ℓ₁ ℓ₂ ℓᵣ R 𝟚ᵉ 𝟚ᵉ
+    ⟦𝟚ᵉ⟧ : ⟦Explore⟧ {ℓ₁} {ℓ₂} ℓᵣ R 𝟚ᵉ 𝟚ᵉ
     ⟦𝟚ᵉ⟧ _ _ _∙ᵣ_ fᵣ = fᵣ r0 ∙ᵣ fᵣ r1
 
-open Explorable₀  𝟚ⁱ public using () renaming (sum     to 𝟚ˢ)
+module 𝟚ⁱ = FromExploreInd 𝟚ⁱ
+open 𝟚ⁱ public using ()
+  renaming (sum to 𝟚ˢ
+           ;product to 𝟚ᵖ
+           ;reify to 𝟚ʳ
+           ;unfocus to 𝟚ᵘ
+           )
 
 module _ {ℓ} where
     module _ {{_ : UA}}{{_ : FunExt}} where
-        Σᵉ𝟚-ok : Adequate-Σᵉ {ℓ} 𝟚ᵉ
+        Σᵉ𝟚-ok : Adequate-Σ {ℓ} (Σᵉ 𝟚ᵉ)
         Σᵉ𝟚-ok _ = ! Σ𝟚-⊎
 
-        Πᵉ𝟚-ok : Adequate-Πᵉ {ℓ} 𝟚ᵉ
+        Πᵉ𝟚-ok : Adequate-Π {ℓ} (Πᵉ 𝟚ᵉ)
         Πᵉ𝟚-ok _ = ! Π𝟚-×
-
-    open Explorableₛ  {ℓ} 𝟚ⁱ public using () renaming (reify   to 𝟚ʳ)
-    open Explorableₛₛ {ℓ} 𝟚ⁱ public using () renaming (unfocus to 𝟚ᵘ)
 
     𝟚ˡ : Lookup {ℓ} 𝟚ᵉ
     𝟚ˡ = proj
@@ -61,8 +64,3 @@ sum𝟚         = 𝟚ˢ
 module _ {{_ : UA}}{{_ : FunExt}} where
     𝟚ˢ-ok : Adequate-sum 𝟚ˢ
     𝟚ˢ-ok f = ! (Σ𝟚-⊎ ∙ Fin-⊎-+)
-
-    -- DEPRECATED
-    open ExplorableRecord
-    μ𝟚 : Explorable 𝟚
-    μ𝟚 = mk _ 𝟚ⁱ 𝟚ˢ-ok

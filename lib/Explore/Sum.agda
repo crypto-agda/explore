@@ -5,7 +5,9 @@
 
     * explore⊎
     * explore⊎-ind
-    * adequate-sum⊎
+    * ⟦explore⊎⟧
+    * Σᵉ⊎-ok
+    * Πᵉ⊎-ok
 
 -}
 open import Type hiding (★)
@@ -40,11 +42,11 @@ module _ {a b u} {A : ★ a} {B : ★ b} {U : ★ u}
       ⊎ᶜ : U
       ⊎ᶜ = e₁ (f ∘ inl) ∙ e₂ (f ∘ inr)
 
-module _ {m A B} where
-    explore⊎ : Explore m A → Explore m B → Explore m (A ⊎ B)
+module _ {ℓ a b} {A : ★ a} {B : ★ b} where
+    explore⊎ : Explore ℓ A → Explore ℓ B → Explore ℓ (A ⊎ B)
     explore⊎ exploreᴬ exploreᴮ ε _∙_ = ⊎ᶜ _∙_ (exploreᴬ ε _∙_) (exploreᴮ ε _∙_)
 
-    module _ {p} {eᴬ : Explore m A} {eᴮ : Explore m B} where
+    module _ {p} {eᴬ : Explore ℓ A} {eᴮ : Explore ℓ B} where
         explore⊎-ind : ExploreInd p eᴬ → ExploreInd p eᴮ → ExploreInd p (explore⊎ eᴬ eᴮ)
         explore⊎-ind Psᴬ Psᴮ P Pε P∙ Pf
         -- TODO clean this up:
@@ -54,22 +56,24 @@ module _ {m A B} where
 module _ {ℓ₀ ℓ₁ ℓᵣ}
          {A₀ A₁} {Aᵣ : ⟦★₀⟧ A₀ A₁}
          {B₀ B₁} {Bᵣ : ⟦★₀⟧ B₀ B₁}
-         {eᴬ₀ : Explore ℓ₀ A₀} {eᴬ₁ : Explore ℓ₁ A₁}(eᴬᵣ : ⟦Explore⟧ᵤ ℓ₀ ℓ₁ ℓᵣ Aᵣ eᴬ₀ eᴬ₁)
-         {eᴮ₀ : Explore ℓ₀ B₀} {eᴮ₁ : Explore ℓ₁ B₁}(eᴮᵣ : ⟦Explore⟧ᵤ ℓ₀ ℓ₁ ℓᵣ Bᵣ eᴮ₀ eᴮ₁)
+         {eᴬ₀ : Explore ℓ₀ A₀} {eᴬ₁ : Explore ℓ₁ A₁}(eᴬᵣ : ⟦Explore⟧ ℓᵣ Aᵣ eᴬ₀ eᴬ₁)
+         {eᴮ₀ : Explore ℓ₀ B₀} {eᴮ₁ : Explore ℓ₁ B₁}(eᴮᵣ : ⟦Explore⟧ ℓᵣ Bᵣ eᴮ₀ eᴮ₁)
          where
-    ⟦explore⊎⟧ : ⟦Explore⟧ᵤ _ _ ℓᵣ (Aᵣ ⟦⊎⟧ Bᵣ) (explore⊎ eᴬ₀ eᴮ₀) (explore⊎ eᴬ₁ eᴮ₁)
+    ⟦explore⊎⟧ : ⟦Explore⟧ ℓᵣ (Aᵣ ⟦⊎⟧ Bᵣ) (explore⊎ eᴬ₀ eᴮ₀) (explore⊎ eᴬ₁ eᴮ₁)
     ⟦explore⊎⟧ P Pε P∙ Pf
        = P∙ (eᴬᵣ P Pε P∙ (Pf ∘ ⟦inl⟧))
             (eᴮᵣ P Pε P∙ (Pf ∘ ⟦inr⟧))
 
-infixr 4 _⊎ᵉ_ _⊎ⁱ_ _⊎ˢ_
+infixr 4 _⊎ᵉ_ _⊎ⁱ_
 _⊎ᵉ_ = explore⊎
 _⊎ⁱ_ = explore⊎-ind
 
-_⊎ˢ_ : ∀ {A B} → Sum A → Sum B → Sum (A ⊎ B)
-_⊎ˢ_ = ⊎ᶜ _+_
+module _ {a b} {A : ★ a} {B : ★ b} where
+    infixr 4 _⊎ˢ_
+    _⊎ˢ_ : Sum A → Sum B → Sum (A ⊎ B)
+    _⊎ˢ_ = ⊎ᶜ _+_
 
-module _ {A B} {sumᴬ : Sum A} {sumᴮ : Sum B}{{_ : UA}} where
+module _ {A : ★₀} {B : ★₀} {sumᴬ : Sum A} {sumᴮ : Sum B}{{_ : UA}} where
 
     adequate-sum⊎ : Adequate-sum sumᴬ → Adequate-sum sumᴮ → Adequate-sum (sumᴬ ⊎ˢ sumᴮ)
     adequate-sum⊎ asumᴬ asumᴮ f    = (Fin (sumᴬ (f ∘ inl) + sumᴮ (f ∘ inr)))
@@ -84,8 +88,10 @@ module _ {A B} {sumᴬ : Sum A} {sumᴮ : Sum B}{{_ : UA}} where
 
     _⊎ᵃ_ = adequate-sum⊎
 
-module _ {ℓ} {A B} {eᴬ : Explore (ₛ ℓ) A} {eᴮ : Explore (ₛ ℓ) B} where
-  eᴬ⁺ᴮ = eᴬ ⊎ᵉ eᴮ
+module _ {ℓ} {a b} {A : ★ a} {B : ★ b} {eᴬ : Explore (ₛ ℓ) A} {eᴮ : Explore (ₛ ℓ) B} where
+  private
+    eᴬ⁺ᴮ = eᴬ ⊎ᵉ eᴮ
+
   focus⊎ : Focus eᴬ → Focus eᴮ → Focus eᴬ⁺ᴮ
   focus⊎ fᴬ fᴮ (inl x , y) = inl (fᴬ (x , y))
   focus⊎ fᴬ fᴮ (inr x , y) = inr (fᴮ (x , y))
@@ -94,7 +100,11 @@ module _ {ℓ} {A B} {eᴬ : Explore (ₛ ℓ) A} {eᴮ : Explore (ₛ ℓ) B} w
   unfocus⊎ fᴬ fᴮ (inl x) = first inl (fᴬ x)
   unfocus⊎ fᴬ fᴮ (inr y) = first inr (fᴮ y)
 
-  Σᵉ⊎-ok : {{_ : UA}} → Adequate-Σᵉ eᴬ → Adequate-Σᵉ eᴮ → Adequate-Σᵉ eᴬ⁺ᴮ
+module _ {ℓ} {A : ★₀} {B : ★₀} {eᴬ : Explore (ₛ ℓ) A} {eᴮ : Explore (ₛ ℓ) B} where
+  private
+    eᴬ⁺ᴮ = eᴬ ⊎ᵉ eᴮ
+
+  Σᵉ⊎-ok : {{_ : UA}} → Adequate-Σ (Σᵉ eᴬ) → Adequate-Σ (Σᵉ eᴮ) → Adequate-Σ (Σᵉ eᴬ⁺ᴮ)
   Σᵉ⊎-ok fᴬ fᴮ _ = ⊎= (fᴬ _) (fᴮ _) ∙ ! dist-⊎-Σ
 
   lookup⊎ : Lookup eᴬ → Lookup eᴮ → Lookup (eᴬ ⊎ᵉ eᴮ)
@@ -103,14 +113,8 @@ module _ {ℓ} {A B} {eᴬ : Explore (ₛ ℓ) A} {eᴮ : Explore (ₛ ℓ) B} w
   reify⊎ : Reify eᴬ → Reify eᴮ → Reify (eᴬ ⊎ᵉ eᴮ)
   reify⊎ reifyᴬ reifyᴮ f = (reifyᴬ (f ∘ inl)) , (reifyᴮ (f ∘ inr))
 
-  Πᵉ⊎-ok : {{_ : UA}}{{_ : FunExt}} → Adequate-Πᵉ eᴬ → Adequate-Πᵉ eᴮ → Adequate-Πᵉ eᴬ⁺ᴮ
+  Πᵉ⊎-ok : {{_ : UA}}{{_ : FunExt}} → Adequate-Π (Πᵉ eᴬ) → Adequate-Π (Πᵉ eᴮ) → Adequate-Π (Πᵉ eᴬ⁺ᴮ)
   Πᵉ⊎-ok fᴬ fᴮ _ = ×= (fᴬ _) (fᴮ _) ∙ ! dist-×-Π
-
--- DEPRECATED
-open ExplorableRecord
-_⊎-μ_ : ∀ {{_ : UA}} {A B} → Explorable A → Explorable B → Explorable (A ⊎ B)
-μA ⊎-μ μB = mk _ (explore-ind μA ⊎ⁱ explore-ind μB)
-                 (adequate-sum⊎ (adequate-sum μA) (adequate-sum μB))
 
  -- -}
  -- -}

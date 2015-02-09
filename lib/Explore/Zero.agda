@@ -32,14 +32,18 @@ module _ {ℓ} where
     -}
 
 module _ {ℓ₁ ℓ₂ ℓᵣ} {R : 𝟘 → 𝟘 → ★₀} where
-    ⟦𝟘ᵉ⟧ : ⟦Explore⟧ᵤ ℓ₁ ℓ₂ ℓᵣ R 𝟘ᵉ 𝟘ᵉ
+    ⟦𝟘ᵉ⟧ : ⟦Explore⟧ {ℓ₁} {ℓ₂} ℓᵣ R 𝟘ᵉ 𝟘ᵉ
     ⟦𝟘ᵉ⟧ _ εᵣ _ _ = εᵣ
 
-open Explorable₀  𝟘ⁱ public using () renaming (sum     to 𝟘ˢ; product to 𝟘ᵖ)
+module 𝟘ⁱ = FromExploreInd 𝟘ⁱ
+open 𝟘ⁱ public using ()
+  renaming (sum to 𝟘ˢ
+           ;product to 𝟘ᵖ
+           ;reify to 𝟘ʳ
+           ;unfocus to 𝟘ᵘ
+           )
 
 module _ {ℓ} where
-    open Explorableₛ  {ℓ} 𝟘ⁱ public using () renaming (reify    to 𝟘ʳ)
-    open Explorableₛₛ {ℓ} 𝟘ⁱ public using () renaming (unfocus  to 𝟘ᵘ)
 
     𝟘ˡ : Lookup {ℓ} 𝟘ᵉ
     𝟘ˡ _ ()
@@ -48,20 +52,24 @@ module _ {ℓ} where
     𝟘ᶠ ((), _)
 
     module _ {{_ : UA}} where
-        Σᵉ𝟘-ok : Adequate-Σᵉ {ℓ} 𝟘ᵉ
+        Σᵉ𝟘-ok : Adequate-Σ {ℓ} (Σᵉ 𝟘ᵉ)
         Σᵉ𝟘-ok _ = ! Σ𝟘-lift∘fst
 
     module _ {{_ : UA}}{{_ : FunExt}} where
-        Πᵉ𝟘-ok : Adequate-Πᵉ {ℓ} 𝟘ᵉ
+        Πᵉ𝟘-ok : Adequate-Π {ℓ} (Πᵉ 𝟘ᵉ)
         Πᵉ𝟘-ok _ = ! Π𝟘-uniq _
 
 module _ {{_ : UA}} where
     𝟘ˢ-ok : Adequate-sum 𝟘ˢ
     𝟘ˢ-ok _ = Fin0≡𝟘 ∙ ! Σ𝟘-fst
 
+    adequate-sum𝟘     = 𝟘ˢ-ok
+
 module _ {{_ : UA}}{{_ : FunExt}} where
     𝟘ᵖ-ok : Adequate-product 𝟘ᵖ
     𝟘ᵖ-ok _ = Fin1≡𝟙 ∙ ! (Π𝟘-uniq₀ _)
+
+    adequate-product𝟘 = 𝟘ᵖ-ok
 
 explore𝟘          = 𝟘ᵉ
 explore𝟘-ind      = 𝟘ⁱ
@@ -70,20 +78,13 @@ reify𝟘            = 𝟘ʳ
 focus𝟘            = 𝟘ᶠ
 unfocus𝟘          = 𝟘ᵘ
 sum𝟘              = 𝟘ˢ
-adequate-sum𝟘     = 𝟘ˢ-ok
 product𝟘          = 𝟘ᵖ
-adequate-product𝟘 = 𝟘ᵖ-ok
 
 
 Lift𝟘ᵉ : ∀ {m} → Explore m (Lift 𝟘)
 Lift𝟘ᵉ = explore-iso (≃-sym Lift≃id) 𝟘ᵉ
 
-ΣᵉLift𝟘-ok : ∀ {{_ : UA}}{{_ : FunExt}}{m} → Adequate-Σᵉ {m} Lift𝟘ᵉ
+ΣᵉLift𝟘-ok : ∀ {{_ : UA}}{{_ : FunExt}}{m} → Adequate-Σ {m} (Σᵉ Lift𝟘ᵉ)
 ΣᵉLift𝟘-ok = Σ-iso-ok (≃-sym Lift≃id) {Aᵉ = 𝟘ᵉ} Σᵉ𝟘-ok
 
--- DEPRECATED
-module _ {{_ : UA}} where
-    open ExplorableRecord
-    μ𝟘 : Explorable 𝟘
-    μ𝟘 = mk _ 𝟘ⁱ 𝟘ˢ-ok
 -- -}

@@ -44,5 +44,5 @@ open import Explore.GroupHomomorphism
 open import Explore.Dice
 
 -- TODO unfinished
-open import Explore.Function.Fin
+-- BROKEN open import Explore.Function.Fin
 open import Explore.Subset

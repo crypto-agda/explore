@@ -16,7 +16,7 @@ open import Data.Nat.Properties
 open import Data.Two
 open Data.Two.Indexed
 
-module FromSum {A : ★} (sum : Sum A) where
+module FromSum {a} {A : ★_ a} (sum : Sum A) where
   Card : ℕ
   Card = sum (const 1)
 
@@ -36,7 +36,7 @@ module FromSum {A : ★} (sum : Sum A) where
       sum (λ x → f x + (g x ∸ f x)) ≡⟨ sum-ext (m+n∸m≡n ∘ f≤°g) ⟩
       sum g ∎ where open ≤-Reasoning
 
-module FromSumInd {A : ★}
+module FromSumInd {a} {A : ★_ a}
                   {sum : Sum A}
                   (sum-ind : SumInd sum) where
   open FromSum sum public
@@ -104,7 +104,8 @@ module FromSumInd {A : ★}
                          (sum-⊔ (𝟚▹ℕ ∘ f) (𝟚▹ℕ ∘ g))
 
 module FromSum×
-         {A B}
+         {a} {A : Set a}
+         {b} {B : Set b}
          {sumᴬ     : Sum A}
          (sum-indᴬ : SumInd sumᴬ)
          {sumᴮ     : Sum B}

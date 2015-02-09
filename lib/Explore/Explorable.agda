@@ -7,15 +7,16 @@ open import Type.Identities
 open import Function.NP
 open import Function.Extensionality
 open import Algebra.FunctionProperties.NP
-open import Data.Two
+open import Algebra.FunctionProperties using (Op₂)
+open import Data.Two.Base
 open import Data.Indexed
-open import Data.Nat.NP hiding (_^_; _⊔_)
+open import Data.Nat.NP hiding (_⊔_)
 open import Data.Nat.Properties
 open import Data.Fin using (Fin) renaming (zero to fzero)
 open import Data.Maybe.NP
 open import Algebra
-open import Data.Product renaming (map to ×-map)
-open import Data.Sum
+open import Data.Product.NP renaming (map to ×-map) hiding (first)
+open import Data.Sum.NP
 open import Data.Zero using (𝟘)
 open import Data.One using (𝟙)
 open import Data.Tree.Binary
@@ -37,8 +38,8 @@ import Explore.Monad as EM
 
 module Explore.Explorable where
 
-module _ {m} {A : ★₀} where
-  open EM m
+module _ {m a} {A : ★ a} where
+  open EM {a} m
   gfilter-explore : ∀ {B} → (A →? B) → Explore m A → Explore m B
   gfilter-explore f eᴬ = eᴬ >>= λ x → maybe (λ η → point-explore η) empty-explore (f x)
 
@@ -61,30 +62,8 @@ module _ {m} {A : ★₀} where
   -- explore-backward ∘ explore-backward = id
   -- (m : a comm monoid) → explore-backward m = explore m
 
-module FromExplore
-    {m A}
-    (explore : Explore m A) where
-
-  with-monoid : ∀ {ℓ} → ExploreMon m ℓ A
-  with-monoid = explore-monoid explore
-
-  with∘ : Explore m A
-  with∘ = explore-endo explore
-
-  with-endo-monoid : ∀ {ℓ} → ExploreMon m ℓ A
-  with-endo-monoid = explore-endo-monoid explore
-
-  backward : Explore m A
-  backward = explore-backward explore
-
-  gfilter : ∀ {B} → (A →? B) → Explore _ B
-  gfilter f = gfilter-explore f explore
-
-  filter : (A → 𝟚) → Explore _ A
-  filter p = filter-explore p explore
-
 private
-  module FindForward {A} (explore : Explore₀ A) where
+  module FindForward {a} {A : ★ a} (explore : Explore a A) where
     find? : Find? A
     find? = explore nothing (M?._∣_ _)
 
@@ -94,8 +73,80 @@ private
     findKey : FindKey A
     findKey pred = find? (λ x → [0: nothing 1: just x ] (pred x))
 
-module FromExplore₀ {A} (explore : Explore₀ A) where
-  open FromExplore explore
+module ExplorePlug {ℓ a} {A : ★ a} where
+  record ExploreIndKit p (P : Explore ℓ A → ★ p) : ★ (a ⊔ ₛ ℓ ⊔ p) where
+    constructor mk
+    field
+      Pε : P empty-explore
+      P∙ : ∀ {e₀ e₁ : Explore ℓ A} → P e₀ → P e₁ → P (merge-explore e₀ e₁)
+      Pf : ∀ x → P (point-explore x)
+
+  _$kit_ : ∀ {p} {P : Explore ℓ A → ★ p} {e : Explore ℓ A}
+           → ExploreInd p e → ExploreIndKit p P → P e
+  _$kit_ {P = P} ind (mk Pε P∙ Pf) = ind P Pε P∙ Pf
+
+  _,-kit_ : ∀ {p} {P : Explore ℓ A → ★ p}{Q : Explore ℓ A → ★ p}
+            → ExploreIndKit p P → ExploreIndKit p Q → ExploreIndKit p (P ×° Q)
+  Pk ,-kit Qk = mk (Pε Pk , Pε Qk)
+                   (λ x y → P∙ Pk (fst x) (fst y) , P∙ Qk (snd x) (snd y))
+                   (λ x → Pf Pk x , Pf Qk x)
+               where open ExploreIndKit
+
+  ExploreInd-Extra : ∀ p → Explore ℓ A → ★ _
+  ExploreInd-Extra p exp =
+    ∀ (Q     : Explore ℓ A → ★ p)
+      (Q-kit : ExploreIndKit p Q)
+      (P     : Explore ℓ A → ★ p)
+      (Pε    : P empty-explore)
+      (P∙    : ∀ {e₀ e₁ : Explore ℓ A} → Q e₀ → Q e₁ → P e₀ → P e₁
+               → P (merge-explore e₀ e₁))
+      (Pf    : ∀ x → P (point-explore x))
+    → P exp
+
+  to-extra : ∀ {p} {e : Explore ℓ A} → ExploreInd p e → ExploreInd-Extra p e
+  to-extra e-ind Q Q-kit P Pε P∙ Pf =
+   snd (e-ind (Q ×° P)
+           (Qε , Pε)
+           (λ { (a , b) (c , d) → Q∙ a c , P∙ a c b d })
+           (λ x → Qf x , Pf x))
+   where open ExploreIndKit Q-kit renaming (Pε to Qε; P∙ to Q∙; Pf to Qf)
+
+  ExplorePlug : ∀ {m} (M : Monoid ℓ m) (e : Explore _ A) → ★ _
+  ExplorePlug M e = ∀ f x → e∘ ε _∙_ f ∙ x ≈ e∘ x _∙_ f
+     where open Mon M
+           e∘ = explore-endo e
+
+  plugKit : ∀ {m} (M : Monoid ℓ m) → ExploreIndKit _ (ExplorePlug M)
+  plugKit M = mk (λ _ → fst identity)
+                 (λ Ps Ps' f x →
+                    trans (∙-cong (! Ps _ _) refl)
+                          (trans (assoc _ _ _)
+                                 (trans (∙-cong refl (Ps' _ x)) (Ps _ _))))
+                 (λ x f _ → ∙-cong (snd identity (f x)) refl)
+       where open Mon M
+
+module FromExplore
+    {a} {A : ★ a}
+    (explore : ∀ {ℓ} → Explore ℓ A) where
+
+  module _ {ℓ} where
+    with-monoid : ∀ {m} → ExploreMon ℓ m A
+    with-monoid = explore-monoid explore
+
+    with∘ : Explore ℓ A
+    with∘ = explore-endo explore
+
+    with-endo-monoid : ∀ {m} → ExploreMon ℓ m A
+    with-endo-monoid = explore-endo-monoid explore
+
+    backward : Explore ℓ A
+    backward = explore-backward explore
+
+    gfilter : ∀ {B} → (A →? B) → Explore ℓ B
+    gfilter f = gfilter-explore f explore
+
+    filter : (A → 𝟚) → Explore ℓ A
+    filter p = filter-explore p explore
 
   sum : Sum A
   sum = explore 0 _+_
@@ -140,30 +191,138 @@ module FromExplore₀ {A} (explore : Explore₀ A) where
 
   open FindForward explore public
 
-module Explorableₘₚ
-    {m p A}
-    {explore     : Explore m A}
-    (explore-ind : ExploreInd p explore) where
+module FromExploreInd
+    {a} {A : ★ a}
+    {explore : ∀ {ℓ} → Explore ℓ A}
+    (explore-ind : ∀ {p ℓ} → ExploreInd {ℓ} p explore)
+    where
 
   open FromExplore explore public
 
-  explore-mon-ext : ExploreMonExt _ explore
-  explore-mon-ext m {f} {g} f≈°g = explore-ind (λ s → s _ _ f ≈ s _ _ g) refl ∙-cong f≈°g
-    where open Mon m
+  module _ {ℓ p} where
+    explore-mon-ext : ExploreMonExt {ℓ} p explore
+    explore-mon-ext m {f} {g} f≈°g = explore-ind (λ s → s _ _ f ≈ s _ _ g) refl ∙-cong f≈°g
+      where open Mon m
 
-  explore-mono : ExploreMono _ explore
-  explore-mono _⊆_ z⊆ _∙-mono_ {f} {g} f⊆°g =
-    explore-ind (λ e → e _ _ f ⊆ e _ _ g) z⊆ _∙-mono_ f⊆°g
+    explore-mono : ExploreMono {ℓ} p explore
+    explore-mono _⊆_ z⊆ _∙-mono_ {f} {g} f⊆°g =
+      explore-ind (λ e → e _ _ f ⊆ e _ _ g) z⊆ _∙-mono_ f⊆°g
 
-  explore-swap : ExploreSwap _ explore
-  explore-swap mon {eᴮ} eᴮ-ε pf f =
-    explore-ind (λ e → e _ _ (eᴮ ∘ f) ≈ eᴮ (e _ _ ∘ flip f))
-                (sym eᴮ-ε)
-                (λ p q → trans (∙-cong p q) (sym (pf _ _)))
-                (λ _ → refl)
-    where open Mon mon
+    open ExplorePlug {ℓ} {a} {A}
+
+    explore∘-plug : (M : Monoid ℓ ℓ) → ExplorePlug M explore
+    explore∘-plug M = explore-ind $kit plugKit M
+
+{-
+    explore-endo-monoid-spec :
+           ∀ (M : Monoid ℓ ℓ) →
+             let open Mon M in
+             (f : A → C) → with-monoid M f ≈ with-endo-monoid M f
+    explore-endo-monoid-spec M f =
+           snd (explore-ind
+                     (λ e → ExplorePlug M e × e ε _∙_ f ≈ explore-endo e ε _∙_ f)
+                     ((const (fst identity)) , refl)
+                     (λ {e} {s'} Ps Ps' →
+                        P∙ {e} {s'} (fst Ps) (fst Ps')
+                      , trans (∙-cong (snd Ps) (snd Ps')) (fst Ps f _))
+                     (λ x → Pf x , ! snd identity _))
+                        where open Mon M
+                              open ExploreIndKit (plugKit M)
+-}
+
+    module _ (M : Monoid ℓ ℓ)
+             (open Mon M)
+             (f : A → C)
+             where
+        explore-endo-monoid-spec′ : ∀ z → explore ε _∙_ f ∙ z ≈ explore-endo explore z _∙_ f
+        explore-endo-monoid-spec′ = explore-ind (λ e → ∀ z → e ε _∙_ f ∙ z ≈ explore-endo e z _∙_ f)
+                                                (fst identity) (λ P₀ P₁ z → trans (assoc _ _ _) (trans (∙-cong refl (P₁ z)) (P₀ _))) (λ _ _ → refl)
+
+        explore-endo-monoid-spec : with-monoid M f ≈ with-endo-monoid M f
+        explore-endo-monoid-spec = trans (! snd identity _) (explore-endo-monoid-spec′ ε)
+
+    explore∘-ind : ∀ (M : Monoid ℓ ℓ) → BigOpMonInd ℓ M (with-endo-monoid M)
+    explore∘-ind M P Pε P∙ Pf P≈ =
+      snd (explore-ind (λ e → ExplorePlug M e × P (λ f → e id _∘′_ (_∙_ ∘ f) ε))
+                 (const (fst identity) , Pε)
+                 (λ {e} {s'} Ps Ps' → ExploreIndKit.P∙ (plugKit M) {e} {s'} (fst Ps) (fst Ps')
+                                    , P≈ (λ f → fst Ps f _) (P∙ (snd Ps) (snd Ps')))
+                 (λ x → ExploreIndKit.Pf (plugKit M) x
+                      , P≈ (λ f → ! snd identity _) (Pf x)))
+      where open Mon M
+
+    explore-swap : ∀ {b} → ExploreSwap {ℓ} p explore {b}
+    explore-swap mon {eᴮ} eᴮ-ε pf f =
+      explore-ind (λ e → e _ _ (eᴮ ∘ f) ≈ eᴮ (e _ _ ∘ flip f))
+                  (! eᴮ-ε)
+                  (λ p q → trans (∙-cong p q) (! pf _ _))
+                  (λ _ → refl)
+      where open Mon mon
+
+    explore-ε : Exploreε {ℓ} p explore
+    explore-ε M = explore-ind (λ e → e ε _ (const ε) ≈ ε)
+                              refl
+                              (λ x≈ε y≈ε → trans (∙-cong x≈ε y≈ε) (fst identity ε))
+                              (λ _ → refl)
+      where open Mon M
+
+    explore-hom : ExploreHom {ℓ} p explore
+    explore-hom cm f g = explore-ind (λ e → e _ _ (f ∙° g) ≈ e _ _ f ∙ e _ _ g)
+                                     (! fst identity ε)
+                                     (λ p₀ p₁ → trans (∙-cong p₀ p₁) (∙-interchange _ _ _ _))
+                                     (λ _ → refl)
+      where open CMon cm
+
+    explore-linˡ : ExploreLinˡ {ℓ} p explore
+    explore-linˡ m _◎_ f k ide dist = explore-ind (λ e → e ε _∙_ (λ x → k ◎ f x) ≈ k ◎ e ε _∙_ f) (! ide) (λ x x₁ → trans (∙-cong x x₁) (! dist k _ _)) (λ x → refl)
+      where open Mon m
+
+    explore-linʳ : ExploreLinʳ {ℓ} p explore
+    explore-linʳ m _◎_ f k ide dist = explore-ind (λ e → e ε _∙_ (λ x → f x ◎ k) ≈ e ε _∙_ f ◎ k) (! ide) (λ x x₁ → trans (∙-cong x x₁) (! dist k _ _)) (λ x → refl)
+      where open Mon m
+
+    module ProductMonoid
+        {M : ★₀} (εₘ : M) (_⊕ₘ_ : Op₂ M)
+        {N : ★₀} (εₙ : N) (_⊕ₙ_ : Op₂ N)
+        where
+        ε = (εₘ , εₙ)
+        _⊕_ : Op₂ (M × N)
+        (xₘ , xₙ) ⊕ (yₘ , yₙ) = (xₘ ⊕ₘ yₘ , xₙ ⊕ₙ yₙ)
+
+        explore-product-monoid :
+          ∀ fₘ fₙ → explore ε _⊕_ < fₘ , fₙ > ≡ (explore εₘ _⊕ₘ_ fₘ , explore εₙ _⊕ₙ_ fₙ)
+        explore-product-monoid fₘ fₙ =
+          explore-ind (λ e → e ε _⊕_ < fₘ , fₙ > ≡ (e εₘ _⊕ₘ_ fₘ , e εₙ _⊕ₙ_ fₙ)) ≡.refl (≡.ap₂ _⊕_) (λ _ → ≡.refl)
+  {-
+  empty-explore:
+    ε ≡ (εₘ , εₙ) ✓
+  point-explore (x , y):
+    < fₘ , fₙ > (x , y) ≡ (fₘ x , fₙ y) ✓
+  merge-explore e₀ e₁:
+    e₀ ε _⊕_ < fₘ , fₙ > ⊕ e₁ ε _⊕_ < fₘ , fₙ >
+    ≡
+    (e₀ εₘ _⊕ₘ_ fₘ , e₀ εₙ _⊕ₙ_ fₙ) ⊕ (e₁ εₘ _⊕ₘ_ fₘ , e₁ εₙ _⊕ₙ_ fₙ)
+    ≡
+    (e₀ εₘ _⊕ₘ_ fₘ ⊕ e₁ εₘ _⊕ₘ_ fₘ , e₀ εₙ _⊕ₙ_ fₙ ⊕ e₁ εₙ _⊕ₙ_ fₙ)
+  -}
+
+  module _ {ℓ} where
+    reify : Reify {ℓ} explore
+    reify = explore-ind (λ eᴬ → Πᵉ eᴬ _) _ _,_
+
+    unfocus : Unfocus {ℓ} explore
+    unfocus = explore-ind Unfocus (λ{ (lift ()) }) (λ P Q → [ P , Q ]) (λ η → _,_ η)
+
+    module _ {ℓᵣ aᵣ} {Aᵣ : A → A → ★ aᵣ}
+             (Aᵣ-refl : Reflexive Aᵣ) where
+      ⟦explore⟧ : ⟦Explore⟧ ℓᵣ Aᵣ (explore {ℓ}) (explore {ℓ})
+      ⟦explore⟧ Mᵣ zᵣ ∙ᵣ fᵣ = explore-ind (λ e → Mᵣ (e _ _ _) (e _ _ _)) zᵣ (λ η → ∙ᵣ η) (λ η → fᵣ Aᵣ-refl)
+
+    explore-ext : ExploreExt {ℓ} explore
+    explore-ext ε op = explore-ind (λ e → e _ _ _ ≡ e _ _ _) ≡.refl (≡.ap₂ op)
 
   module LiftHom
+       {m p}
        {S T : ★ m}
        (_≈_ : T → T → ★ p)
        (≈-refl : Reflexive _≈_)
@@ -185,124 +344,15 @@ module Explorableₘₚ
                                (λ p q → ≈-trans (hom-+-* _ _) (≈-cong-* p q))
                                (λ _ → ≈-refl)
 
-module ExplorePlug where
-    record ExploreIndKit p {ℓ A} (P : Explore ℓ A → ★ p) : ★ (ₛ ℓ ⊔ p) where
-      constructor mk
-      field
-        Pε : P empty-explore
-        P∙ : ∀ {e₀ e₁ : Explore ℓ A} → P e₀ → P e₁ → P (merge-explore e₀ e₁)
-        Pf : ∀ x → P (point-explore x)
-
-    _$kit_ : ∀ {p ℓ A} {P : Explore ℓ A → ★ p} {e : Explore ℓ A}
-             → ExploreInd p e → ExploreIndKit p P → P e
-    _$kit_ {P = P} ind (mk Pε P∙ Pf) = ind P Pε P∙ Pf
-
-    _,-kit_ : ∀ {m p A} {P : Explore m A → ★ p}{Q : Explore m A → ★ p}
-              → ExploreIndKit p P → ExploreIndKit p Q → ExploreIndKit p (P ×° Q)
-    Pk ,-kit Qk = mk (Pε Pk , Pε Qk)
-                     (λ x y → P∙ Pk (proj₁ x) (proj₁ y) , P∙ Qk (proj₂ x) (proj₂ y))
-                     (λ x → Pf Pk x , Pf Qk x)
-                 where open ExploreIndKit
-
-    ExploreInd-Extra : ∀ p {m A} → Explore m A → ★ _
-    ExploreInd-Extra p {m} {A} exp =
-      ∀ (Q     : Explore m A → ★ p)
-        (Q-kit : ExploreIndKit p Q)
-        (P     : Explore m A → ★ p)
-        (Pε    : P empty-explore)
-        (P∙    : ∀ {e₀ e₁ : Explore m A} → Q e₀ → Q e₁ → P e₀ → P e₁
-                 → P (merge-explore e₀ e₁))
-        (Pf    : ∀ x → P (point-explore x))
-      → P exp
-
-    to-extra : ∀ {p m A} {e : Explore m A} → ExploreInd p e → ExploreInd-Extra p e
-    to-extra e-ind Q Q-kit P Pε P∙ Pf =
-     proj₂ (e-ind (Q ×° P)
-             (Qε , Pε)
-             (λ { (a , b) (c , d) → Q∙ a c , P∙ a c b d })
-             (λ x → Qf x , Pf x))
-     where open ExploreIndKit Q-kit renaming (Pε to Qε; P∙ to Q∙; Pf to Qf)
-
-    ExplorePlug : ∀ {m ℓ A} (M : Monoid m ℓ) (e : Explore _ A) → ★ _
-    ExplorePlug M e = ∀ f x → e∘ ε _∙_ f ∙ x ≈ e∘ x _∙_ f
-       where open Mon M
-             e∘ = explore-endo e
-
-    plugKit : ∀ {m p A} (M : Monoid m p) → ExploreIndKit _ {A = A} (ExplorePlug M)
-    plugKit M = mk (λ _ → proj₁ identity)
-                   (λ Ps Ps' _ x →
-                      trans (∙-cong (sym (Ps _ _)) refl)
-                            (trans (assoc _ _ _)
-                                   (trans (∙-cong refl (Ps' _ x)) (Ps _ _))))
-                   (λ x f _ → ∙-cong (proj₂ identity (f x)) refl)
-         where open Mon M
-
-module Explorableₘ
-    {m A}
-    {explore     : Explore m A}
-    (explore-ind : ExploreInd m explore) where
-  open Explorableₘₚ explore-ind
-  open ExplorePlug
-
-  explore∘-plug : (M : Monoid m m) → ExplorePlug M explore
-  explore∘-plug M = explore-ind $kit plugKit M
-
-  explore-endo-monoid-spec : ∀ (M : Monoid _ m) →
-                      let open Mon M in
-                      (f : A → C) → with-monoid M f ≈ with-endo-monoid M f
-  explore-endo-monoid-spec M f =
-           proj₂ (explore-ind
-                     (λ e → ExplorePlug M e × e ε _∙_ f ≈ explore-endo e ε _∙_ f)
-                     ((const (proj₁ identity)) , refl)
-                     (λ {e} {s'} Ps Ps' →
-                        P∙ {e} {s'} (proj₁ Ps) (proj₁ Ps')
-                      , trans (∙-cong (proj₂ Ps) (proj₂ Ps')) (proj₁ Ps f _))
-                     (λ x → Pf x , sym (proj₂ identity _)))
-                        where open Mon M
-                              open ExploreIndKit (plugKit M)
-
-  explore∘-ind : ∀ (M : Monoid m m) → BigOpMonInd m M (with-endo-monoid M)
-  explore∘-ind M P Pε P∙ Pf P≈ =
-    proj₂ (explore-ind (λ e → ExplorePlug M e × P (λ f → e id _∘′_ (_∙_ ∘ f) ε))
-               (const (proj₁ identity) , Pε)
-               (λ {e} {s'} Ps Ps' → ExploreIndKit.P∙ (plugKit M) {e} {s'} (proj₁ Ps) (proj₁ Ps')
-                                  , P≈ (λ f → proj₁ Ps f _) (P∙ (proj₂ Ps) (proj₂ Ps')))
-               (λ x → ExploreIndKit.Pf (plugKit M) x
-                    , P≈ (λ f → sym (proj₂ identity _)) (Pf x)))
-    where open Mon M
-
-  explore-ext : ExploreExt explore
-  explore-ext ε op = explore-ind (λ e → e _ _ _ ≡ e _ _ _) ≡.refl (≡.ap₂ op)
-
-  ⟦explore⟧ᵤ : ∀ {Aᵣ : A → A → ★_ _}
-               (Aᵣ-refl : Reflexive Aᵣ)
-              → ⟦Explore⟧ᵤ _ _ m Aᵣ explore explore
-  ⟦explore⟧ᵤ Aᵣ-refl Mᵣ zᵣ ∙ᵣ fᵣ = explore-ind (λ e → Mᵣ (e _ _ _) (e _ _ _)) zᵣ (λ η → ∙ᵣ η) (λ η → fᵣ Aᵣ-refl)
-
-  explore-ε : Exploreε m m explore
-  explore-ε M = explore-ind (λ e → e ε _ (const ε) ≈ ε)
-                            refl
-                            (λ x≈ε y≈ε → trans (∙-cong x≈ε y≈ε) (proj₁ identity ε))
-                            (λ _ → refl)
-    where open Mon M
-
-  explore-hom : ExploreHom m m explore
-  explore-hom cm f g = explore-ind (λ e → e _ _ (f ∙° g) ≈ e _ _ f ∙ e _ _ g)
-                                   (sym (proj₁ identity ε))
-                                   (λ p₀ p₁ → trans (∙-cong p₀ p₁) (∙-interchange _ _ _ _))
-                                   (λ _ → refl)
-    where open CMon cm
-
-  explore-linˡ : ExploreLinˡ m m explore
-  explore-linˡ m _◎_ f k ide dist = explore-ind (λ e → e ε _∙_ (λ x → k ◎ f x) ≈ k ◎ e ε _∙_ f) (sym ide) (λ x x₁ → trans (∙-cong x x₁) (sym (dist k _ _))) (λ x → refl)
-    where open Mon m
-
-  explore-linʳ : ExploreLinʳ m m explore
-  explore-linʳ m _◎_ f k ide dist = explore-ind (λ e → e ε _∙_ (λ x → f x ◎ k) ≈ e ε _∙_ f ◎ k) (sym ide) (λ x x₁ → trans (∙-cong x x₁) (sym (dist k _ _))) (λ x → refl)
-    where open Mon m
+  module _ {ℓ} (P : A → ★_ ℓ) where
+       open LiftHom {S = ★_ ℓ} {★_ ℓ} (λ A B → B → A) id _∘′_
+                    (Lift 𝟘) _⊎_ (Lift 𝟙) _×_
+                    (λ f g → ×-map f g) Dec P (const (no (λ{ (lift ()) })))
+                    (λ _ _ → uncurry Dec-⊎)
+                    public renaming (lift-hom to lift-Dec)
 
   lift-hom-≡ :
-      ∀ {S T}
+      ∀ {m} {S T : ★ m}
         (zero : S)
         (_+_  : Op₂ S)
         (one  : T)
@@ -313,19 +363,6 @@ module Explorableₘ
         (hom-+-* : ∀ x y → f (x + y) ≡ f x * f y)
       → f (explore zero _+_ g) ≡ explore one _*_ (f ∘ g)
   lift-hom-≡ z _+_ o _*_ = LiftHom.lift-hom _≡_ ≡.refl ≡.trans z _+_ o _*_ (≡.ap₂ _*_)
-
-module Explorable₀
-    {A}
-    {explore     : Explore₀ A}
-    (explore-ind : ExploreInd₀ explore) where
-  open Explorableₘₚ explore-ind public
-  open Explorableₘ  explore-ind public
-  open FromExplore₀ explore     public
-
-  ⟦explore⟧' : ∀ {Aᵣ : A → A → ★_ _}
-               (Aᵣ-refl : Reflexive Aᵣ)
-              → ⟦Explore⟧ Aᵣ explore explore
-  ⟦explore⟧' = ⟦explore⟧ᵤ
 
   sum-ind : SumInd sum
   sum-ind P P0 P+ Pf = explore-ind (λ e → P (e 0 _+_)) P0 P+ Pf
@@ -343,17 +380,19 @@ module Explorable₀
   sum-mono = explore-mono _≤_ z≤n _+-mono_
 
   sum-swap' : SumSwap sum
-  sum-swap' {sᴮ = sᴮ} sᴮ-0 hom f =
+  sum-swap' {sumᴮ = sᴮ} sᴮ-0 hom f =
     sum-ind (λ s → s (sᴮ ∘ f) ≡ sᴮ (s ∘ flip f))
-            (≡.sym sᴮ-0)
-            (λ p q → ≡.trans (≡.ap₂ _+_ p q) (≡.sym (hom _ _))) (λ _ → ≡.refl)
+            (! sᴮ-0)
+            (λ p q → (ap₂ _+_ p q) ∙ (! hom _ _)) (λ _ → refl)
+    where open ≡
   
   sum-lin : SumLin sum
   sum-lin f zero    = sum-zero
   sum-lin f (suc k) = ≡.trans (sum-hom f (λ x → k * f x)) (≡.ap₂ _+_ (≡.refl {x = sum f}) (sum-lin f k))
   
   sum-const : SumConst sum
-  sum-const x = ≡.trans (≡.trans (sum-ext (λ _ → ≡.sym (proj₂ ℕ°.*-identity x))) (sum-lin (const 1) x)) (ℕ°.*-comm x Card)
+  sum-const x = sum-ext (λ _ → ! snd ℕ°.*-identity x) ∙ sum-lin (const 1) x ∙ ℕ°.*-comm x Card
+    where open ≡
   
   sumStableUnder : ∀ {p} → StableUnder explore p → SumStableUnder sum p
   sumStableUnder SU-p = SU-p 0 _+_
@@ -366,8 +405,43 @@ module Explorable₀
 
   diff-list = with-endo-monoid (List.monoid A) List.[_]
 
+  {-
   list≡diff-list : list ≡ diff-list
-  list≡diff-list = explore-endo-monoid-spec (List.monoid A) List.[_]
+  list≡diff-list = {!explore-endo-monoid-spec (List.monoid A) List.[_]!}
+  -}
+
+  private
+    lift+ : ∀ {ℓ} → Lift {ℓ = ℓ} ℕ → Lift {ℓ = ℓ} ℕ → Lift {ℓ = ℓ} ℕ
+    lift+ (lift x) (lift y) = lift (x + y)
+
+  Fin-lower-sum≡Σᵉ-Fin : ∀ {{_ : UA}}(f : A → ℕ) → Fin (lower (explore (lift 0) lift+ (lift ∘ f))) ≡ Σᵉ explore (Fin ∘ f)
+  Fin-lower-sum≡Σᵉ-Fin f = LiftHom.lift-hom _≡_ ≡.refl ≡.trans (lift 0) lift+ (Lift 𝟘) _⊎_ ⊎= (Fin ∘ lower) (lift ∘ f) (Fin0≡𝟘 ∙ ! Lift≡id) (λ _ _ → ! Fin-⊎-+)
+    where open ≡
+
+module FromTwoExploreInd
+    {a} {A : ★ a}
+    {eᴬ : ∀ {ℓ} → Explore ℓ A}
+    (eᴬ-ind : ∀ {p ℓ} → ExploreInd {ℓ} p eᴬ)
+    {b} {B : ★ b}
+    {eᴮ : ∀ {ℓ} → Explore ℓ B}
+    (eᴮ-ind : ∀ {p ℓ} → ExploreInd {ℓ} p eᴮ)
+    where
+
+    module A = FromExploreInd eᴬ-ind
+    module B = FromExploreInd eᴮ-ind
+
+    module _ {c ℓ}(cm : CommutativeMonoid c ℓ) where
+        open CMon cm
+
+        opᴬ = eᴬ ε _∙_
+        opᴮ = eᴮ ε _∙_
+
+        -- TODO use lift-hom
+        explore-swap' : ∀ f → opᴬ (opᴮ ∘ f) ≈ opᴮ (opᴬ ∘ flip f)
+        explore-swap' = A.explore-swap m (B.explore-ε m) (B.explore-hom cm)
+
+    sum-swap : ∀ f → A.sum (B.sum ∘ f) ≡ B.sum (A.sum ∘ flip f)
+    sum-swap = explore-swap' ℕ°.+-commutativeMonoid
 
 module Adequate-sum₀
   {{_ : UA}}{{_ : FunExt}}
@@ -382,7 +456,6 @@ module Adequate-sum₀
   sumStableUnder p f = Fin-injective (sumᴬ-adq f
                                       ∙ Σ-fst≃′ p _
                                       ∙ ! sumᴮ-adq (f ∘ <– p))
-
 
 module EndoAdequate-sum₀
   {{_ : UA}}{{_ : FunExt}}
@@ -449,66 +522,84 @@ module EndoAdequate-sum₀
       
     indIsIso : p ≡ q ∘ M.π
     indIsIso = M.prop
-  
-module Explorableₛ {ℓ A} {exploreₛ : Explore (ₛ ℓ) A}
-                   (explore-ind : ExploreInd ℓ exploreₛ) where
-  open Explorableₘₚ explore-ind
 
-  reify : Reify exploreₛ
-  reify = explore-ind (λ eᴬ → Πᵉ eᴬ _) _ _,_
+module From⟦Explore⟧
+    {-a-} {A : ★₀ {- a-}}
+    {explore   : ∀ {ℓ} → Explore ℓ A}
+    (⟦explore⟧ : ∀ {ℓ₀ ℓ₁} ℓᵣ → ⟦Explore⟧ {ℓ₀} {ℓ₁} ℓᵣ _≡_ explore explore)
+    {{_ : UA}}
+    where
+  open FromExplore explore
 
-  module _ (P : A → ★_ ℓ) where
-     open LiftHom {★_ ℓ} {★_ ℓ} (λ A B → B → A) id _∘′_
-                  (Lift 𝟘) _⊎_ (Lift 𝟙) _×_
-                  (λ f g → ×-map f g) Dec P (const (no (λ{ (lift ()) })))
-                  (λ _ _ → uncurry Dec-⊎)
-                  public renaming (lift-hom to lift-Dec)
+  -- also in FromExploreInd
+  module _ {ℓ}(M : Monoid ℓ ℓ)
+             (open Mon M)
+             (f : A → C)
+             where
+        explore-endo-monoid-spec′ : ∀ z → explore ε _∙_ f ∙ z ≈ explore-endo explore z _∙_ f
+        explore-endo-monoid-spec′ = ⟦explore⟧ ₀ {C} {C → C}
+                                              (λ r s → ∀ z → r ∙ z ≈ s z)
+                                              (fst identity)
+                                              (λ P₀ P₁ z → trans (assoc _ _ _) (trans (∙-cong refl (P₁ z)) (P₀ _)))
+                                              (λ xᵣ _ → ∙-cong (reflexive (≡.ap f xᵣ)) refl)
 
-module Explorable₁ {A} {explore : Explore ₁ A}
-                   (explore-ind : ExploreInd ₁ explore) where
-  open Explorableₘₚ explore-ind public
+        explore-endo-monoid-spec : with-monoid M f ≈ with-endo-monoid M f
+        explore-endo-monoid-spec = trans (! snd identity _) (explore-endo-monoid-spec′ ε)
 
-  lift+ : ∀ {ℓ} → Lift {ℓ = ℓ} ℕ → Lift {ℓ = ℓ} ℕ → Lift {ℓ = ℓ} ℕ
-  lift+ (lift x) (lift y) = lift (x + y)
-
-  open ≡
-  foo : ∀ {{_ : UA}}(f : A → ℕ) → Fin (lower (explore (lift 0) lift+ (lift ∘ f))) ≡ Σᵉ explore (Fin ∘ f)
-  foo f = LiftHom.lift-hom _≡_ ≡.refl ≡.trans (lift 0) lift+ (Lift 𝟘) _⊎_ ⊎= (Fin ∘ lower) (lift ∘ f) (Fin0≡𝟘 ∙ ! Lift≡id) (λ _ _ → ! Fin-⊎-+)
-
-module Explorable₀₁
-          {{_ : UA}}
-          {A}
-          (e₀ : Explore ₀ A)
-          (e₁ : Explore ₁ A)
-          (eᵣ : ⟦Explore⟧ᵤ ₀ ₁ ₁ _≡_ e₀ e₁)
-          where
   open ≡
   module _ (f : A → ℕ) where
-    sum⇒Σᵉ : Fin (e₀ 0 _+_ f) ≡ e₁ (Lift 𝟘) _⊎_ (Fin ∘ f)
-    sum⇒Σᵉ = eᵣ (λ n X → Fin n ≡ X)
+    sum⇒Σᵉ : Fin (explore 0 _+_ f) ≡ explore (Lift 𝟘) _⊎_ (Fin ∘ f)
+    sum⇒Σᵉ = ⟦explore⟧ {₀} {₁} ₁
+                (λ n X → Fin n ≡ X)
                 (Fin0≡𝟘 ∙ ! Lift≡id)
                 (λ p q → ! Fin-⊎-+ ∙ ⊎= p q)
                 (ap (Fin ∘ f))
 
-    product⇒Πᵉ : Fin (e₀ 1 _*_ f) ≡ e₁ (Lift 𝟙) _×_ (Fin ∘ f)
-    product⇒Πᵉ = eᵣ (λ n X → Fin n ≡ X)
+    product⇒Πᵉ : Fin (explore 1 _*_ f) ≡ explore (Lift 𝟙) _×_ (Fin ∘ f)
+    product⇒Πᵉ = ⟦explore⟧ {₀} {₁} ₁
+                    (λ n X → Fin n ≡ X)
                     (Fin1≡𝟙 ∙ ! Lift≡id)
                     (λ p q → ! Fin-×-* ∙ ×= p q)
                     (ap (Fin ∘ f))
 
   module _ (f : A → 𝟚) where
-    all⇒Πᵉ : ✓ (e₀ 1₂ _∧_ f) ≡ e₁ (Lift 𝟙) _×_ (✓ ∘ f)
-    all⇒Πᵉ = eᵣ (λ b X → ✓ b ≡ X)
+    ✓all-Πᵉ : ✓ (all f) ≡ Πᵉ explore (✓ ∘ f)
+    ✓all-Πᵉ = ⟦explore⟧ {₀} {₁} ₁
+                (λ b X → ✓ b ≡ X)
                 (! Lift≡id)
                 (λ p q → ✓-∧-× _ _ ∙ ×= p q)
                 (ap (✓ ∘ f))
 
-module Explorableₛₛ {ℓ A} {exploreₛ : Explore (ₛ ℓ) A}
-                    (explore-indₛ : ExploreInd (ₛ ℓ) exploreₛ) where
+    ✓any→Σᵉ : ✓ (any f) → Σᵉ explore (✓ ∘ f)
+    ✓any→Σᵉ p = ⟦explore⟧ {₀} {ₛ ₀} ₁
+                         (λ b (X : ★₀) → Lift (✓ b) → X)
+                         (λ x → lift (lower x))
+                         (λ { {0₂} {x₁} xᵣ {y₀} {y₁} yᵣ zᵣ → inr (yᵣ zᵣ)
+                            ; {1₂} {x₁} xᵣ {y₀} {y₁} yᵣ zᵣ → inl (xᵣ _) })
+                         (λ xᵣ x → tr (✓ ∘ f) xᵣ (lower x)) (lift p)
 
-  unfocus : Unfocus exploreₛ
-  unfocus = explore-indₛ Unfocus (λ{ (lift ()) }) (λ P Q → [ P , Q ]) (λ η → _,_ η)
+  module FromAdequate-Σᵉ
+           (adequate-Σᵉ : ∀ {ℓ} → Adequate-Σ {ℓ} (Σᵉ explore))
+           (f : A → ℕ)
+          where
+    adequate-sum : Fin (sum f) ≡ Σ A (Fin ∘ f)
+    adequate-sum = sum⇒Σᵉ f ∙ adequate-Σᵉ (Fin ∘ f)
 
+  module FromAdequate-Πᵉ
+           (adequate-Πᵉ : ∀ {ℓ} → Adequate-Π {ℓ} (Πᵉ explore))
+          where
+
+    adequate-product : ∀ f → Fin (product f) ≡ Π A (Fin ∘ f)
+    adequate-product f = product⇒Πᵉ f ∙ adequate-Πᵉ (Fin ∘ f)
+
+    module _ (f : A → 𝟚) where
+        lift-all : ✓ (all f) ≡ (∀ x → ✓ (f x))
+        lift-all = ✓all-Πᵉ f ∙ adequate-Πᵉ _
+
+        check! : {pf : ✓ (all f)} → (∀ x → ✓ (f x))
+        check! {pf} = coe lift-all pf
+
+{-
 module ExplorableRecord where
     record Explorable A : ★₁ where
       constructor mk
@@ -516,12 +607,12 @@ module ExplorableRecord where
         explore     : Explore₀ A
         explore-ind : ExploreInd₀ explore
 
-      open Explorable₀ explore-ind
+      open FromExploreInd explore-ind
       field
         adequate-sum     : Adequate-sum sum
     --  adequate-product : AdequateProduct product
 
-      open Explorable₀ explore-ind public
+      open FromExploreInd explore-ind public
 
     open Explorable public
 
@@ -574,47 +665,6 @@ module ExplorableRecord where
         μLift = μ-iso {!(! Lift↔id)!}
           where open ≡
           -}
-
-    explore-swap' : ∀ {A B} cm (μA : Explorable A) (μB : Explorable B) f →
-                   let open CMon cm
-                       eᴬ = explore μA ε _∙_
-                       eᴮ = explore μB ε _∙_ in
-                   eᴬ (eᴮ ∘ f) ≈ eᴮ (eᴬ ∘ flip f)
-    explore-swap' cm μA μB = explore-swap μA m (explore-ε μB m) (explore-hom μB cm)
-      where open CMon cm
-
-    sum-swap : ∀ {A B} (μA : Explorable A) (μB : Explorable B) f →
-               sum μA (sum μB ∘ f) ≡ sum μB (sum μA ∘ flip f)
-    sum-swap = explore-swap' ℕ°.+-commutativeMonoid
-
-module ExplorablePoly
-    {A}
-    {explore     : ∀ {m} → Explore m A}
-    (explore-ind : ∀ {p m} → ExploreInd p {m} explore)
-    (exploreᵣ    : ∀ {a₀ a₁ aᵣ} → ⟦Explore⟧ᵤ a₀ a₁ aᵣ _≡_ explore explore)
-    (adequate-Σᵉ : ∀ {ℓ} → Adequate-Σᵉ {ℓ} explore)
-    (adequate-Πᵉ : ∀ {ℓ} → Adequate-Πᵉ {ℓ} explore)
-    where
-  open FromExplore₀ explore public
-  module E₀₁ {{_ : UA}} = Explorable₀₁ explore explore (exploreᵣ {₀} {₁} {₁})
-  open ≡
-
-  unfocus : ∀ {ℓ} → Unfocus {ℓ} explore
-  unfocus = Explorableₛₛ.unfocus explore-ind
-
-  module _ {{_ : UA}} (f : A → ℕ) where
-      adequate-sum : Fin (sum f) ≡ Σ A (Fin ∘ f)
-      adequate-sum = E₀₁.sum⇒Σᵉ f ∙ adequate-Σᵉ (Fin ∘ f)
-
-      adequate-product : Fin (product f) ≡ Π A (Fin ∘ f)
-      adequate-product = E₀₁.product⇒Πᵉ f ∙ adequate-Πᵉ (Fin ∘ f)
-
-  module _ {{_ : UA}} (f : A → 𝟚) where
-      lift-all : ✓ (all f) ≡ (∀ x → ✓ (f x))
-      lift-all = E₀₁.all⇒Πᵉ f ∙ adequate-Πᵉ _
-
-      check! : {pf : ✓ (all f)} → (∀ x → ✓ (f x))
-      check! {pf} = coe lift-all pf
 -- -}
 -- -}
 -- -}

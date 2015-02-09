@@ -22,11 +22,15 @@ module ByHand where
     exploreDice-ind : ∀ {m p} → ExploreInd p (exploreDice {m})
     exploreDice-ind P ε _∙_ f = f ⚀ ∙ (f ⚁ ∙ (f ⚂ ∙ (f ⚃ ∙ (f ⚄ ∙ f ⚅))))
 
-    open Explorable₀ exploreDice-ind public using () renaming (sum     to sumDice; product to productDice)
+    open FromExploreInd exploreDice-ind public
+      using ()
+      renaming (sum to sumDice; product to productDice; reify to reifyDice; unfocus to unfocusDice)
 
+{-
     module _ {ℓ} where
         open Explorableₛ  {ℓ} exploreDice-ind public using () renaming (reify   to reifyDice)
         open Explorableₛₛ {ℓ} exploreDice-ind public using () renaming (unfocus to unfocusDice)
+        -}
 
 Dice↔Fin6 : Dice ≃ Fin 6
 Dice↔Fin6 = equiv (⇒) (⇐) ⇒⇐ ⇐⇒
@@ -78,7 +82,7 @@ open Explore.Universe.Isomorphism (Finᵁ' 6) (Finᵁ'-Fin 6 ≃-∙ ≃-sym Dic
            ; isoᵘ to Diceᵘ
            ; isoˢ-ok to Diceˢ-ok
            ; isoˢ-stableUnder to Diceˢ-stableUnder
-           ; μiso to μDice
+           -- ; μiso to μDice
            )
 
 module _ {m} where
