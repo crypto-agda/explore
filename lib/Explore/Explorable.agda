@@ -213,23 +213,6 @@ module FromExploreInd
     explore∘-plug : (M : Monoid ℓ ℓ) → ExplorePlug M explore
     explore∘-plug M = explore-ind $kit plugKit M
 
-{-
-    explore-endo-monoid-spec :
-           ∀ (M : Monoid ℓ ℓ) →
-             let open Mon M in
-             (f : A → C) → with-monoid M f ≈ with-endo-monoid M f
-    explore-endo-monoid-spec M f =
-           snd (explore-ind
-                     (λ e → ExplorePlug M e × e ε _∙_ f ≈ explore-endo e ε _∙_ f)
-                     ((const (fst identity)) , refl)
-                     (λ {e} {s'} Ps Ps' →
-                        P∙ {e} {s'} (fst Ps) (fst Ps')
-                      , trans (∙-cong (snd Ps) (snd Ps')) (fst Ps f _))
-                     (λ x → Pf x , ! snd identity _))
-                        where open Mon M
-                              open ExploreIndKit (plugKit M)
--}
-
     module _ (M : Monoid ℓ ℓ)
              (open Mon M)
              (f : A → C)
@@ -531,8 +514,8 @@ module From⟦Explore⟧
     where
   open FromExplore explore
 
-  -- also in FromExploreInd
-  module _ {ℓ}(M : Monoid ℓ ℓ)
+  module AlsoInFromExploreInd
+          {ℓ}(M : Monoid ℓ ℓ)
              (open Mon M)
              (f : A → C)
              where
