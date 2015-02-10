@@ -118,7 +118,7 @@ module _ {ℓ} where
     exploreU-ind (s ⊎ᵁ t) = exploreU-ind s ⊎ⁱ exploreU-ind t
     exploreU-ind (Σᵁ t f) = exploreΣ-ind (exploreU-ind t) λ {x} → exploreU-ind (f x)
 
-module _ {ℓ₀ ℓ₁ ℓᵣ} where
+module _ {ℓ₀ ℓ₁} ℓᵣ where
     ⟦explore⟧ : ∀ {t₀ t₁} (t : ⟦U⟧ t₀ t₁) → ⟦Explore⟧ {ℓ₀} {ℓ₁} ℓᵣ (⟦El⟧ t) (explore t₀) (explore t₁)
     ⟦explore⟧ ⟦𝟘ᵁ⟧        = ⟦𝟘ᵉ⟧ {ℓ₀} {ℓ₁} {ℓᵣ}
     ⟦explore⟧ ⟦𝟙ᵁ⟧        = ⟦𝟙ᵉ⟧ {ℓ₀} {ℓ₁} {ℓᵣ} {_≡_} {refl}
@@ -126,6 +126,14 @@ module _ {ℓ₀ ℓ₁ ℓᵣ} where
     ⟦explore⟧ (t ⟦×ᵁ⟧ t₁) = ⟦explore×⟧ {ℓ₀} {ℓ₁} {ℓᵣ} (⟦explore⟧ t) (⟦explore⟧ t₁)
     ⟦explore⟧ (t ⟦⊎ᵁ⟧ t₁) = ⟦explore⊎⟧ {ℓ₀} {ℓ₁} {ℓᵣ} (⟦explore⟧ t) (⟦explore⟧ t₁)
     ⟦explore⟧ (⟦Σᵁ⟧ t f)  = ⟦exploreΣ⟧ {ℓ₀} {ℓ₁} {ℓᵣ} (⟦explore⟧ t) (⟦explore⟧ ∘ f)
+
+    ⟦explore⟧≡ : ∀ t → ⟦Explore⟧ {ℓ₀} {ℓ₁} ℓᵣ _≡_ (explore t) (explore t)
+    ⟦explore⟧≡ 𝟘ᵁ        = ⟦𝟘ᵉ⟧ {ℓ₀} {ℓ₁} {ℓᵣ}
+    ⟦explore⟧≡ 𝟙ᵁ        = ⟦𝟙ᵉ⟧ {ℓ₀} {ℓ₁} {ℓᵣ} {_≡_} {refl}
+    ⟦explore⟧≡ 𝟚ᵁ        = ⟦𝟚ᵉ⟧ {ℓ₀} {ℓ₁} {ℓᵣ} {_≡_} {refl} {refl}
+    ⟦explore⟧≡ (t ×ᵁ t₁) = ⟦explore×⟧≡ {ℓ₀} {ℓ₁} {ℓᵣ} (⟦explore⟧≡ t) (⟦explore⟧≡ t₁)
+    ⟦explore⟧≡ (t ⊎ᵁ t₁) = ⟦explore⊎⟧≡ {ℓ₀} {ℓ₁} {ℓᵣ} (⟦explore⟧≡ t) (⟦explore⟧≡ t₁)
+    ⟦explore⟧≡ (Σᵁ t F)  = ⟦exploreΣ⟧≡ {ℓ₀} {ℓ₁} {ℓᵣ} (⟦explore⟧≡ t) (λ x → ⟦explore⟧≡ (F x))
 
 module _ (t : U) where
   private
@@ -135,9 +143,7 @@ module _ (t : U) where
     tⁱ = exploreU-ind t
 
   open FromExploreInd tⁱ public hiding (⟦explore⟧)
-  {-
-  open From⟦Explore⟧ (λ {ℓ₁} {ℓ₂} {ℓᵣ} → ⟦explore⟧' {ℓ₁} {ℓ₂} {ℓᵣ} t) public
-  -}
+  open From⟦Explore⟧ (λ {ℓ₁} {ℓ₂} ℓᵣ → ⟦explore⟧≡ {ℓ₁} {ℓ₂} ℓᵣ t) public
 
 adequate-sumU : ∀ {{_ : UA}}{{_ : FunExt}} t → Adequate-sum (sum t)
 adequate-sumU 𝟘ᵁ       = 𝟘ˢ-ok
@@ -186,11 +192,9 @@ module _ {ℓ} where
         ΠᵉU-ok (t ⊎ᵁ u) = Πᵉ⊎-ok {eᴬ = explore t} {eᴮ = explore u} (ΠᵉU-ok t) (ΠᵉU-ok u)
         ΠᵉU-ok (Σᵁ t u) = ΠᵉΣ-ok {eᴬ = explore t} {eᴮ = λ {x} → explore (u x)} (ΠᵉU-ok t) (λ {x} → ΠᵉU-ok (u x))
 
-{-
 module _ (t : U) {{_ : UA}} {{_ : FunExt}} where
   open FromAdequate-Σᵉ t (ΣᵉU-ok t) public
   open FromAdequate-Πᵉ t (ΠᵉU-ok t) public
--}
 
 module _ (A : U) (P : El A → ★₀) where
     Dec-Σ : Π (El A) (Dec ∘ P) → Dec (Σ (El A) P)

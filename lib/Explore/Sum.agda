@@ -64,6 +64,15 @@ module _ {ℓ₀ ℓ₁ ℓᵣ}
        = P∙ (eᴬᵣ P Pε P∙ (Pf ∘ ⟦inl⟧))
             (eᴮᵣ P Pε P∙ (Pf ∘ ⟦inr⟧))
 
+module _ {ℓ₀ ℓ₁ ℓᵣ} {A B : ★₀}
+         {eᴬ₀ : Explore ℓ₀ A}{eᴬ₁ : Explore ℓ₁ A}(eᴬᵣ : ⟦Explore⟧ ℓᵣ _≡_ eᴬ₀ eᴬ₁)
+         {eᴮ₀ : Explore ℓ₀ B}{eᴮ₁ : Explore ℓ₁ B}(eᴮᵣ : ⟦Explore⟧ ℓᵣ _≡_ eᴮ₀ eᴮ₁)
+         where
+    ⟦explore⊎⟧≡ : ⟦Explore⟧ ℓᵣ _≡_ (explore⊎ eᴬ₀ eᴮ₀) (explore⊎ eᴬ₁ eᴮ₁)
+    ⟦explore⊎⟧≡ P Pε P∙ Pf
+       = P∙ (eᴬᵣ P Pε P∙ (Pf ∘ ap inl))
+            (eᴮᵣ P Pε P∙ (Pf ∘ ap inr))
+
 infixr 4 _⊎ᵉ_ _⊎ⁱ_
 _⊎ᵉ_ = explore⊎
 _⊎ⁱ_ = explore⊎-ind

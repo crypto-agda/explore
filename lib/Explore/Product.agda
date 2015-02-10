@@ -15,7 +15,7 @@ open import Data.Two
 open import Data.Product.NP
 open import Data.Fin
 open import Relation.Binary.Logical
-open import Relation.Binary.PropositionalEquality.NP using (_≡_ ; module ≡-Reasoning; !_; _∙_; coe; tr)
+open import Relation.Binary.PropositionalEquality.NP using (_≡_ ; module ≡-Reasoning; !_; _∙_; coe; tr; ap; ap₂; J-orig)
 open import HoTT
 open import Category.Monad.Continuation.Alias
 
@@ -45,6 +45,30 @@ module _
     where
    ⟦exploreΣ⟧ : ⟦Explore⟧ ℓᵣ (⟦Σ⟧ Aᵣ Bᵣ) (exploreΣ eᴬ₀ (λ {x} → eᴮ₀ {x})) (exploreΣ eᴬ₁ (λ {x} → eᴮ₁ {x}))
    ⟦exploreΣ⟧ P Pε P⊕ Pf = eᴬᵣ P Pε P⊕ (λ {x₀} {x₁} x → eᴮᵣ x P Pε P⊕ (λ xᵣ → Pf (x ⟦,⟧ xᵣ)))
+
+module _
+    {ℓ₀ ℓ₁ ℓᵣ}
+    {a} {A : ★ a}
+    {b} {B : A → ★ b}
+    {eᴬ₀ : Explore ℓ₀ A} {eᴬ₁ : Explore ℓ₁ A}(eᴬᵣ : ⟦Explore⟧ ℓᵣ _≡_ eᴬ₀ eᴬ₁)
+    {eᴮ₀ : ∀ {x} → Explore ℓ₀ (B x)} {eᴮ₁ : ∀ {x} → Explore ℓ₁ (B x)}
+    (eᴮᵣ : ∀ x → ⟦Explore⟧ ℓᵣ _≡_ (eᴮ₀ {x}) (eᴮ₁ {x}))
+    where
+   ⟦exploreΣ⟧≡ : ⟦Explore⟧ ℓᵣ _≡_ (exploreΣ eᴬ₀ (λ {x} → eᴮ₀ {x})) (exploreΣ eᴬ₁ (λ {x} → eᴮ₁ {x}))
+   ⟦exploreΣ⟧≡ {P₀} {P₁} P {ε₀} {ε₁} Pε {⊕₀} {⊕₁} P⊕ {f₀} {f₁} Pf
+     = eᴬᵣ P Pε P⊕ λ {x₀} {x₁} x → J-orig (λ x₀ x₁ x → P (eᴮ₀ ε₀ ⊕₀ (f₀ ∘ _,_ x₀)) (eᴮ₁ ε₁ ⊕₁ (f₁ ∘ _,_ x₁)))
+                                          (λ y → eᴮᵣ y P Pε P⊕ (λ xᵣ → Pf (ap (_,_ y) xᵣ))) x
+
+module _
+    {ℓ₀ ℓ₁ ℓᵣ}
+    {a} {A : ★ a}
+    {b} {B : A → ★ b}
+    {eᴬ₀ : Explore ℓ₀ A} {eᴬ₁ : Explore ℓ₁ A}(eᴬᵣ : ⟦Explore⟧ ℓᵣ _≡_ eᴬ₀ eᴬ₁)
+    {eᴮ₀ : ∀ {x} → Explore ℓ₀ (B x)} {eᴮ₁ : ∀ {x} → Explore ℓ₁ (B x)}
+    (eᴮᵣ : ∀ {x₀ x₁} (x : x₀ ≡ x₁) → ⟦Explore⟧ ℓᵣ (λ b₀ b₁ → tr B x b₀ ≡ b₁) (eᴮ₀ {x₀}) (eᴮ₁ {x₁}))
+    where
+   ⟦exploreΣ⟧≡' : ⟦Explore⟧ ℓᵣ _≡_ (exploreΣ eᴬ₀ (λ {x} → eᴮ₀ {x})) (exploreΣ eᴬ₁ (λ {x} → eᴮ₁ {x}))
+   ⟦exploreΣ⟧≡' P Pε P⊕ Pf = eᴬᵣ P Pε P⊕ (λ {x₀} {x₁} x → eᴮᵣ {x₀} {x₁} x P Pε P⊕ (λ xᵣ → Pf (pair= x xᵣ)))
 
 module _ {A : ★₀} {B : A → ★₀} {sumᴬ : Sum A} {sumᴮ : ∀ {x} → Sum (B x)}{{_ : FunExt}}{{_ : UA}} where
     private
@@ -89,6 +113,13 @@ module _ {ℓ₀ ℓ₁ ℓᵣ A₀ A₁ B₀ B₁}
     where
     ⟦explore×⟧ : ⟦Explore⟧ ℓᵣ (Aᵣ ⟦×⟧ Bᵣ) (explore× eᴬ₀ eᴮ₀) (explore× eᴬ₁ eᴮ₁)
     ⟦explore×⟧ P Pε P⊕ Pf = eᴬᵣ P Pε P⊕ (λ x → eᴮᵣ P Pε P⊕ (λ y → Pf (_⟦,⟧_ x y)))
+
+module _ {ℓ₀ ℓ₁ ℓᵣ} {A B : ★₀}
+         {eᴬ₀ : Explore ℓ₀ A} {eᴬ₁ : Explore ℓ₁ A}(eᴬᵣ : ⟦Explore⟧ ℓᵣ _≡_ eᴬ₀ eᴬ₁)
+         {eᴮ₀ : Explore ℓ₀ B} {eᴮ₁ : Explore ℓ₁ B}(eᴮᵣ : ⟦Explore⟧ ℓᵣ _≡_ eᴮ₀ eᴮ₁)
+    where
+    ⟦explore×⟧≡ : ⟦Explore⟧ ℓᵣ _≡_ (explore× eᴬ₀ eᴮ₀) (explore× eᴬ₁ eᴮ₁)
+    ⟦explore×⟧≡ P Pε P⊕ Pf = eᴬᵣ P Pε P⊕ (λ x → eᴮᵣ P Pε P⊕ (λ y → Pf (ap₂ _,_ x y)))
 
 {-
 μΣ : ∀ {A} {B : A → ★ _} → Explorable A → (∀ {x} → Explorable (B x)) → Explorable (Σ A B)
