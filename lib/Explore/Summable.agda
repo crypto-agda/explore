@@ -1,4 +1,4 @@
--- NOTE with-K
+{-# OPTIONS --without-K #-}
 -- Specific constructions on top of summation functions
 
 module Explore.Summable where

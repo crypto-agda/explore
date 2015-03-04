@@ -1,10 +1,11 @@
 module explore where
+import Explore.BigDistr
 import Explore.BinTree
 import Explore.Core
 import Explore.Dice
+import Explore.Examples
 import Explore.Explorable
 import Explore.Fin
--- BROKEN import Explore.Function.Fin
 import Explore.GroupHomomorphism
 import Explore.Isomorphism
 import Explore.Monad
@@ -17,4 +18,8 @@ import Explore.Sum
 import Explore.Summable
 import Explore.Two
 import Explore.Universe
+import Explore.Universe.Base
+import Explore.Universe.Isomorphism
 import Explore.Zero
+-- BROKEN import Explore.Explorable.Fun
+-- BROKEN import Explore.Function.Fin

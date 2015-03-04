@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 module combination where
 
 open import Type

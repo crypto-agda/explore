@@ -1,0 +1,11 @@
+#!/bin/bash -eu
+echo "module explore where" >$1
+git ls-files . |
+  grep -v experimental-examples |
+  grep -v /Experimental/ |
+  grep -v /Old/ |
+  grep -v /TODO/ |
+  grep -v '^explore.agda$' |
+  grep '\.agda$' |
+  sed -e 's|lib/\(.*\)\.agda|import \1|' |
+  tr / . >>$1

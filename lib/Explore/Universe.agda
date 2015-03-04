@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 open import Level.NP
 open import Type
 open import Type.Identities
@@ -14,8 +15,7 @@ open import Data.Fin
 open import Relation.Nullary.NP
 open import Relation.Binary.PropositionalEquality.NP
 open import Relation.Binary.Logical
-
-open import HoTT
+open import HoTT using (UA; module Equivalences)
 open Equivalences
 
 open import Explore.Core
@@ -26,297 +26,228 @@ open import Explore.Two
 open import Explore.Product
 open import Explore.Sum
 open import Explore.Explorable
-import Explore.Isomorphism
 
 module Explore.Universe where
 
 open Operators
 
-infixr 2 _×ᵁ_
+module FromX (X : ★) where
+  infixr 2 _×ᵁ_
 
-data U : ★
-El : U → ★
+  data U : ★
+  El : U → ★
 
-data U where
-  𝟘ᵁ 𝟙ᵁ 𝟚ᵁ : U
-  _×ᵁ_ _⊎ᵁ_ : U → U → U
-  Σᵁ : (t : U) (f : El t → U) → U
+  data U where
+    𝟘ᵁ 𝟙ᵁ 𝟚ᵁ : U
+    _×ᵁ_ _⊎ᵁ_ : U → U → U
+    Σᵁ : (u : U) (f : El u → U) → U
+    Xᵁ : U
 
-El 𝟘ᵁ = 𝟘
-El 𝟙ᵁ = 𝟙
-El 𝟚ᵁ = 𝟚
-El (s ×ᵁ t) = El s × El t
-El (s ⊎ᵁ t) = El s ⊎ El t
-El (Σᵁ t f) = Σ (El t) λ x → El (f x)
+  El 𝟘ᵁ = 𝟘
+  El 𝟙ᵁ = 𝟙
+  El 𝟚ᵁ = 𝟚
+  El (u₀ ×ᵁ u₁) = El u₀ × El u₁
+  El (u₀ ⊎ᵁ u₁) = El u₀ ⊎ El u₁
+  El (Σᵁ u f) = Σ (El u) λ x → El (f x)
+  El Xᵁ = X
 
-data ⟦U⟧ : ⟦★₀⟧ U U
-⟦El⟧ : (⟦U⟧ ⟦→⟧ ⟦★₀⟧) El El
+  infix  8 _^ᵁ_
+  _^ᵁ_ : U → ℕ → U
+  u ^ᵁ zero  = u
+  u ^ᵁ suc n = u ×ᵁ u ^ᵁ n
 
-data ⟦U⟧ where
-  ⟦𝟘ᵁ⟧ : ⟦U⟧ 𝟘ᵁ 𝟘ᵁ
-  ⟦𝟙ᵁ⟧ : ⟦U⟧ 𝟙ᵁ 𝟙ᵁ
-  ⟦𝟚ᵁ⟧ : ⟦U⟧ 𝟚ᵁ 𝟚ᵁ
-  _⟦×ᵁ⟧_ : ⟦Op₂⟧ ⟦U⟧ _×ᵁ_ _×ᵁ_
-  _⟦⊎ᵁ⟧_ : ⟦Op₂⟧ ⟦U⟧ _⊎ᵁ_ _⊎ᵁ_
-  ⟦Σᵁ⟧ : (⟨ t ∶ ⟦U⟧ ⟩⟦→⟧ (⟦El⟧ t ⟦→⟧ ⟦U⟧) ⟦→⟧ ⟦U⟧) Σᵁ Σᵁ
+  Finᵁ : ℕ → U
+  Finᵁ zero    = 𝟘ᵁ
+  Finᵁ (suc n) = 𝟙ᵁ ⊎ᵁ Finᵁ n
 
-⟦El⟧ ⟦𝟘ᵁ⟧ = _≡_
-⟦El⟧ ⟦𝟙ᵁ⟧ = _≡_
-⟦El⟧ ⟦𝟚ᵁ⟧ = _≡_
-⟦El⟧ (s ⟦×ᵁ⟧ t) = ⟦El⟧ s ⟦×⟧ ⟦El⟧ t
-⟦El⟧ (s ⟦⊎ᵁ⟧ t) = ⟦El⟧ s ⟦⊎⟧ ⟦El⟧ t
-⟦El⟧ (⟦Σᵁ⟧ t f) = ⟦Σ⟧ (⟦El⟧ t) λ x → ⟦El⟧ (f x)
+  Finᵁ' : ℕ → U
+  Finᵁ' zero          = 𝟘ᵁ
+  Finᵁ' (suc zero)    = 𝟙ᵁ
+  Finᵁ' (suc (suc n)) = 𝟙ᵁ ⊎ᵁ Finᵁ' (suc n)
 
-module _ {k} {K : ★_ k} {a} {A : ★_ a} {x y : A} (p : x ≡ y) where
-    tr-const : tr (const K) p ≡ id
-    tr-const = J (λ x₁ p₁ → tr (const K) p₁ ≡ id) refl p
+  Finᵁ-Fin : ∀ n → El (Finᵁ n) ≃ Fin n
+  Finᵁ-Fin zero    = ≃-! Fin0≃𝟘
+  Finᵁ-Fin (suc n) = ⊎≃ ≃-refl (Finᵁ-Fin n) ≃-∙ ≃-! Fin∘suc≃𝟙⊎Fin
 
-    {-
-⟦U⟧-sound : ∀ {{_ : FunExt}} {x y} → ⟦U⟧ x y → x ≡ y
-⟦U⟧-refl : ∀ x → ⟦U⟧ x x
+  Finᵁ'-Fin : ∀ n → El (Finᵁ' n) ≃ Fin n
+  Finᵁ'-Fin zero          = ≃-! Fin0≃𝟘
+  Finᵁ'-Fin (suc zero)    = ≃-! Fin1≃𝟙
+  Finᵁ'-Fin (suc (suc n)) = ⊎≃ ≃-refl (Finᵁ'-Fin (suc n)) ≃-∙ ≃-! Fin∘suc≃𝟙⊎Fin
 
-{-
-⟦El⟧-refl : ∀ x → {!⟦El⟧ x x!}
-⟦El⟧-refl = {!!}
--}
+  module From⟦X⟧ (⟦X⟧ : ⟦★₀⟧ X X) where
+    data ⟦U⟧ : ⟦★₀⟧ U U
+    ⟦El⟧ : (⟦U⟧ ⟦→⟧ ⟦★₀⟧) El El
 
-⟦U⟧-sound ⟦𝟘ᵁ⟧ = refl
-⟦U⟧-sound ⟦𝟙ᵁ⟧ = refl
-⟦U⟧-sound ⟦𝟚ᵁ⟧ = refl
-⟦U⟧-sound (u ⟦×ᵁ⟧ u₁) = ap₂ _×ᵁ_ (⟦U⟧-sound u) (⟦U⟧-sound u₁)
-⟦U⟧-sound (u ⟦⊎ᵁ⟧ u₁) = ap₂ _⊎ᵁ_ (⟦U⟧-sound u) (⟦U⟧-sound u₁)
-⟦U⟧-sound (⟦Σᵁ⟧ {u₀} {u₁} u {f₀} {f₁} fᵣ) = apd₂ Σᵁ (⟦U⟧-sound u) (tr-→ El (const U) (⟦U⟧-sound u) f₀ ∙ λ= (λ A → ap (λ z → z (f₀ (tr El (! ⟦U⟧-sound u) A))) (tr-const (⟦U⟧-sound u)) ∙ ⟦U⟧-sound (fᵣ {!!}))) -- (λ= (λ y → let foo = xᵣ {{!!}} {y} {!xᵣ!} in {!tr-→ El (const U) (⟦U⟧-sound u)!}))
+    data ⟦U⟧ where
+      ⟦𝟘ᵁ⟧ : ⟦U⟧ 𝟘ᵁ 𝟘ᵁ
+      ⟦𝟙ᵁ⟧ : ⟦U⟧ 𝟙ᵁ 𝟙ᵁ
+      ⟦𝟚ᵁ⟧ : ⟦U⟧ 𝟚ᵁ 𝟚ᵁ
+      _⟦×ᵁ⟧_ : ⟦Op₂⟧ ⟦U⟧ _×ᵁ_ _×ᵁ_
+      _⟦⊎ᵁ⟧_ : ⟦Op₂⟧ ⟦U⟧ _⊎ᵁ_ _⊎ᵁ_
+      ⟦Σᵁ⟧ : (⟨ u ∶ ⟦U⟧ ⟩⟦→⟧ (⟦El⟧ u ⟦→⟧ ⟦U⟧) ⟦→⟧ ⟦U⟧) Σᵁ Σᵁ
+      ⟦Xᵁ⟧ : ⟦U⟧ Xᵁ Xᵁ
 
-⟦U⟧-refl 𝟘ᵁ = ⟦𝟘ᵁ⟧
-⟦U⟧-refl 𝟙ᵁ = ⟦𝟙ᵁ⟧
-⟦U⟧-refl 𝟚ᵁ = ⟦𝟚ᵁ⟧
-⟦U⟧-refl (x ×ᵁ x₁) = ⟦U⟧-refl x ⟦×ᵁ⟧ ⟦U⟧-refl x₁
-⟦U⟧-refl (x ⊎ᵁ x₁) = ⟦U⟧-refl x ⟦⊎ᵁ⟧ ⟦U⟧-refl x₁
-⟦U⟧-refl (Σᵁ x f) = ⟦Σᵁ⟧ (⟦U⟧-refl x) (λ y → {!⟦U⟧-refl ?!})
--}
+    ⟦El⟧ ⟦𝟘ᵁ⟧ = _≡_
+    ⟦El⟧ ⟦𝟙ᵁ⟧ = _≡_
+    ⟦El⟧ ⟦𝟚ᵁ⟧ = _≡_
+    ⟦El⟧ (u₀ ⟦×ᵁ⟧ u₁) = ⟦El⟧ u₀ ⟦×⟧ ⟦El⟧ u₁
+    ⟦El⟧ (u₀ ⟦⊎ᵁ⟧ u₁) = ⟦El⟧ u₀ ⟦⊎⟧ ⟦El⟧ u₁
+    ⟦El⟧ (⟦Σᵁ⟧ u f) = ⟦Σ⟧ (⟦El⟧ u) λ x → ⟦El⟧ (f x)
+    ⟦El⟧ ⟦Xᵁ⟧ = ⟦X⟧
 
-infix  8 _^ᵁ_
-_^ᵁ_ : U → ℕ → U
-t ^ᵁ zero  = t
-t ^ᵁ suc n = t ×ᵁ t ^ᵁ n
-
-module _ {ℓ} where
-
-    explore : ∀ t → Explore ℓ (El t)
+  module FromXᵉ (Xᵉ : ∀ {ℓ} → Explore ℓ X) where
+    explore : ∀ {ℓ} u → Explore ℓ (El u)
     explore 𝟘ᵁ = 𝟘ᵉ
     explore 𝟙ᵁ = 𝟙ᵉ
     explore 𝟚ᵁ = 𝟚ᵉ
-    explore (s ×ᵁ t) = explore s ×ᵉ explore t
-    explore (s ⊎ᵁ t) = explore s ⊎ᵉ explore t
-    explore (Σᵁ t f) = exploreΣ (explore t) λ {x} → explore (f x)
+    explore (u₀ ×ᵁ u₁) = explore u₀ ×ᵉ explore u₁
+    explore (u₀ ⊎ᵁ u₁) = explore u₀ ⊎ᵉ explore u₁
+    explore (Σᵁ u f) = exploreΣ (explore u) λ {x} → explore (f x)
+    explore Xᵁ = Xᵉ
 
-    exploreU-ind : ∀ {p} t → ExploreInd p (explore t)
-    exploreU-ind 𝟘ᵁ = 𝟘ⁱ
-    exploreU-ind 𝟙ᵁ = 𝟙ⁱ
-    exploreU-ind 𝟚ᵁ = 𝟚ⁱ
-    exploreU-ind (s ×ᵁ t) = exploreU-ind s ×ⁱ exploreU-ind t
-    exploreU-ind (s ⊎ᵁ t) = exploreU-ind s ⊎ⁱ exploreU-ind t
-    exploreU-ind (Σᵁ t f) = exploreΣ-ind (exploreU-ind t) λ {x} → exploreU-ind (f x)
+    module FromXⁱ (Xⁱ : ∀ {ℓ p} → ExploreInd p (Xᵉ {ℓ})) where
+      exploreU-ind : ∀ {ℓ p} u → ExploreInd {ℓ} p (explore u)
+      exploreU-ind 𝟘ᵁ = 𝟘ⁱ
+      exploreU-ind 𝟙ᵁ = 𝟙ⁱ
+      exploreU-ind 𝟚ᵁ = 𝟚ⁱ
+      exploreU-ind (u₀ ×ᵁ u₁) = exploreU-ind u₀ ×ⁱ exploreU-ind u₁
+      exploreU-ind (u₀ ⊎ᵁ u₁) = exploreU-ind u₀ ⊎ⁱ exploreU-ind u₁
+      exploreU-ind (Σᵁ u f) = exploreΣ-ind (exploreU-ind u) λ {x} → exploreU-ind (f x)
+      exploreU-ind Xᵁ = Xⁱ
 
-module _ {ℓ₀ ℓ₁} ℓᵣ where
-    ⟦explore⟧ : ∀ {t₀ t₁} (t : ⟦U⟧ t₀ t₁) → ⟦Explore⟧ {ℓ₀} {ℓ₁} ℓᵣ (⟦El⟧ t) (explore t₀) (explore t₁)
-    ⟦explore⟧ ⟦𝟘ᵁ⟧        = ⟦𝟘ᵉ⟧ {ℓ₀} {ℓ₁} {ℓᵣ}
-    ⟦explore⟧ ⟦𝟙ᵁ⟧        = ⟦𝟙ᵉ⟧ {ℓ₀} {ℓ₁} {ℓᵣ} {_≡_} {refl}
-    ⟦explore⟧ ⟦𝟚ᵁ⟧        = ⟦𝟚ᵉ⟧ {ℓ₀} {ℓ₁} {ℓᵣ} {_≡_} {refl} {refl}
-    ⟦explore⟧ (t ⟦×ᵁ⟧ t₁) = ⟦explore×⟧ {ℓ₀} {ℓ₁} {ℓᵣ} (⟦explore⟧ t) (⟦explore⟧ t₁)
-    ⟦explore⟧ (t ⟦⊎ᵁ⟧ t₁) = ⟦explore⊎⟧ {ℓ₀} {ℓ₁} {ℓᵣ} (⟦explore⟧ t) (⟦explore⟧ t₁)
-    ⟦explore⟧ (⟦Σᵁ⟧ t f)  = ⟦exploreΣ⟧ {ℓ₀} {ℓ₁} {ℓᵣ} (⟦explore⟧ t) (⟦explore⟧ ∘ f)
+      module _ (u : U) where
+        private
+          uᵉ : ∀ {ℓ} → Explore ℓ (El u)
+          uᵉ = explore u
+          uⁱ : ∀ {ℓ p} → ExploreInd {ℓ} p uᵉ
+          uⁱ = exploreU-ind u
 
-    ⟦explore⟧≡ : ∀ t → ⟦Explore⟧ {ℓ₀} {ℓ₁} ℓᵣ _≡_ (explore t) (explore t)
-    ⟦explore⟧≡ 𝟘ᵁ        = ⟦𝟘ᵉ⟧ {ℓ₀} {ℓ₁} {ℓᵣ}
-    ⟦explore⟧≡ 𝟙ᵁ        = ⟦𝟙ᵉ⟧ {ℓ₀} {ℓ₁} {ℓᵣ} {_≡_} {refl}
-    ⟦explore⟧≡ 𝟚ᵁ        = ⟦𝟚ᵉ⟧ {ℓ₀} {ℓ₁} {ℓᵣ} {_≡_} {refl} {refl}
-    ⟦explore⟧≡ (t ×ᵁ t₁) = ⟦explore×⟧≡ {ℓ₀} {ℓ₁} {ℓᵣ} (⟦explore⟧≡ t) (⟦explore⟧≡ t₁)
-    ⟦explore⟧≡ (t ⊎ᵁ t₁) = ⟦explore⊎⟧≡ {ℓ₀} {ℓ₁} {ℓᵣ} (⟦explore⟧≡ t) (⟦explore⟧≡ t₁)
-    ⟦explore⟧≡ (Σᵁ t F)  = ⟦exploreΣ⟧≡ {ℓ₀} {ℓ₁} {ℓᵣ} (⟦explore⟧≡ t) (λ x → ⟦explore⟧≡ (F x))
+        open FromExploreInd uⁱ public hiding (⟦explore⟧)
 
-module _ (t : U) where
-  private
-    tᵉ : ∀ {ℓ} → Explore ℓ (El t)
-    tᵉ = explore t
-    tⁱ : ∀ {ℓ p} → ExploreInd {ℓ} p tᵉ
-    tⁱ = exploreU-ind t
+        ΣᵉU : ∀ {ℓ} → (El u → ★_ ℓ) → ★_ ℓ
+        ΣᵉU = Σᵉ uᵉ
+        ΠᵉU : ∀ {ℓ} → (El u → ★_ ℓ) → ★_ ℓ
+        ΠᵉU = Πᵉ uᵉ
 
-  open FromExploreInd tⁱ public hiding (⟦explore⟧)
-  open From⟦Explore⟧ (λ {ℓ₁} {ℓ₂} ℓᵣ → ⟦explore⟧≡ {ℓ₁} {ℓ₂} ℓᵣ t) public
+      module Xᴱ = FromExploreInd Xⁱ
+      ΣᵉX : ∀ {ℓ} → (X → ★_ ℓ) → ★_ ℓ
+      ΣᵉX = Σᵉ Xᵉ
+      ΠᵉX : ∀ {ℓ} → (X → ★_ ℓ) → ★_ ℓ
+      ΠᵉX = Πᵉ Xᵉ
 
-adequate-sumU : ∀ {{_ : UA}}{{_ : FunExt}} t → Adequate-sum (sum t)
-adequate-sumU 𝟘ᵁ       = 𝟘ˢ-ok
-adequate-sumU 𝟙ᵁ       = 𝟙ˢ-ok
-adequate-sumU 𝟚ᵁ       = 𝟚ˢ-ok
-adequate-sumU (s ×ᵁ t) = adequate-sumΣ (adequate-sumU s) (adequate-sumU t)
-adequate-sumU (s ⊎ᵁ t) = adequate-sum⊎ (adequate-sumU s) (adequate-sumU t)
-adequate-sumU (Σᵁ t f) = adequate-sumΣ (adequate-sumU t) (λ {x} → adequate-sumU (f x))
+      module FromXˢ-ok (Xˢ-ok : Adequate-sum Xᴱ.sum){{_ : UA}}{{_ : FunExt}} where
+        adequate-sumU : ∀ u → Adequate-sum (sum u)
+        adequate-sumU 𝟘ᵁ       = 𝟘ˢ-ok
+        adequate-sumU 𝟙ᵁ       = 𝟙ˢ-ok
+        adequate-sumU 𝟚ᵁ       = 𝟚ˢ-ok
+        adequate-sumU (u₀ ×ᵁ u₁) = adequate-sumΣ (adequate-sumU u₀) (adequate-sumU u₁)
+        adequate-sumU (u₀ ⊎ᵁ u₁) = adequate-sum⊎ (adequate-sumU u₀) (adequate-sumU u₁)
+        adequate-sumU (Σᵁ u f) = adequate-sumΣ (adequate-sumU u) (λ {x} → adequate-sumU (f x))
+        adequate-sumU Xᵁ = Xˢ-ok
 
-module _ {ℓ} where
-    lookupU : ∀ t → Lookup {ℓ} (explore t)
-    lookupU 𝟘ᵁ = 𝟘ˡ
-    lookupU 𝟙ᵁ = 𝟙ˡ
-    lookupU 𝟚ᵁ = 𝟚ˡ
-    lookupU (s ×ᵁ t) = lookup× {eᴬ = explore s} {eᴮ = explore t} (lookupU s) (lookupU t)
-    lookupU (s ⊎ᵁ t) = lookup⊎ {eᴬ = explore s} {eᴮ = explore t} (lookupU s) (lookupU t)
-    lookupU (Σᵁ t f) = lookupΣ {eᴬ = explore t} {eᴮ = λ {x} → explore (f x)} (lookupU t) (λ {x} → lookupU (f x))
+      module FromXˡ (Xˡ : ∀ {ℓ} → Lookup {ℓ} Xᵉ) where
+        lookupU : ∀ {ℓ} u → Lookup {ℓ} (explore u)
+        lookupU 𝟘ᵁ = 𝟘ˡ
+        lookupU 𝟙ᵁ = 𝟙ˡ
+        lookupU 𝟚ᵁ = 𝟚ˡ
+        lookupU (u₀ ×ᵁ u₁) = lookup× {eᴬ = explore u₀} {eᴮ = explore u₁} (lookupU u₀) (lookupU u₁)
+        lookupU (u₀ ⊎ᵁ u₁) = lookup⊎ {eᴬ = explore u₀} {eᴮ = explore u₁} (lookupU u₀) (lookupU u₁)
+        lookupU (Σᵁ u f) = lookupΣ {eᴬ = explore u} {eᴮ = λ {x} → explore (f x)} (lookupU u) (λ {x} → lookupU (f x))
+        lookupU Xᵁ = Xˡ
 
-    focusU : ∀ t → Focus {ℓ} (explore t)
-    focusU 𝟘ᵁ = 𝟘ᶠ
-    focusU 𝟙ᵁ = 𝟙ᶠ
-    focusU 𝟚ᵁ = 𝟚ᶠ
-    focusU (s ×ᵁ t) = focus× {eᴬ = explore s} {eᴮ = explore t} (focusU s) (focusU t)
-    focusU (s ⊎ᵁ t) = focus⊎ {eᴬ = explore s} {eᴮ = explore t} (focusU s) (focusU t)
-    focusU (Σᵁ t f) = focusΣ {eᴬ = explore t} {eᴮ = λ {x} → explore (f x)} (focusU t) (λ {x} → focusU (f x))
+      module FromXᶠ (Xᶠ : ∀ {ℓ} → Focus {ℓ} Xᵉ) where
+        focusU : ∀ {ℓ} u → Focus {ℓ} (explore u)
+        focusU 𝟘ᵁ = 𝟘ᶠ
+        focusU 𝟙ᵁ = 𝟙ᶠ
+        focusU 𝟚ᵁ = 𝟚ᶠ
+        focusU (u₀ ×ᵁ u₁) = focus× {eᴬ = explore u₀} {eᴮ = explore u₁} (focusU u₀) (focusU u₁)
+        focusU (u₀ ⊎ᵁ u₁) = focus⊎ {eᴬ = explore u₀} {eᴮ = explore u₁} (focusU u₀) (focusU u₁)
+        focusU (Σᵁ u f) = focusΣ {eᴬ = explore u} {eᴮ = λ {x} → explore (f x)} (focusU u) (λ {x} → focusU (f x))
+        focusU Xᵁ = Xᶠ
 
-    ΣᵉU : ∀ A {ℓ} → (El A → ★_ ℓ) → ★_ ℓ
-    ΣᵉU = λ A → Σᵉ (explore A)
-    ΠᵉU : ∀ A {ℓ} → (El A → ★_ ℓ) → ★_ ℓ
-    ΠᵉU = λ A → Πᵉ (explore A)
-
-    module _ {{_ : UA}}{{_ : FunExt}} where
-        ΣᵉU-ok : ∀ t → Adequate-Σ {ℓ} (ΣᵉU t)
+      module FromΣᵉX-ok (ΣᵉX-ok : ∀ {ℓ} → Adequate-Σ {ℓ} ΣᵉX){{_ : UA}}{{_ : FunExt}} where
+        ΣᵉU-ok : ∀ {ℓ} u → Adequate-Σ {ℓ} (ΣᵉU u)
         ΣᵉU-ok 𝟘ᵁ       = Σᵉ𝟘-ok
         ΣᵉU-ok 𝟙ᵁ       = Σᵉ𝟙-ok
         ΣᵉU-ok 𝟚ᵁ       = Σᵉ𝟚-ok
-        ΣᵉU-ok (t ×ᵁ u) = Σᵉ×-ok {eᴬ = explore t} {eᴮ = explore u} (ΣᵉU-ok t) (ΣᵉU-ok u)
-        ΣᵉU-ok (t ⊎ᵁ u) = Σᵉ⊎-ok {eᴬ = explore t} {eᴮ = explore u} (ΣᵉU-ok t) (ΣᵉU-ok u)
-        ΣᵉU-ok (Σᵁ t u) = ΣᵉΣ-ok {eᴬ = explore t} {eᴮ = λ {x} → explore (u x)} (ΣᵉU-ok t) (λ {x} → ΣᵉU-ok (u x))
+        ΣᵉU-ok (u₀ ×ᵁ u) = Σᵉ×-ok {eᴬ = explore u₀} {eᴮ = explore u} (ΣᵉU-ok u₀) (ΣᵉU-ok u)
+        ΣᵉU-ok (u₀ ⊎ᵁ u) = Σᵉ⊎-ok {eᴬ = explore u₀} {eᴮ = explore u} (ΣᵉU-ok u₀) (ΣᵉU-ok u)
+        ΣᵉU-ok (Σᵁ u f) = ΣᵉΣ-ok {eᴬ = explore u} {eᴮ = λ {x} → explore (f x)} (ΣᵉU-ok u) (λ {x} → ΣᵉU-ok (f x))
+        ΣᵉU-ok Xᵁ = ΣᵉX-ok
 
-        ΠᵉU-ok : ∀ t → Adequate-Π {ℓ} (ΠᵉU t)
+      module FromΠᵉX-ok (ΠᵉX-ok : ∀ {ℓ} → Adequate-Π {ℓ} ΠᵉX){{_ : UA}}{{_ : FunExt}} where
+        ΠᵉU-ok : ∀ {ℓ} u → Adequate-Π {ℓ} (ΠᵉU u)
         ΠᵉU-ok 𝟘ᵁ       = Πᵉ𝟘-ok
         ΠᵉU-ok 𝟙ᵁ       = Πᵉ𝟙-ok
         ΠᵉU-ok 𝟚ᵁ       = Πᵉ𝟚-ok
-        ΠᵉU-ok (t ×ᵁ u) = Πᵉ×-ok {eᴬ = explore t} {eᴮ = explore u} (ΠᵉU-ok t) (ΠᵉU-ok u)
-        ΠᵉU-ok (t ⊎ᵁ u) = Πᵉ⊎-ok {eᴬ = explore t} {eᴮ = explore u} (ΠᵉU-ok t) (ΠᵉU-ok u)
-        ΠᵉU-ok (Σᵁ t u) = ΠᵉΣ-ok {eᴬ = explore t} {eᴮ = λ {x} → explore (u x)} (ΠᵉU-ok t) (λ {x} → ΠᵉU-ok (u x))
+        ΠᵉU-ok (u₀ ×ᵁ u) = Πᵉ×-ok {eᴬ = explore u₀} {eᴮ = explore u} (ΠᵉU-ok u₀) (ΠᵉU-ok u)
+        ΠᵉU-ok (u₀ ⊎ᵁ u) = Πᵉ⊎-ok {eᴬ = explore u₀} {eᴮ = explore u} (ΠᵉU-ok u₀) (ΠᵉU-ok u)
+        ΠᵉU-ok (Σᵁ u f) = ΠᵉΣ-ok {eᴬ = explore u} {eᴮ = λ {x} → explore (f x)} (ΠᵉU-ok u) (λ {x} → ΠᵉU-ok (f x))
+        ΠᵉU-ok Xᵁ = ΠᵉX-ok
 
-module _ (t : U) {{_ : UA}} {{_ : FunExt}} where
-  open FromAdequate-Σᵉ t (ΣᵉU-ok t) public
-  open FromAdequate-Πᵉ t (ΠᵉU-ok t) public
+    module From⟦Xᵉ⟧
+             {⟦X⟧ : ⟦★₀⟧ X X}
+             {ℓ₀ ℓ₁} ℓᵣ
+             (⟦Xᵉ⟧ : ⟦Explore⟧ {ℓ₀} {ℓ₁} ℓᵣ ⟦X⟧ Xᵉ Xᵉ) where
+      open From⟦X⟧ ⟦X⟧ public
 
-module _ (A : U) (P : El A → ★₀) where
-    Dec-Σ : Π (El A) (Dec ∘ P) → Dec (Σ (El A) P)
-    Dec-Σ = map-Dec (unfocus A) (focusU A) ∘ lift-Dec A P ∘ reify A
+      ⟦explore⟧ : ∀ {u₀ u₁} (u : ⟦U⟧ u₀ u₁) → ⟦Explore⟧ {ℓ₀} {ℓ₁} ℓᵣ (⟦El⟧ u) (explore u₀) (explore u₁)
+      ⟦explore⟧ ⟦𝟘ᵁ⟧        = ⟦𝟘ᵉ⟧ {ℓ₀} {ℓ₁} {ℓᵣ}
+      ⟦explore⟧ ⟦𝟙ᵁ⟧        = ⟦𝟙ᵉ⟧ {ℓ₀} {ℓ₁} {ℓᵣ} {_≡_} {refl}
+      ⟦explore⟧ ⟦𝟚ᵁ⟧        = ⟦𝟚ᵉ⟧ {ℓ₀} {ℓ₁} {ℓᵣ} {_≡_} {refl} {refl}
+      ⟦explore⟧ (u₀ ⟦×ᵁ⟧ u₁) = ⟦explore×⟧ {ℓ₀} {ℓ₁} {ℓᵣ} (⟦explore⟧ u₀) (⟦explore⟧ u₁)
+      ⟦explore⟧ (u₀ ⟦⊎ᵁ⟧ u₁) = ⟦explore⊎⟧ {ℓ₀} {ℓ₁} {ℓᵣ} (⟦explore⟧ u₀) (⟦explore⟧ u₁)
+      ⟦explore⟧ (⟦Σᵁ⟧ u f)  = ⟦exploreΣ⟧ {ℓ₀} {ℓ₁} {ℓᵣ} (⟦explore⟧ u) (⟦explore⟧ ∘ f)
+      ⟦explore⟧ ⟦Xᵁ⟧        = ⟦Xᵉ⟧
 
--- See Explore.Fin for an example of the use of this module
-module Isomorphism {A : ★₀} u (e : El u ≃ A) where
-  open Explore.Isomorphism e
+    module From⟦Xᵉ⟧≡
+             {ℓ₀ ℓ₁} ℓᵣ
+             (⟦Xᵉ⟧≡ : ⟦Explore⟧ {ℓ₀} {ℓ₁} ℓᵣ _≡_ Xᵉ Xᵉ) where
+      open From⟦X⟧ _≡_ public
 
-  module _ {ℓ} where
-    isoᵉ : Explore ℓ A
-    isoᵉ = explore-iso (explore u)
+      ⟦explore⟧≡ : ∀ u → ⟦Explore⟧ {ℓ₀} {ℓ₁} ℓᵣ _≡_ (explore u) (explore u)
+      ⟦explore⟧≡ 𝟘ᵁ        = ⟦𝟘ᵉ⟧ {ℓ₀} {ℓ₁} {ℓᵣ}
+      ⟦explore⟧≡ 𝟙ᵁ        = ⟦𝟙ᵉ⟧ {ℓ₀} {ℓ₁} {ℓᵣ} {_≡_} {refl}
+      ⟦explore⟧≡ 𝟚ᵁ        = ⟦𝟚ᵉ⟧ {ℓ₀} {ℓ₁} {ℓᵣ} {_≡_} {refl} {refl}
+      ⟦explore⟧≡ (u₀ ×ᵁ u₁) = ⟦explore×⟧≡ {ℓ₀} {ℓ₁} {ℓᵣ} (⟦explore⟧≡ u₀) (⟦explore⟧≡ u₁)
+      ⟦explore⟧≡ (u₀ ⊎ᵁ u₁) = ⟦explore⊎⟧≡ {ℓ₀} {ℓ₁} {ℓᵣ} (⟦explore⟧≡ u₀) (⟦explore⟧≡ u₁)
+      ⟦explore⟧≡ (Σᵁ u F)  = ⟦exploreΣ⟧≡ {ℓ₀} {ℓ₁} {ℓᵣ} (⟦explore⟧≡ u) (λ x → ⟦explore⟧≡ (F x))
+      ⟦explore⟧≡ Xᵁ        = ⟦Xᵉ⟧≡
 
-    module _ {p} where
-      isoⁱ : ExploreInd p isoᵉ
-      isoⁱ = explore-iso-ind (exploreU-ind u)
+    module From⟦Xᵉ⟧≡'
+             (⟦Xᵉ⟧≡ : ∀ {ℓ₀ ℓ₁} ℓᵣ → ⟦Explore⟧ {ℓ₀} {ℓ₁} ℓᵣ _≡_ Xᵉ Xᵉ)
+             (u : U) {{_ : FunExt}}{{_ : UA}} where
+      open From⟦Explore⟧ (λ {ℓ₁} {ℓ₂} ℓᵣ → From⟦Xᵉ⟧≡.⟦explore⟧≡ {ℓ₁} {ℓ₂} ℓᵣ (⟦Xᵉ⟧≡ ℓᵣ) u) public
 
-  module _ {ℓ} where
-  {-
-    isoˡ : Lookup {ℓ} isoᵉ
-    isoˡ = lookup-iso {ℓ} {exploreU u} (lookupU u)
+module FromKit
+   {X : ★}
+   {Xᵉ : ∀ {ℓ} → Explore ℓ X}
+   (Xⁱ : ∀ {ℓ p} → ExploreInd p (Xᵉ {ℓ}))
+   (let module Xᴱ = FromExploreInd Xⁱ)
+   (Xˢ-ok : ∀{{_ : UA}}{{_ : FunExt}} → Adequate-sum Xᴱ.sum)
+   (Xˡ : ∀ {ℓ} → Lookup {ℓ} Xᵉ)
+   (Xᶠ : ∀ {ℓ} → Focus {ℓ} Xᵉ)
+   (ΣᵉX-ok : ∀{{_ : UA}}{{_ : FunExt}}{ℓ} → Adequate-Σ {ℓ} (Σᵉ Xᵉ))
+   (ΠᵉX-ok : ∀{{_ : UA}}{{_ : FunExt}}{ℓ} → Adequate-Π {ℓ} (Πᵉ Xᵉ))
+   (⟦Xᵉ⟧≡ : ∀ {ℓ₀ ℓ₁} ℓᵣ → ⟦Explore⟧ {ℓ₀} {ℓ₁} ℓᵣ _≡_ Xᵉ Xᵉ)
+   where
 
-    isoᶠ : Focus {ℓ} isoᵉ
-    isoᶠ = focus-iso {ℓ} {exploreU u} (focusU u)
-    -}
+  open FromX X public
+  open FromXᵉ Xᵉ public
+  open FromXⁱ Xⁱ public
+  open FromXˡ Xˡ public
+  open FromXᶠ Xᶠ public
 
-    isoʳ : Reify {ℓ} isoᵉ
-    isoʳ = FromExploreInd-iso.reify (exploreU-ind u)
+  module _ {{_ : FunExt}}{{_ : UA}} where
+    open FromXˢ-ok Xˢ-ok public
+    open FromΣᵉX-ok ΣᵉX-ok public
+    open FromΠᵉX-ok ΠᵉX-ok public
+    open From⟦Xᵉ⟧≡' ⟦Xᵉ⟧≡ public
 
-    isoᵘ : Unfocus {ℓ} isoᵉ
-    isoᵘ = FromExploreInd-iso.unfocus (exploreU-ind u)
+    module _ (u : U) where
+      open FromAdequate-Σᵉ u (ΣᵉU-ok u) public
+      open FromAdequate-Πᵉ u (ΠᵉU-ok u) public
 
-  isoˢ : Sum A
-  isoˢ = sum-iso (sum u)
-
-  isoᵖ : Product A
-  isoᵖ = product-iso (sum u)
-
-  module _ {{_ : UA}}{{_ : FunExt}} where
-    isoˢ-ok : Adequate-sum isoˢ
-    isoˢ-ok = sum-iso-ok (adequate-sumU u)
-
-    open Adequate-sum₀ isoˢ-ok isoˢ-ok public renaming (sumStableUnder to isoˢ-stableUnder)
-
-Finᵁ : ℕ → U
-Finᵁ zero    = 𝟘ᵁ
-Finᵁ (suc n) = 𝟙ᵁ ⊎ᵁ Finᵁ n
-
-Finᵁ' : ℕ → U
-Finᵁ' zero          = 𝟘ᵁ
-Finᵁ' (suc zero)    = 𝟙ᵁ
-Finᵁ' (suc (suc n)) = 𝟙ᵁ ⊎ᵁ Finᵁ' (suc n)
-
-Finᵁ-Fin : ∀ n → El (Finᵁ n) ≃ Fin n
-Finᵁ-Fin zero    = ≃-! Fin0≃𝟘
-Finᵁ-Fin (suc n) = ⊎≃ ≃-refl (Finᵁ-Fin n) ≃-∙ ≃-! Fin∘suc≃𝟙⊎Fin
-
-Finᵁ'-Fin : ∀ n → El (Finᵁ' n) ≃ Fin n
-Finᵁ'-Fin zero          = ≃-! Fin0≃𝟘
-Finᵁ'-Fin (suc zero)    = ≃-! Fin1≃𝟙
-Finᵁ'-Fin (suc (suc n)) = ⊎≃ ≃-refl (Finᵁ'-Fin (suc n)) ≃-∙ ≃-! Fin∘suc≃𝟙⊎Fin
-
-Πᵁ : (u : U) (v : El u → U) → U
-Πᵁ 𝟘ᵁ        v = 𝟙ᵁ
-Πᵁ 𝟙ᵁ        v = v _
-Πᵁ 𝟚ᵁ        v = v 0₂ ×ᵁ v 1₂
-Πᵁ (u ×ᵁ u₁) v = Πᵁ u λ x → Πᵁ u₁ λ y → v (x , y)
-Πᵁ (u ⊎ᵁ u₁) v = (Πᵁ u (v ∘ inl)) ×ᵁ (Πᵁ u₁ (v ∘ inr))
-Πᵁ (Σᵁ u f)  v = Πᵁ u λ x → Πᵁ (f x) (v ∘ _,_ x)
-
-_→ᵁ_ : (u : U) (v : U) → U
-u →ᵁ v = Πᵁ u (const v)
-
-{-
-𝟛ᵁ : U
-𝟛ᵁ = 𝟙ᵁ ⊎ᵁ 𝟚ᵁ
-
-list22 = list (𝟚ᵁ →ᵁ 𝟚ᵁ)
-list33 = list (𝟛ᵁ →ᵁ 𝟛ᵁ)
--}
-
-module _ {{_ : UA}}{{_ : FunExt}} where
-    Πᵁ-Π : ∀ u v → El (Πᵁ u v) ≡ Π (El u) (El ∘ v)
-    Πᵁ-Π 𝟘ᵁ        v = ! Π𝟘-uniq₀ _
-    Πᵁ-Π 𝟙ᵁ        v = ! Π𝟙-uniq _
-    Πᵁ-Π 𝟚ᵁ        v = ! Π𝟚-×
-    Πᵁ-Π (u ×ᵁ u₁) v = Πᵁ-Π u (λ x → Πᵁ u₁ (v ∘ _,_ x)) ∙ Π=′ _ (λ _ → Πᵁ-Π u₁ _) ∙ ! ΠΣ-curry
-    Πᵁ-Π (u ⊎ᵁ u₁) v = ×= (Πᵁ-Π u (v ∘ inl)) (Πᵁ-Π u₁ (v ∘ inr)) ∙ ! dist-×-Π
-    Πᵁ-Π (Σᵁ u f)  v = Πᵁ-Π u (λ x → Πᵁ (f _) (v ∘ _,_ x)) ∙ Π=′ _ (λ _ → Πᵁ-Π (f _) _) ∙ ! ΠΣ-curry
-
-    →ᵁ-→ : ∀ u v → El (u →ᵁ v) ≡ (El u → El v)
-    →ᵁ-→ u v = Πᵁ-Π u (const v)
-
-    Πᵁ→Π : ∀ u v → El (Πᵁ u v) → Π (El u) (El ∘ v)
-    Πᵁ→Π 𝟘ᵁ v x₂ ()
-    Πᵁ→Π 𝟙ᵁ v x₂ x₃ = x₂
-    Πᵁ→Π 𝟚ᵁ v (x , y) 0₂ = x
-    Πᵁ→Π 𝟚ᵁ v (x , y) 1₂ = y
-    Πᵁ→Π (u ×ᵁ u₁) v x (z , t) = Πᵁ→Π u₁ (v ∘ _,_ z) (Πᵁ→Π u (λ x → Πᵁ u₁ (v ∘ _,_ x)) x z) t
-    Πᵁ→Π (u ⊎ᵁ _) v (x , _) (inl y) = Πᵁ→Π u (v ∘ inl) x y
-    Πᵁ→Π (_ ⊎ᵁ u) v (_ , x) (inr y) = Πᵁ→Π u (v ∘ inr) x y
-    Πᵁ→Π (Σᵁ u f) v x       (y , z) = Πᵁ→Π (f _) (v ∘ _,_ y) (Πᵁ→Π u (λ x → Πᵁ (f _) (v ∘ _,_ x)) x y) z
-
-    Π→Πᵁ : ∀ u v → Π (El u) (El ∘ v) → El (Πᵁ u v)
-    Π→Πᵁ 𝟘ᵁ v f = 0₁
-    Π→Πᵁ 𝟙ᵁ v f = f 0₁
-    Π→Πᵁ 𝟚ᵁ v f = f 0₂ , f 1₂
-    Π→Πᵁ (u ×ᵁ u₁) v f = Π→Πᵁ u (λ x → Πᵁ u₁ (v ∘ _,_ x))
-                           (λ x → Π→Πᵁ u₁ (v ∘ _,_ x) (f ∘ _,_ x))
-    Π→Πᵁ (u ⊎ᵁ u₁) v f = Π→Πᵁ u (v ∘ inl) (f ∘ inl) ,
-                           Π→Πᵁ u₁ (v ∘ inr) (f ∘ inr)
-    Π→Πᵁ (Σᵁ u F) v f = Π→Πᵁ u (λ x → Πᵁ (F x) (v ∘ _,_ x))
-                          (λ x → Π→Πᵁ (F x) (v ∘ _,_ x) (f ∘ _,_ x))
-
-    →ᵁ→→ : ∀ u v → El (u →ᵁ v) → (El u → El v)
-    →ᵁ→→ u v = Πᵁ→Π u (const v)
-
-    →→→ᵁ : ∀ u v → (El u → El v) → El (u →ᵁ v)
-    →→→ᵁ u v = Π→Πᵁ u (const v)
-
--- -}
--- -}
--- -}
--- -}
--- -}
+      module _ (P : El u → ★₀) where
+        Dec-Σ : Π (El u) (Dec ∘ P) → Dec (Σ (El u) P)
+        Dec-Σ = Dec-Σ.Dec-Σ u (focusU u) P

@@ -6,11 +6,12 @@ open import Type
 open import Function
 open import Relation.Binary.PropositionalEquality.NP
 
-open import Explore.Universe
+open import Explore.Universe.Base
 open import Explore.Core
 open import Explore.Zero
 open import Explore.One
 open import Explore.Two
+import Explore.Universe.Isomorphism
 
 -- Exploring Fin comes in two flavors Regular & Custom
 -- We recommend Regular if you want to work for arbitrary values of n.
@@ -22,15 +23,14 @@ module Regular n where
       public
       renaming ( isoᵉ to Finᵉ
                ; isoⁱ to Finⁱ
-               --; isoˡ to Finˡ
-               --; isoᶠ to Finᶠ
+               ; isoˡ to Finˡ
+               ; isoᶠ to Finᶠ
                ; isoˢ to Finˢ
                ; isoᵖ to Finᵖ
                ; isoʳ to Finʳ
                ; isoᵘ to Finᵘ
                ; isoˢ-ok to Finˢ-ok
                ; isoˢ-stableUnder to Finˢ-stableUnder
-               -- ; μiso to μFin
                )
 
 module Custom where
@@ -39,15 +39,14 @@ module Custom where
       public
       renaming ( isoᵉ to Finᵉ
                ; isoⁱ to Finⁱ
-               --; isoˡ to Finˡ
-               --; isoᶠ to Finᶠ
+               ; isoˡ to Finˡ
+               ; isoᶠ to Finᶠ
                ; isoˢ to Finˢ
                ; isoᵖ to Finᵖ
                ; isoʳ to Finʳ
                ; isoᵘ to Finᵘ
                ; isoˢ-ok to Finˢ-ok
                ; isoˢ-stableUnder to Finˢ-stableUnder
-               -- ; μiso to μFin
                )
 
   Finᵉ0-𝟘ᵉ : (λ {M : ★₀} (ε : M) op f → Finᵉ 0 ε op (f ∘ Fin▹𝟘)) ≡ 𝟘ᵉ

@@ -7,6 +7,9 @@ open import Explore.Core
 -- The core properties behind exploration functions
 open import Explore.Properties
 
+-- Lifting the dependent axiom of choice to sums and products
+open import Explore.BigDistr
+
 -- Constructions on top of exploration functions
 open import Explore.Explorable
 
@@ -27,6 +30,8 @@ open import Explore.Fin
 
 -- A type universe of explorable types
 open import Explore.Universe
+open import Explore.Universe.Base
+open import Explore.Universe.Isomorphism
 
 -- Transporting explorations across isomorphisms
 open import Explore.Isomorphism

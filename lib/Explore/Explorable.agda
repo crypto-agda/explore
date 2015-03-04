@@ -334,6 +334,14 @@ module FromExploreInd
                     (λ _ _ → uncurry Dec-⊎)
                     public renaming (lift-hom to lift-Dec)
 
+  module Dec-Σ
+        {p}
+        (focus : Focus {p} explore)
+        (P : A → ★_ p) where
+
+    Dec-Σ : Π A (Dec ∘ P) → Dec (Σ A P)
+    Dec-Σ = map-Dec unfocus focus ∘ lift-Dec P ∘ reify
+
   lift-hom-≡ :
       ∀ {m} {S T : ★ m}
         (zero : S)

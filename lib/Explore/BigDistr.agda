@@ -1,49 +1,44 @@
 {-# OPTIONS --without-K #-}
--- Unfinished
-
+-- Lifting the dependent axiom of choice to sums and products
 
 open import Type
 open import Function.NP
+open import Function.Extensionality
 open import Data.Nat
 open import Data.Product
 open import Data.Fin using (Fin)
 open import Explore.Core
-import Function.Related as FR
-import Relation.Binary.PropositionalEquality as ≡
-open ≡ using (_≡_)
-open import Function.Related.TypeIsomorphisms.NP
+open import Explore.Properties
+open import Relation.Binary.PropositionalEquality.NP
+open import Type.Identities
+open import HoTT
+open ≡-Reasoning
 
 module Explore.BigDistr
-                {A B : ★₀}
-                {exploreᴬ : Explore₀ A} 
-                {exploreᴮ : Explore₀ B} 
-                {exploreᴬᴮ : Explore₀ (A → B)}
-                (F : A → B → ℕ)
+                {A B          : ★₀}
+                {Πᴬ           : Product A}
+                (adequate-Πᴬ  : Adequate-product Πᴬ)
+                {Σᴮ           : Sum B}
+                (adequate-Σᴮ  : Adequate-sum Σᴮ)
+                {Σᴬᴮ          : Sum (A → B)}
+                (adequate-Σᴬᴮ : Adequate-sum Σᴬᴮ)
+                (F            : A → B → ℕ)
+                {{_           : UA}}
+                {{_           : FunExt}}
                 where
-  productᴬ = exploreᴬ _*_
-  sumᴮ = exploreᴮ _+_
-  sumᴬᴮ = exploreᴬᴮ _+_
 
-  module _
-    (adequate-productᴬ : AdequateProduct productᴬ)
-    (adequate-sumᴮ : AdequateSum sumᴮ)
-    (adequate-sumᴬᴮ : AdequateSum sumᴬᴮ)
-    where
-
-    open FR.EquationalReasoning
-    big-distr :
-      productᴬ (sumᴮ ∘ F) ≡
-      sumᴬᴮ (λ f → productᴬ (F ˢ f))
-    big-distr = Fin-injective (
-        Fin (productᴬ (sumᴮ ∘ F))
-      ↔⟨ adequate-productᴬ (sumᴮ ∘ F) ⟩
-        Π A (Fin ∘ sumᴮ ∘ F)
-      ↔⟨ {!!} ⟩
-        Π A (λ x → Σ B (Fin ∘ F x))
-      ↔⟨ dep-choice-iso _ ⟩
-        Σ (Π A (const B)) (λ f → Π A (λ x → Fin (F x (f x))))
-      ↔⟨ second-iso (λ f → sym (adequate-productᴬ (F ˢ f))) ⟩
-        Σ (Π A (const B)) (λ f → Fin (productᴬ (F ˢ f)))
-      ↔⟨ sym (adequate-sumᴬᴮ (λ f → productᴬ (F ˢ f))) ⟩
-        Fin (sumᴬᴮ (λ f → productᴬ (F ˢ f)))
-      ∎)
+big-distr : Πᴬ (Σᴮ ∘ F) ≡ Σᴬᴮ λ f → Πᴬ (F ˢ f)
+big-distr =
+  Fin-injective
+  ( Fin (Πᴬ (Σᴮ ∘ F))
+  ≡⟨ adequate-Πᴬ (Σᴮ ∘ F) ⟩
+    Π A (Fin ∘ Σᴮ ∘ F)
+  ≡⟨ Π=′ A (adequate-Σᴮ ∘ F) ⟩
+    Π A (λ x → Σ B (Fin ∘ F x))
+  ≡⟨ ΠΣ-comm ⟩
+    Σ (Π A (const B)) (λ f → Π A (λ x → Fin (F x (f x))))
+  ≡⟨ Σ=′ (A → B) (λ f → ! (adequate-Πᴬ (F ˢ f))) ⟩
+    Σ (A → B) (λ f → Fin (Πᴬ (F ˢ f)))
+  ≡⟨ ! (adequate-Σᴬᴮ (λ f → Πᴬ (F ˢ f))) ⟩
+    Fin (Σᴬᴮ (λ f → Πᴬ (F ˢ f)))
+  ∎)

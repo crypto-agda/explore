@@ -22,7 +22,7 @@ module Explore.Function.Fin where
 
 postulate
   Postulate-FinFunˢ-ok : ★
-open ExplorableRecord
+-- open ExplorableRecord
 
 module _ {A : ★}(μA : Explorable A) where
 

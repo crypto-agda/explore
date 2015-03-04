@@ -1,3 +1,4 @@
+{-# OPTIONS --without-K #-}
 module factorial where
 
 open import Type
@@ -5,7 +6,7 @@ open import Data.Nat.NP
 open import Data.Product
 open import Data.Sum
 open import Data.Zero
-open import Data.One
+open import Data.One using (𝟙)
 open import Data.Fin using (Fin; Fin′; zero; suc; inject₁)
                      renaming (toℕ to Fin▹ℕ; fromℕ to ℕ▹Fin)
 open import Function.NP as F

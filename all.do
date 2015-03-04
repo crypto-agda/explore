@@ -1,2 +1,2 @@
 #!/bin/bash -eu
-exec agda-pkg -i. -pstdlib -pcrypto-agda/agda-nplib -ilib explore.agda
+exec agda-pkg -cagda-pkg.conf explore.agda

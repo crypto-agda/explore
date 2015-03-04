@@ -43,16 +43,14 @@ module _ {ℓ p} {Aᵉ : Explore ℓ A} (Aⁱ : ExploreInd p Aᵉ) where
 private
   Bⁱ = explore-iso-ind
 
-{-
 module _ {ℓ} {Aᵉ : Explore (ₛ ℓ) A} (Aˡ : Lookup {ℓ} Aᵉ) where
   lookup-iso : Lookup {ℓ} (Bᵉ Aᵉ)
-  lookup-iso {C} d b = tr C {!e!} (Aˡ d (g b))
+  lookup-iso {C} d b = tr C (<–-inv-r e b) (Aˡ d (g b))
 
 module _ {ℓ} {Aᵉ : Explore (ₛ ℓ) A} (Aᶠ : Focus {ℓ} Aᵉ) where
   focus-iso : Focus {ℓ} (Bᵉ Aᵉ)
   focus-iso {C} (b , c) = Aᶠ (g b , c')
-    where c' = {!tr C (! (–>-inv-r e b)) c!}
--}
+    where c' = tr C (! (<–-inv-r e b)) c
 
 module _ (Aˢ : Sum A) where
   sum-iso : Sum B

@@ -1,4 +1,4 @@
--- NOTE with-K
+{-# OPTIONS --without-K #-}
 module Explore.GroupHomomorphism where
 
 open import Level

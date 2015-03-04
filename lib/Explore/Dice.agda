@@ -8,7 +8,7 @@ open Equivalences
 open import Explore.Core
 open import Explore.Properties
 open import Explore.Explorable
-open import Explore.Universe
+open import Explore.Universe.Base
 
 module Explore.Dice where
 
@@ -25,12 +25,6 @@ module ByHand where
     open FromExploreInd exploreDice-ind public
       using ()
       renaming (sum to sumDice; product to productDice; reify to reifyDice; unfocus to unfocusDice)
-
-{-
-    module _ {ℓ} where
-        open Explorableₛ  {ℓ} exploreDice-ind public using () renaming (reify   to reifyDice)
-        open Explorableₛₛ {ℓ} exploreDice-ind public using () renaming (unfocus to unfocusDice)
-        -}
 
 Dice↔Fin6 : Dice ≃ Fin 6
 Dice↔Fin6 = equiv (⇒) (⇐) ⇒⇐ ⇐⇒
@@ -70,19 +64,18 @@ Dice↔Fin6 = equiv (⇒) (⇐) ⇒⇐ ⇐⇒
 
 -- By using FinU' instead of FinU one get a special case for Fin 1 thus avoiding
 -- a final ε in the exploration function.
-open Explore.Universe.Isomorphism (Finᵁ' 6) (Finᵁ'-Fin 6 ≃-∙ ≃-sym Dice↔Fin6)
+open import Explore.Universe.Isomorphism (Finᵁ' 6) (Finᵁ'-Fin 6 ≃-∙ ≃-sym Dice↔Fin6)
   public
   renaming ( isoᵉ to Diceᵉ
            ; isoⁱ to Diceⁱ
-           -- ; isoˡ to Diceˡ
-           -- ; isoᶠ to Diceᶠ
+           ; isoˡ to Diceˡ
+           ; isoᶠ to Diceᶠ
            ; isoˢ to Diceˢ
            ; isoᵖ to Diceᵖ
            ; isoʳ to Diceʳ
            ; isoᵘ to Diceᵘ
            ; isoˢ-ok to Diceˢ-ok
            ; isoˢ-stableUnder to Diceˢ-stableUnder
-           -- ; μiso to μDice
            )
 
 module _ {m} where
