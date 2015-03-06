@@ -31,8 +31,12 @@ GroupHomomorphism GA GB f = ∀ x y → f (x + y) ≡ f x * f y
     open Group GA renaming (_∙_ to _+_)
     open Group GB renaming (_∙_ to _*_)
 
-module _ {A B}(GA : Group A)(GB : Group B)(f : A → B)(exploreA : Explore zero A)(f-homo : GroupHomomorphism GA GB f)([f] : B → A)(f-sur : ∀ b → f ([f] b) ≡ b)
-              (sui : ∀ k → StableUnder exploreA (flip (Group._∙_ GA) k))(explore-ext : ExploreExt exploreA) where
+module _ {A B}(GA : Group A)(GB : Group B)
+         (f : A → B)
+         (exploreA : Explore zero A)(f-homo : GroupHomomorphism GA GB f)
+         ([f] : B → A)(f-sur : ∀ b → f ([f] b) ≡ b)
+         (explore-ext : ExploreExt exploreA)
+         where
   open Group GA using (-_) renaming (_∙_ to _+_ ; ε to 0g)
   open Group GB using ()   renaming (_∙_ to _*_ ; ε to 1g ; -_ to 1/_)
 
@@ -122,19 +126,22 @@ module _ {A B}(GA : Group A)(GB : Group B)(f : A → B)(exploreA : Explore zero 
 
   -}
 
+  module _ {X}(z : X)(op : X → X → X)
+           (sui : ∀ k → StableUnder' exploreA z op (flip (Group._∙_ GA) k))
+    where
   -- this proof isn't actually any hard..
-  thm : ∀ {X}(z : X)(op : X → X → X)(O : B → X) m₀ m₁ → exploreA z op (λ x → O (f x * m₀)) ≡ exploreA z op (λ x → O (f x * m₁))
-  thm z op O m₀ m₁ = explore (λ x → O (f x * m₀))
-                 ≡⟨ sui (- [f] m₀) z op (λ x → O (f x * m₀)) ⟩
+    thm : ∀ (O : B → X) m₀ m₁ → exploreA z op (λ x → O (f x * m₀)) ≡ exploreA z op (λ x → O (f x * m₁))
+    thm O m₀ m₁ = explore (λ x → O (f x * m₀))
+                 ≡⟨ sui (- [f] m₀) (λ x → O (f x * m₀)) ⟩
                    explore (λ x → O (f (x + - [f] m₀)  * m₀))
                  ≡⟨ explore-ext z op (λ x → cong O (lemma1 x)) ⟩
                    explore (λ x → O (f x ))
-                 ≡⟨ sui ([f] m₁) z op (O ∘ f) ⟩
+                 ≡⟨ sui ([f] m₁) (O ∘ f) ⟩
                    explore (λ x → O (f (x + [f] m₁)))
                  ≡⟨ explore-ext z op (λ x → cong O (lemma2 x)) ⟩
                    explore (λ x → O (f x * m₁))
                  ∎
-    where
+     where
       open ≡-Reasoning
       explore = exploreA z op
 
