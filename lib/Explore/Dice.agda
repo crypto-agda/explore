@@ -1,5 +1,6 @@
 {-# OPTIONS --without-K #-}
 open import Type
+open import Data.Zero
 open import Data.Fin using (Fin; zero; suc; #_)
 open import Relation.Binary.PropositionalEquality.NP using (_≡_; refl)
 open import HoTT
@@ -8,6 +9,7 @@ open Equivalences
 open import Explore.Core
 open import Explore.Properties
 open import Explore.Explorable
+open import Explore.Universe.Type {𝟘}
 open import Explore.Universe.Base
 
 module Explore.Dice where
@@ -64,24 +66,12 @@ Dice↔Fin6 = equiv (⇒) (⇐) ⇒⇐ ⇐⇒
 
 -- By using FinU' instead of FinU one get a special case for Fin 1 thus avoiding
 -- a final ε in the exploration function.
-open import Explore.Universe.Isomorphism (Finᵁ' 6) (Finᵁ'-Fin 6 ≃-∙ ≃-sym Dice↔Fin6)
-  public
-  renaming ( isoᵉ to Diceᵉ
-           ; isoⁱ to Diceⁱ
-           ; isoˡ to Diceˡ
-           ; isoᶠ to Diceᶠ
-           ; isoˢ to Diceˢ
-           ; isoᵖ to Diceᵖ
-           ; isoʳ to Diceʳ
-           ; isoᵘ to Diceᵘ
-           ; isoˢ-ok to Diceˢ-ok
-           ; isoˢ-stableUnder to Diceˢ-stableUnder
-           )
+module DiceE = Explore.Universe.Base (≃ᵁ (Finᵁ' 6) Dice (Finᵁ'-Fin 6 ≃-∙ ≃-sym Dice↔Fin6))
 
 module _ {m} where
   open ByHand
   _≡ᵉ_ : (e₀ e₁ : Explore m Dice) → ★_ _
   _≡ᵉ_ = _≡_
 
-  same-as-by-hand : exploreDice ≡ᵉ Diceᵉ
+  same-as-by-hand : exploreDice ≡ᵉ DiceE.explore
   same-as-by-hand = refl

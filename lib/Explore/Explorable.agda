@@ -372,15 +372,15 @@ module FromExploreInd
             (! sᴮ-0)
             (λ p q → (ap₂ _+_ p q) ∙ (! hom _ _)) (λ _ → refl)
     where open ≡
-  
+
   sum-lin : SumLin sum
   sum-lin f zero    = sum-zero
   sum-lin f (suc k) = ≡.trans (sum-hom f (λ x → k * f x)) (≡.ap₂ _+_ (≡.refl {x = sum f}) (sum-lin f k))
-  
+
   sum-const : SumConst sum
   sum-const x = sum-ext (λ _ → ! snd ℕ°.*-identity x) ∙ sum-lin (const 1) x ∙ ℕ°.*-comm x Card
     where open ≡
-  
+
   exploreStableUnder→sumStableUnder : ∀ {p} → StableUnder explore p → SumStableUnder sum p
   exploreStableUnder→sumStableUnder SU-p = SU-p 0 _+_
 
@@ -468,8 +468,9 @@ module FromAdequate-sum
     count : Count A
     count f = sum (𝟚▹ℕ ∘ f)
 
-  module _ (p q : A → 𝟚)(prf : count p ≡ count q) where
-    private
+  private
+    module M {p q : A → 𝟚}(same-count : count p ≡ count q) where
+      private
 
         P = λ x → p x ≡ 1₂
         Q = λ x → q x ≡ 1₂
@@ -479,10 +480,10 @@ module FromAdequate-sum
         π : Σ A P ≡ Σ A Q
         π = ! Σ=′ _ (count-≡ p)
             ∙ ! (sum-adq (𝟚▹ℕ ∘ p))
-            ∙ ap Fin prf
+            ∙ ap Fin same-count
             ∙ sum-adq (𝟚▹ℕ ∘ q)
             ∙ Σ=′ _ (count-≡ q)
-        
+
         lem1 : ∀ px qx → 𝟚▹ℕ qx ≡ (𝟚▹ℕ (px ∧ qx)) + 𝟚▹ℕ (not px) * 𝟚▹ℕ qx
         lem1 1₂ 1₂ = ≡.refl
         lem1 1₂ 0₂ = ≡.refl
@@ -494,7 +495,7 @@ module FromAdequate-sum
         lem2 1₂ 0₂ = ≡.refl
         lem2 0₂ 1₂ = ≡.refl
         lem2 0₂ 0₂ = ≡.refl
-        
+
         lemma1 : ∀ px qx → (qx ≡ 1₂) ≡ (Fin (𝟚▹ℕ (px ∧ qx)) ⊎ (px ≡ 0₂ × qx ≡ 1₂))
         lemma1 px qx = ! Fin-≡-≡1₂ qx
                      ∙ ap Fin (lem1 px qx)
@@ -503,7 +504,7 @@ module FromAdequate-sum
 
         lemma2 : ∀ px qx → (Fin (𝟚▹ℕ (px ∧ qx)) ⊎ (px ≡ 1₂ × qx ≡ 0₂)) ≡ (px ≡ 1₂)
         lemma2 px qx = ! ⊎= refl (! Fin-×-* ∙ ×= (Fin-≡-≡1₂ px) (Fin-≡-≡0₂ qx)) ∙ Fin-⊎-+ ∙ ap Fin (! lem2 px qx) ∙ Fin-≡-≡1₂ px
-  
+
         π' : (Fin (sum (λ x → 𝟚▹ℕ (p x ∧ q x))) ⊎ Σ A (λ x →  P x × ¬Q x))
            ≡ (Fin (sum (λ x → 𝟚▹ℕ (p x ∧ q x))) ⊎ Σ A (λ x → ¬P x ×  Q x))
         π' = ⊎= (sum-adq (λ x → 𝟚▹ℕ (p x ∧ q x))) refl
@@ -516,14 +517,11 @@ module FromAdequate-sum
 
         π'' : Σ A (P ×° ¬Q) ≡ Σ A (¬P ×° Q)
         π'' = Fin⊎-injective (sum (λ x → 𝟚▹ℕ (p x ∧ q x))) π'
-  
-        module M = EquivalentSubsets π''
-    
---    indIso : A ≡ A
---    indIso = equiv M.π M.π M.ππ M.ππ
-      
-    indIsIso : p ≡ q ∘ M.π
-    indIsIso = M.prop
+
+      open EquivalentSubsets π'' public
+
+  same-count→iso : ∀{p q : A → 𝟚}(same-count : count p ≡ count q) → p ≡ q ∘ M.π {p} {q} same-count
+  same-count→iso {p} {q} sc = M.prop {p} {q} sc
 
 module From⟦Explore⟧
     {-a-} {A : ★₀ {- a-}}
@@ -584,31 +582,28 @@ module From⟦Explore⟧
            (adequate-Σᵉ : ∀ {ℓ} → Adequate-Σ {ℓ} (Σᵉ explore))
           where
     open Adequacy
+
     adequate-sum : Adequate-sum _≡_ sum
     adequate-sum f = sum⇒Σᵉ f ∙ adequate-Σᵉ (Fin ∘ f)
 
-    module _ {{_ : UA}}{{_ : FunExt}} where
-      open FromAdequate-sum adequate-sum public
+    open FromAdequate-sum adequate-sum public
 
-    -- adequate-any : Adequate-any -→- any
-    -- adequate-any f = {!adequate-Σᵉ _ {!✓any→Σᵉ f!}!}
+    adequate-any : Adequate-any -→- any
+    adequate-any f e = coe (adequate-Σᵉ (✓ ∘ f)) (✓any→Σᵉ f e)
 
   module FromAdequate-Πᵉ
            (adequate-Πᵉ : ∀ {ℓ} → Adequate-Π {ℓ} (Πᵉ explore))
           where
-
     open Adequacy
+
     adequate-product : Adequate-product _≡_ product
     adequate-product f = product⇒Πᵉ f ∙ adequate-Πᵉ (Fin ∘ f)
 
     adequate-all : Adequate-all _≡_ all
     adequate-all f = ✓all-Πᵉ f ∙ adequate-Πᵉ _
 
-    lift-all = adequate-all
-
-    module _ (f : A → 𝟚) where
-        check! : {pf : ✓ (all f)} → (∀ x → ✓ (f x))
-        check! {pf} = coe (lift-all f) pf
+    check! : (f : A → 𝟚) {pf : ✓ (all f)} → (∀ x → ✓ (f x))
+    check! f {pf} = coe (adequate-all f) pf
 
 {-
 module ExplorableRecord where

@@ -25,52 +25,12 @@ open        Explore.Product.Operators
 open import Explore.Sum
 open import Explore.Explorable
 open import Explore.Isomorphism
+open import Explore.GuessingGameFlipping
+import      Explore.Universe.Type
 
 module Explore.Universe (X : Type₀) where
 
-infixr 2 _×ᵁ_
-
-data U : Type₁
-El : U → Type₀
-
-data U where
-  𝟘ᵁ 𝟙ᵁ 𝟚ᵁ : U
-  _×ᵁ_ _⊎ᵁ_ : U → U → U
-  Σᵁ : (u : U) (f : El u → U) → U
-  Xᵁ : U
-  ≃ᵁ : (u : U) (A : Type₀) (e : El u ≃ A) → U
-
-El 𝟘ᵁ = 𝟘
-El 𝟙ᵁ = 𝟙
-El 𝟚ᵁ = 𝟚
-El (u₀ ×ᵁ u₁) = El u₀ × El u₁
-El (u₀ ⊎ᵁ u₁) = El u₀ ⊎ El u₁
-El (Σᵁ u f) = Σ (El u) λ x → El (f x)
-El Xᵁ = X
-El (≃ᵁ u A e) = A
-
-infix  8 _^ᵁ_
-_^ᵁ_ : U → ℕ → U
-u ^ᵁ zero  = u
-u ^ᵁ suc n = u ×ᵁ u ^ᵁ n
-
-Finᵁ : ℕ → U
-Finᵁ zero    = 𝟘ᵁ
-Finᵁ (suc n) = 𝟙ᵁ ⊎ᵁ Finᵁ n
-
-Finᵁ' : ℕ → U
-Finᵁ' zero          = 𝟘ᵁ
-Finᵁ' (suc zero)    = 𝟙ᵁ
-Finᵁ' (suc (suc n)) = 𝟙ᵁ ⊎ᵁ Finᵁ' (suc n)
-
-Finᵁ-Fin : ∀ n → El (Finᵁ n) ≃ Fin n
-Finᵁ-Fin zero    = ≃-! Fin0≃𝟘
-Finᵁ-Fin (suc n) = ⊎≃ ≃-refl (Finᵁ-Fin n) ≃-∙ ≃-! Fin∘suc≃𝟙⊎Fin
-
-Finᵁ'-Fin : ∀ n → El (Finᵁ' n) ≃ Fin n
-Finᵁ'-Fin zero          = ≃-! Fin0≃𝟘
-Finᵁ'-Fin (suc zero)    = ≃-! Fin1≃𝟙
-Finᵁ'-Fin (suc (suc n)) = ⊎≃ ≃-refl (Finᵁ'-Fin (suc n)) ≃-∙ ≃-! Fin∘suc≃𝟙⊎Fin
+open Explore.Universe.Type {X}
 
 module FromXᵉ (Xᵉ : ∀ {ℓ} → Explore ℓ X) where
   explore : ∀ {ℓ} u → Explore ℓ (El u)
@@ -149,42 +109,37 @@ module FromXᵉ (Xᵉ : ∀ {ℓ} → Explore ℓ X) where
       focus (≃ᵁ u A e) = focus-iso e {Aᵉ = explore u} (focus u)
 
     module FromΣᵉX-ok (ΣᵉX-ok : ∀ {ℓ} → Adequate-Σ {ℓ} ΣᵉX){{_ : UA}}{{_ : FunExt}} where
-      ΣᵉU-ok : ∀ {ℓ} u → Adequate-Σ {ℓ} (ΣᵉU u)
-      ΣᵉU-ok 𝟘ᵁ       = Σᵉ𝟘-ok
-      ΣᵉU-ok 𝟙ᵁ       = Σᵉ𝟙-ok
-      ΣᵉU-ok 𝟚ᵁ       = Σᵉ𝟚-ok
-      ΣᵉU-ok (u₀ ×ᵁ u) = Σᵉ×-ok {eᴬ = explore u₀} {eᴮ = explore u} (ΣᵉU-ok u₀) (ΣᵉU-ok u)
-      ΣᵉU-ok (u₀ ⊎ᵁ u) = Σᵉ⊎-ok {eᴬ = explore u₀} {eᴮ = explore u} (ΣᵉU-ok u₀) (ΣᵉU-ok u)
-      ΣᵉU-ok (Σᵁ u f) = ΣᵉΣ-ok {eᴬ = explore u} {eᴮ = λ {x} → explore (f x)} (ΣᵉU-ok u) (λ {x} → ΣᵉU-ok (f x))
-      ΣᵉU-ok Xᵁ = ΣᵉX-ok
-      ΣᵉU-ok (≃ᵁ u A e) = Σ-iso-ok e {Aᵉ = explore u} (ΣᵉU-ok u)
+      Σᵉ-ok : ∀ {ℓ} u → Adequate-Σ {ℓ} (ΣᵉU u)
+      Σᵉ-ok 𝟘ᵁ       = Σᵉ𝟘-ok
+      Σᵉ-ok 𝟙ᵁ       = Σᵉ𝟙-ok
+      Σᵉ-ok 𝟚ᵁ       = Σᵉ𝟚-ok
+      Σᵉ-ok (u₀ ×ᵁ u) = Σᵉ×-ok {eᴬ = explore u₀} {eᴮ = explore u} (Σᵉ-ok u₀) (Σᵉ-ok u)
+      Σᵉ-ok (u₀ ⊎ᵁ u) = Σᵉ⊎-ok {eᴬ = explore u₀} {eᴮ = explore u} (Σᵉ-ok u₀) (Σᵉ-ok u)
+      Σᵉ-ok (Σᵁ u f) = ΣᵉΣ-ok {eᴬ = explore u} {eᴮ = λ {x} → explore (f x)} (Σᵉ-ok u) (λ {x} → Σᵉ-ok (f x))
+      Σᵉ-ok Xᵁ = ΣᵉX-ok
+      Σᵉ-ok (≃ᵁ u A e) = Σ-iso-ok e {Aᵉ = explore u} (Σᵉ-ok u)
 
     module FromΠᵉX-ok (ΠᵉX-ok : ∀ {ℓ} → Adequate-Π {ℓ} ΠᵉX){{_ : UA}}{{_ : FunExt}} where
-      ΠᵉU-ok : ∀ {ℓ} u → Adequate-Π {ℓ} (ΠᵉU u)
-      ΠᵉU-ok 𝟘ᵁ       = Πᵉ𝟘-ok
-      ΠᵉU-ok 𝟙ᵁ       = Πᵉ𝟙-ok
-      ΠᵉU-ok 𝟚ᵁ       = Πᵉ𝟚-ok
-      ΠᵉU-ok (u₀ ×ᵁ u) = Πᵉ×-ok {eᴬ = explore u₀} {eᴮ = explore u} (ΠᵉU-ok u₀) (ΠᵉU-ok u)
-      ΠᵉU-ok (u₀ ⊎ᵁ u) = Πᵉ⊎-ok {eᴬ = explore u₀} {eᴮ = explore u} (ΠᵉU-ok u₀) (ΠᵉU-ok u)
-      ΠᵉU-ok (Σᵁ u f) = ΠᵉΣ-ok {eᴬ = explore u} {eᴮ = λ {x} → explore (f x)} (ΠᵉU-ok u) (λ {x} → ΠᵉU-ok (f x))
-      ΠᵉU-ok Xᵁ = ΠᵉX-ok
-      ΠᵉU-ok (≃ᵁ u A e) = Π-iso-ok e {Aᵉ = explore u} (ΠᵉU-ok u)
+      Πᵉ-ok : ∀ {ℓ} u → Adequate-Π {ℓ} (ΠᵉU u)
+      Πᵉ-ok 𝟘ᵁ       = Πᵉ𝟘-ok
+      Πᵉ-ok 𝟙ᵁ       = Πᵉ𝟙-ok
+      Πᵉ-ok 𝟚ᵁ       = Πᵉ𝟚-ok
+      Πᵉ-ok (u₀ ×ᵁ u) = Πᵉ×-ok {eᴬ = explore u₀} {eᴮ = explore u} (Πᵉ-ok u₀) (Πᵉ-ok u)
+      Πᵉ-ok (u₀ ⊎ᵁ u) = Πᵉ⊎-ok {eᴬ = explore u₀} {eᴮ = explore u} (Πᵉ-ok u₀) (Πᵉ-ok u)
+      Πᵉ-ok (Σᵁ u f) = ΠᵉΣ-ok {eᴬ = explore u} {eᴮ = λ {x} → explore (f x)} (Πᵉ-ok u) (λ {x} → Πᵉ-ok (f x))
+      Πᵉ-ok Xᵁ = ΠᵉX-ok
+      Πᵉ-ok (≃ᵁ u A e) = Π-iso-ok e {Aᵉ = explore u} (Πᵉ-ok u)
 
-  module From⟦Xᵉ⟧≡ (⟦Xᵉ⟧≡ : ∀ {ℓ₀ ℓ₁} ℓᵣ → ⟦Explore⟧ {ℓ₀} {ℓ₁} ℓᵣ _≡_ Xᵉ Xᵉ) where
-
-    module _ {ℓ₀ ℓ₁} ℓᵣ where
-      ⟦explore⟧≡ : ∀ u → ⟦Explore⟧ {ℓ₀} {ℓ₁} ℓᵣ _≡_ (explore u) (explore u)
-      ⟦explore⟧≡ 𝟘ᵁ        = ⟦𝟘ᵉ⟧ {ℓᵣ = ℓᵣ}
-      ⟦explore⟧≡ 𝟙ᵁ        = ⟦𝟙ᵉ⟧ {ℓᵣ = ℓᵣ} {_≡_} {idp}
-      ⟦explore⟧≡ 𝟚ᵁ        = ⟦𝟚ᵉ⟧ {ℓᵣ = ℓᵣ} {_≡_} {idp} {idp}
-      ⟦explore⟧≡ (u₀ ×ᵁ u₁) = ⟦explore×⟧≡ {ℓᵣ = ℓᵣ} (⟦explore⟧≡ u₀) (⟦explore⟧≡ u₁)
-      ⟦explore⟧≡ (u₀ ⊎ᵁ u₁) = ⟦explore⊎⟧≡ {ℓᵣ = ℓᵣ} (⟦explore⟧≡ u₀) (⟦explore⟧≡ u₁)
-      ⟦explore⟧≡ (Σᵁ u F)  = ⟦exploreΣ⟧≡ {ℓᵣ = ℓᵣ} (⟦explore⟧≡ u) (λ x → ⟦explore⟧≡ (F x))
-      ⟦explore⟧≡ Xᵁ        = ⟦Xᵉ⟧≡ ℓᵣ
-      ⟦explore⟧≡ (≃ᵁ u A e) = ⟦explore-iso⟧ e {ℓᵣ = ℓᵣ} (ap (fst e)) (⟦explore⟧≡ u)
-
-    module _ (u : U) {{_ : FunExt}}{{_ : UA}} where
-      open From⟦Explore⟧ (λ {ℓ₁} {ℓ₂} ℓᵣ → ⟦explore⟧≡ {ℓ₁} {ℓ₂} ℓᵣ u) public
+  module From⟦Xᵉ⟧≡ (⟦Xᵉ⟧≡ : ∀ {ℓ₀ ℓ₁} ℓᵣ → ⟦Explore⟧ {ℓ₀} {ℓ₁} ℓᵣ _≡_ Xᵉ Xᵉ) {ℓ₀ ℓ₁} ℓᵣ where
+    ⟦explore⟧≡ : ∀ u → ⟦Explore⟧ {ℓ₀} {ℓ₁} ℓᵣ _≡_ (explore u) (explore u)
+    ⟦explore⟧≡ 𝟘ᵁ        = ⟦𝟘ᵉ⟧ {ℓᵣ = ℓᵣ}
+    ⟦explore⟧≡ 𝟙ᵁ        = ⟦𝟙ᵉ⟧ {ℓᵣ = ℓᵣ} {_≡_} {idp}
+    ⟦explore⟧≡ 𝟚ᵁ        = ⟦𝟚ᵉ⟧ {ℓᵣ = ℓᵣ} {_≡_} {idp} {idp}
+    ⟦explore⟧≡ (u₀ ×ᵁ u₁) = ⟦explore×⟧≡ {ℓᵣ = ℓᵣ} (⟦explore⟧≡ u₀) (⟦explore⟧≡ u₁)
+    ⟦explore⟧≡ (u₀ ⊎ᵁ u₁) = ⟦explore⊎⟧≡ {ℓᵣ = ℓᵣ} (⟦explore⟧≡ u₀) (⟦explore⟧≡ u₁)
+    ⟦explore⟧≡ (Σᵁ u F)  = ⟦exploreΣ⟧≡ {ℓᵣ = ℓᵣ} (⟦explore⟧≡ u) (λ x → ⟦explore⟧≡ (F x))
+    ⟦explore⟧≡ Xᵁ        = ⟦Xᵉ⟧≡ ℓᵣ
+    ⟦explore⟧≡ (≃ᵁ u A e) = ⟦explore-iso⟧ e {ℓᵣ = ℓᵣ} (ap (fst e)) (⟦explore⟧≡ u)
 
   module FromΠX (ΠX : (X → U) → U) where
     Πᵁ : (u : U) (v : El u → U) → U
@@ -262,23 +217,73 @@ module FromKit
     (ΣᵉX-ok : ∀{{_ : UA}}{{_ : FunExt}}{ℓ} → Adequate-Σ {ℓ} (Σᵉ Xᵉ))
     (ΠᵉX-ok : ∀{{_ : UA}}{{_ : FunExt}}{ℓ} → Adequate-Π {ℓ} (Πᵉ Xᵉ))
     (⟦Xᵉ⟧≡ : ∀ {ℓ₀ ℓ₁} ℓᵣ → ⟦Explore⟧ {ℓ₀} {ℓ₁} ℓᵣ _≡_ Xᵉ Xᵉ)
+    (u : U)
   where
 
-  open FromXᵉ Xᵉ public
-  open FromXⁱ Xⁱ public
-  open FromXˡ Xˡ public
-  open FromXᶠ Xᶠ public
+  private
+   module M where
+    open FromXᵉ Xᵉ public
+    open FromXⁱ Xⁱ public
+    open FromXˡ Xˡ public
+    open FromXᶠ Xᶠ public
+
+    module _ {{_ : FunExt}}{{_ : UA}} where
+      open FromΣᵉX-ok ΣᵉX-ok public
+      open FromΠᵉX-ok ΠᵉX-ok public
+      open From⟦Xᵉ⟧≡  ⟦Xᵉ⟧≡  public
+
+  explore : ∀ {ℓ} → Explore ℓ (El u)
+  explore = M.explore u
+
+  explore-ind : ∀ {ℓ p} → ExploreInd {ℓ} p explore
+  explore-ind = M.explore-ind u
+
+  open FromExploreInd explore-ind public hiding (⟦explore⟧)
+  -- TODO list what is exported here
+
+  lookup : ∀ {ℓ} → Lookup {ℓ} explore
+  lookup = M.lookup u
+
+  focus : ∀ {ℓ} → Focus {ℓ} explore
+  focus = M.focus u
 
   module _ {{_ : FunExt}}{{_ : UA}} where
-    open FromΣᵉX-ok ΣᵉX-ok public
-    open FromΠᵉX-ok ΠᵉX-ok public
-    open From⟦Xᵉ⟧≡  ⟦Xᵉ⟧≡  public
+    Σᵉ-ok : ∀ {ℓ} → Adequate-Σ {ℓ} (Σᵉ explore)
+    Σᵉ-ok = M.Σᵉ-ok u
 
-    module _ (u : U) where
-      open FromAdequate-Σᵉ u (ΣᵉU-ok u) public
-      open FromAdequate-Πᵉ u (ΠᵉU-ok u) public
-      Dec-Σ : ∀ {p}{P : El u → Type p} → Π (El u) (Dec ∘ P) → Dec (Σ (El u) P)
-      Dec-Σ = FromFocus.Dec-Σ u (focus u)
+    Πᵉ-ok : ∀ {ℓ} → Adequate-Π {ℓ} (Πᵉ explore)
+    Πᵉ-ok = M.Πᵉ-ok u
+
+    ⟦explore⟧≡ : ∀ {ℓ₀ ℓ₁} ℓᵣ → ⟦Explore⟧ {ℓ₀} {ℓ₁} ℓᵣ _≡_ explore explore
+    ⟦explore⟧≡ ℓᵣ = M.⟦explore⟧≡ ℓᵣ u
+
+    open From⟦Explore⟧ ⟦explore⟧≡ public
+      using ( sum⇒Σᵉ
+            ; product⇒Πᵉ
+            ; ✓all-Πᵉ
+            ; ✓any→Σᵉ
+            ; module FromAdequate-Σᵉ
+            ; module FromAdequate-Πᵉ
+            )
+
+    open FromAdequate-Σᵉ Σᵉ-ok public
+      using ( sumStableUnder
+            ; sumStableUnder′
+            ; same-count→iso
+            ; adequate-sum
+            ; adequate-any
+            )
+
+    open FromAdequate-Πᵉ Πᵉ-ok public
+      using ( adequate-product
+            ; adequate-all
+            ; check!
+            )
+
+    Dec-Σ : ∀ {p}{P : El u → Type p} → Π (El u) (Dec ∘ P) → Dec (Σ (El u) P)
+    Dec-Σ = FromFocus.Dec-Σ focus
+
+    guessing-game-flipping = Explore.GuessingGameFlipping.thm (El u) sum sum-ind
 -- -}
 -- -}
 -- -}

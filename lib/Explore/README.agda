@@ -29,9 +29,9 @@ open import Explore.Two
 open import Explore.Fin
 
 -- A type universe of explorable types
-open import Explore.Universe
+open import Explore.Universe.Type
 open import Explore.Universe.Base
-open import Explore.Universe.Isomorphism
+open import Explore.Universe
 
 -- Transporting explorations across isomorphisms
 open import Explore.Isomorphism
@@ -44,6 +44,9 @@ open import Explore.Monad
 
 -- Indistinguisability (One-time-pad like) for groups
 open import Explore.GroupHomomorphism
+
+-- In a (bit) guessing game,
+open import Explore.GuessingGameFlipping
 
 -- An example with a specific type: 6 sided dice
 open import Explore.Dice
