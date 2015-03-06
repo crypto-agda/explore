@@ -2,11 +2,14 @@
 open import Data.Zero
 open import Relation.Binary.PropositionalEquality.NP
 open import Explore.Zero
-open import Explore.Universe.Type
+import Explore.Universe.Type
+import Explore.Universe
 
-module Explore.Universe.Base (u : U {𝟘}) where
+module Explore.Universe.Base
+  (open Explore.Universe.Type {𝟘})
+  (u : U) where
 
-open import Explore.Universe 𝟘
+open Explore.Universe 𝟘
 
 open FromKit 𝟘ⁱ (λ {{ua}}{{_}} → 𝟘ˢ-ok {{ua}}) 𝟘ˡ 𝟘ᶠ
              (λ {{ua}} → Σᵉ𝟘-ok {{ua}})
