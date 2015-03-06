@@ -2,35 +2,23 @@
 -- The core properties behind exploration functions
 module Explore.Properties where
 
-open import Level.NP
-open import Type hiding (★)
+open import Level.NP using (_⊔_; ₀; ₁; ₛ; Lift)
+open import Type using (★₀; ★₁; ★_)
 open import Function.NP using (id; _∘′_; _∘_; flip; const; Π; Cmp)
-open import Algebra
-import Algebra.FunctionProperties.NP as FP
-import Algebra.FunctionProperties.Eq as FPEq
-open FPEq using (Op₂)
+open import Algebra using (Semigroup; module Semigroup; Monoid; module Monoid; CommutativeMonoid; module CommutativeMonoid)
+import      Algebra.FunctionProperties.NP as FP
+open import Algebra.FunctionProperties.Eq using (Op₂; Injective)
 open import Data.Nat.NP using (_+_; _*_; _≤_; _+°_)
-open import Data.Indexed
 open import Data.Product using (Σ; _×_; _,_; proj₁; proj₂)
 open import Data.Sum  using (_⊎_)
 open import Data.Zero using (𝟘)
 open import Data.One  using (𝟙)
 open import Data.Two  using (𝟚; ✓)
 open import Data.Fin  using (Fin)
-open import Relation.Binary.NP
-import Relation.Binary.PropositionalEquality as ≡
-open ≡ using (_≡_; _≗_)
+open import Relation.Binary.NP using (module Setoid-Reasoning; _Preserves₂_⟶_⟶_)
+open import Relation.Binary.PropositionalEquality using (_≡_; _≗_)
 
 open import Explore.Core
-
--- TODO: move elsewhere
-module _ {a b} where
-
-    Injective : ∀ {A : ★ a}{B : ★ b}(f : A → B) → ★ _
-    Injective f = ∀ {x y} → f x ≡ f y → x ≡ y
-
-    _↔_ : (A : ★ a) (B : ★ b) → ★ _
-    A ↔ B = (A → B) × (B → A)
 
 module SgrpExtra {c ℓ} (sg : Semigroup c ℓ) where
   open Semigroup sg
@@ -140,22 +128,40 @@ module _ {ℓ a} {A : ★ a} where
     Adequate-Π : ((A → ★ ℓ) → ★ _) → ★ _
     Adequate-Π Πᴬ = ∀ F → Πᴬ F ≡ Π A F
 
-module _ {A : ★₀} where
-    Adequate-sum : Sum A → ★₁
-    Adequate-sum sumᴬ = ∀ f → Fin (sumᴬ f) ≡ Σ A (Fin ∘ f)
+-- This module could be parameterised by the relation on types, here _≡_
+module Universal-Adequacy {ℓu ℓe ℓr ℓa}
+                          (U : ★_ ℓu)(El : U → ★_ ℓe)
+                          (_≈_ : ★_ ℓe → ★_ (ℓa ⊔ ℓe) → ★_ ℓr){A : ★_ ℓa} where
+    Adequate-univ-sum : ((A → U) → U) → ★_ (ℓa ⊔ (ℓr ⊔ ℓu))
+    Adequate-univ-sum sumᴬ = ∀ f → El (sumᴬ f) ≈ Σ A (El ∘ f)
 
-    Adequate-product : Product A → ★₁
-    Adequate-product productᴬ = ∀ f → Fin (productᴬ f) ≡ Π A (Fin ∘ f)
+    Adequate-univ-product : ((A → U) → U) → ★_ (ℓa ⊔ (ℓr ⊔ ℓu))
+    Adequate-univ-product productᴬ = ∀ f → El (productᴬ f) ≈ Π A (El ∘ f)
 
-    Adequate-any : (any : BigOp 𝟚 A) → ★₀
-    Adequate-any anyᴬ = ∀ f → ✓ (anyᴬ f) ↔ Σ A (✓ ∘ f)
+module Adequacy {ℓr}(_≈_ : ★₀ → ★₀ → ★_ ℓr){A : ★₀} where
 
-    Adequate-all : (all : BigOp 𝟚 A) → ★₀
-    Adequate-all allᴬ = ∀ f → ✓ (allᴬ f) ↔ Π A (✓ ∘ f)
+    -- Universal-Adequacy.Adequate-univ-sum ℕ Fin _≡_
+    Adequate-sum : Sum A → ★_ ℓr
+    Adequate-sum sumᴬ = ∀ f → Fin (sumᴬ f) ≈ Σ A (Fin ∘ f)
+
+    -- Universal-Adequacy.Adequate-univ-product ℕ Fin _≡_
+    Adequate-product : Product A → ★_ ℓr
+    Adequate-product productᴬ = ∀ f → Fin (productᴬ f) ≈ Π A (Fin ∘ f)
+
+    -- Universal-Adequacy.Adequate-univ-product 𝟚 ✓ _≡_
+    Adequate-any : (any : BigOp 𝟚 A) → ★_ ℓr
+    Adequate-any anyᴬ = ∀ f → ✓ (anyᴬ f) ≈ Σ A (✓ ∘ f)
+
+    -- Universal-Adequacy.Adequate-univ-product 𝟚 ✓ _≡_
+    Adequate-all : (all : BigOp 𝟚 A) → ★_ ℓr
+    Adequate-all allᴬ = ∀ f → ✓ (allᴬ f) ≈ Π A (✓ ∘ f)
 
 module _ {ℓ a} {A : ★ a} (eᴬ : Explore ℓ A) where
+    StableUnder' : ∀ {M}(ε : M)(op : _)(p : A → A) → ★ _
+    StableUnder' ε op p = ∀ f → eᴬ ε op f ≡ eᴬ ε op (f ∘ p)
+
     StableUnder : (A → A) → ★ _
-    StableUnder p = ∀ {M} ε op (f : _ → M) → eᴬ ε op f ≡ eᴬ ε op (f ∘ p)
+    StableUnder p = ∀ {M} ε op → StableUnder' {M} ε op p
 
     ExploreExt : ★ _
     ExploreExt = ∀ {M} ε op {f g : A → M} → f ≗ g → eᴬ ε op f ≡ eᴬ ε op g

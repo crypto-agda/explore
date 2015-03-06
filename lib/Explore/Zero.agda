@@ -60,6 +60,7 @@ module _ {ℓ} where
         Πᵉ𝟘-ok : Adequate-Π {ℓ} (Πᵉ 𝟘ᵉ)
         Πᵉ𝟘-ok _ = ! Π𝟘-uniq _
 
+open Adequacy _≡_
 module _ {{_ : UA}} where
     𝟘ˢ-ok : Adequate-sum 𝟘ˢ
     𝟘ˢ-ok _ = Fin0≡𝟘 ∙ ! Σ𝟘-fst

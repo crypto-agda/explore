@@ -13,6 +13,7 @@ open import Relation.Binary.PropositionalEquality.NP
 open import Type.Identities
 open import HoTT
 open ≡-Reasoning
+open Adequacy _≡_
 
 module Explore.BigDistr
                 {A B          : ★₀}

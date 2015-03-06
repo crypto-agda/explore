@@ -63,5 +63,6 @@ unfocus𝟚     = 𝟚ᵘ
 sum𝟚         = 𝟚ˢ
 
 module _ {{_ : UA}}{{_ : FunExt}} where
+    open Adequacy _≡_
     𝟚ˢ-ok : Adequate-sum 𝟚ˢ
     𝟚ˢ-ok f = ! (Σ𝟚-⊎ ∙ Fin-⊎-+)

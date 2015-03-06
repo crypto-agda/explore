@@ -43,6 +43,7 @@ open 𝟙ⁱ public using ()
            ;unfocus to 𝟙ᵘ
            )
 
+open Adequacy _≡_
 module _ {{_ : UA}} where
     Σᵉ𝟙-ok : ∀ {ℓ} → Adequate-Σ {ℓ} (Σᵉ 𝟙ᵉ)
     Σᵉ𝟙-ok _ = ! Σ𝟙-snd

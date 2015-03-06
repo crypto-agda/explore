@@ -55,9 +55,7 @@ module _
     (eᴮᵣ : ∀ x → ⟦Explore⟧ ℓᵣ _≡_ (eᴮ₀ {x}) (eᴮ₁ {x}))
     where
    ⟦exploreΣ⟧≡ : ⟦Explore⟧ ℓᵣ _≡_ (exploreΣ eᴬ₀ (λ {x} → eᴮ₀ {x})) (exploreΣ eᴬ₁ (λ {x} → eᴮ₁ {x}))
-   ⟦exploreΣ⟧≡ {P₀} {P₁} P {ε₀} {ε₁} Pε {⊕₀} {⊕₁} P⊕ {f₀} {f₁} Pf
-     = eᴬᵣ P Pε P⊕ λ {x₀} {x₁} x → J-orig (λ x₀ x₁ x → P (eᴮ₀ ε₀ ⊕₀ (f₀ ∘ _,_ x₀)) (eᴮ₁ ε₁ ⊕₁ (f₁ ∘ _,_ x₁)))
-                                          (λ y → eᴮᵣ y P Pε P⊕ (λ xᵣ → Pf (ap (_,_ y) xᵣ))) x
+   ⟦exploreΣ⟧≡ P Pε P⊕ Pf = eᴬᵣ P Pε P⊕ λ x → J-orig _ (λ y → eᴮᵣ y P Pε P⊕ (Pf ∘ ap (_,_ y))) x
 
 module _
     {ℓ₀ ℓ₁ ℓᵣ}
@@ -67,10 +65,11 @@ module _
     {eᴮ₀ : ∀ {x} → Explore ℓ₀ (B x)} {eᴮ₁ : ∀ {x} → Explore ℓ₁ (B x)}
     (eᴮᵣ : ∀ {x₀ x₁} (x : x₀ ≡ x₁) → ⟦Explore⟧ ℓᵣ (λ b₀ b₁ → tr B x b₀ ≡ b₁) (eᴮ₀ {x₀}) (eᴮ₁ {x₁}))
     where
-   ⟦exploreΣ⟧≡' : ⟦Explore⟧ ℓᵣ _≡_ (exploreΣ eᴬ₀ (λ {x} → eᴮ₀ {x})) (exploreΣ eᴬ₁ (λ {x} → eᴮ₁ {x}))
-   ⟦exploreΣ⟧≡' P Pε P⊕ Pf = eᴬᵣ P Pε P⊕ (λ {x₀} {x₁} x → eᴮᵣ {x₀} {x₁} x P Pε P⊕ (λ xᵣ → Pf (pair= x xᵣ)))
+   ⟦exploreΣ⟧↑≡ : ⟦Explore⟧ ℓᵣ _≡_ (exploreΣ eᴬ₀ (λ {x} → eᴮ₀ {x})) (exploreΣ eᴬ₁ (λ {x} → eᴮ₁ {x}))
+   ⟦exploreΣ⟧↑≡ P Pε P⊕ Pf = eᴬᵣ P Pε P⊕ (λ x → eᴮᵣ x P Pε P⊕ (Pf ∘ pair= x))
 
 module _ {A : ★₀} {B : A → ★₀} {sumᴬ : Sum A} {sumᴮ : ∀ {x} → Sum (B x)}{{_ : FunExt}}{{_ : UA}} where
+    open Adequacy _≡_
     private
         sumᴬᴮ : Sum (Σ A B)
         sumᴬᴮ = sumᴬ ⟨,⟩ (λ {x} → sumᴮ {x})

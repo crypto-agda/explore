@@ -46,4 +46,4 @@ module _ {{_ : UA}}{{_ : FunExt}} where
   isoˢ-ok : Adequate-sum isoˢ
   isoˢ-ok = sum-iso-ok (adequate-sumU u)
 
-  open Adequate-sum₀ isoˢ-ok isoˢ-ok public renaming (sumStableUnder to isoˢ-stableUnder)
+  open EndoAdequate-sum isoˢ-ok public renaming (sumStableUnder to isoˢ-stableUnder)

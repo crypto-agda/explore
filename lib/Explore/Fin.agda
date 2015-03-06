@@ -58,17 +58,15 @@ module Custom where
   Finᵉ2-𝟚ᵉ : (λ {M : ★₀} (ε : M) op f → Finᵉ 2 ε op (f ∘ Fin▹𝟚)) ≡ 𝟚ᵉ
   Finᵉ2-𝟚ᵉ = refl
 
-private
-  module ByHand {ℓ} where
-    open Regular
-    Finᵉ' : ∀ n → Explore ℓ (Fin n)
-    Finᵉ' zero    z _⊕_ f = z
-    Finᵉ' (suc n) z _⊕_ f = f zero ⊕ Finᵉ' n z _⊕_ (f ∘ suc)
+module ByHand {ℓ} where
+  Finᵉ' : ∀ n → Explore ℓ (Fin n)
+  Finᵉ' zero    z _⊕_ f = z
+  Finᵉ' (suc n) z _⊕_ f = f zero ⊕ Finᵉ' n z _⊕_ (f ∘ suc)
 
-    -- Finᵉ and Finᵉ' are extensionally equal.
-    -- Moreover the simplicity of the proof shows that the two functions are computing
-    -- in the same way.
-    Finᵉ-Finᵉ' : ∀ n {M} (ε : M) (_⊕_ : M → M → M) (f : Fin n → M) → Finᵉ n ε _⊕_ f ≡ Finᵉ' n ε _⊕_ f
-    Finᵉ-Finᵉ' zero    ε _⊕_ f = idp
-    Finᵉ-Finᵉ' (suc n) ε _⊕_ f = ap (_⊕_ (f zero))
-                                    (Finᵉ-Finᵉ' n ε _⊕_ (f ∘ suc))
+  -- Finᵉ and Finᵉ' are extensionally equal.
+  -- Moreover the simplicity of the proof shows that the two functions are computing
+  -- in the same way.
+  Finᵉ-Finᵉ' : ∀ n {M} (ε : M) (_⊕_ : M → M → M) (f : Fin n → M) → Regular.Finᵉ n ε _⊕_ f ≡ Finᵉ' n ε _⊕_ f
+  Finᵉ-Finᵉ' zero    ε _⊕_ f = idp
+  Finᵉ-Finᵉ' (suc n) ε _⊕_ f = ap (_⊕_ (f zero))
+                                  (Finᵉ-Finᵉ' n ε _⊕_ (f ∘ suc))

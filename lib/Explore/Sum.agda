@@ -83,6 +83,7 @@ module _ {a b} {A : ★ a} {B : ★ b} where
     _⊎ˢ_ = ⊎ᶜ _+_
 
 module _ {A : ★₀} {B : ★₀} {sumᴬ : Sum A} {sumᴮ : Sum B}{{_ : UA}} where
+    open Adequacy _≡_
 
     adequate-sum⊎ : Adequate-sum sumᴬ → Adequate-sum sumᴮ → Adequate-sum (sumᴬ ⊎ˢ sumᴮ)
     adequate-sum⊎ asumᴬ asumᴮ f    = (Fin (sumᴬ (f ∘ inl) + sumᴮ (f ∘ inr)))

@@ -327,20 +327,16 @@ module FromExploreInd
                                (λ p q → ≈-trans (hom-+-* _ _) (≈-cong-* p q))
                                (λ _ → ≈-refl)
 
-  module _ {ℓ} (P : A → ★_ ℓ) where
-       open LiftHom {S = ★_ ℓ} {★_ ℓ} (λ A B → B → A) id _∘′_
-                    (Lift 𝟘) _⊎_ (Lift 𝟙) _×_
-                    (λ f g → ×-map f g) Dec P (const (no (λ{ (lift ()) })))
-                    (λ _ _ → uncurry Dec-⊎)
-                    public renaming (lift-hom to lift-Dec)
+  module _ {ℓ} {P : A → ★_ ℓ} where
+    open LiftHom {S = ★_ ℓ} {★_ ℓ} (λ A B → B → A) id _∘′_
+                 (Lift 𝟘) _⊎_ (Lift 𝟙) _×_
+                 (λ f g → ×-map f g) Dec P (const (no (λ{ (lift ()) })))
+                 (λ _ _ → uncurry Dec-⊎)
+                 public renaming (lift-hom to lift-Dec)
 
-  module Dec-Σ
-        {p}
-        (focus : Focus {p} explore)
-        (P : A → ★_ p) where
-
-    Dec-Σ : Π A (Dec ∘ P) → Dec (Σ A P)
-    Dec-Σ = map-Dec unfocus focus ∘ lift-Dec P ∘ reify
+  module FromFocus {p} (focus : Focus {p} explore) where
+    Dec-Σ : ∀ {P} → Π A (Dec ∘ P) → Dec (Σ A P)
+    Dec-Σ = map-Dec unfocus focus ∘ lift-Dec ∘ reify
 
   lift-hom-≡ :
       ∀ {m} {S T : ★ m}
@@ -385,14 +381,14 @@ module FromExploreInd
   sum-const x = sum-ext (λ _ → ! snd ℕ°.*-identity x) ∙ sum-lin (const 1) x ∙ ℕ°.*-comm x Card
     where open ≡
   
-  sumStableUnder : ∀ {p} → StableUnder explore p → SumStableUnder sum p
-  sumStableUnder SU-p = SU-p 0 _+_
+  exploreStableUnder→sumStableUnder : ∀ {p} → StableUnder explore p → SumStableUnder sum p
+  exploreStableUnder→sumStableUnder SU-p = SU-p 0 _+_
 
   count-ext : CountExt count
   count-ext f≗g = sum-ext (≡.cong 𝟚▹ℕ ∘ f≗g)
 
-  countStableUnder : ∀ {p} → SumStableUnder sum p → CountStableUnder count p
-  countStableUnder sumSU-p f = sumSU-p (𝟚▹ℕ ∘ f)
+  sumStableUnder→countStableUnder : ∀ {p} → SumStableUnder sum p → CountStableUnder count p
+  sumStableUnder→countStableUnder sumSU-p f = sumSU-p (𝟚▹ℕ ∘ f)
 
   diff-list = with-endo-monoid (List.monoid A) List.[_]
 
@@ -401,12 +397,14 @@ module FromExploreInd
   list≡diff-list = {!explore-endo-monoid-spec (List.monoid A) List.[_]!}
   -}
 
-  private
-    lift+ : ∀ {ℓ} → Lift {ℓ = ℓ} ℕ → Lift {ℓ = ℓ} ℕ → Lift {ℓ = ℓ} ℕ
-    lift+ (lift x) (lift y) = lift (x + y)
+  lift-op₂ : ∀ {a}{A : ★_ a}(op : Op₂ A){ℓ} → Lift {ℓ = ℓ} A → Lift {ℓ = ℓ} A → Lift {ℓ = ℓ} A
+  lift-op₂ op (lift x) (lift y) = lift (op x y)
 
-  Fin-lower-sum≡Σᵉ-Fin : ∀ {{_ : UA}}(f : A → ℕ) → Fin (lower (explore (lift 0) lift+ (lift ∘ f))) ≡ Σᵉ explore (Fin ∘ f)
-  Fin-lower-sum≡Σᵉ-Fin f = LiftHom.lift-hom _≡_ ≡.refl ≡.trans (lift 0) lift+ (Lift 𝟘) _⊎_ ⊎= (Fin ∘ lower) (lift ∘ f) (Fin0≡𝟘 ∙ ! Lift≡id) (λ _ _ → ! Fin-⊎-+)
+  lift-sum : ∀ ℓ → Sum A
+  lift-sum ℓ f = lower {₀} {ℓ} (explore (lift 0) (lift-op₂ _+_) (lift ∘ f))
+
+  Fin-lower-sum≡Σᵉ-Fin : ∀ {{_ : UA}}(f : A → ℕ) → Fin (lift-sum _ f) ≡ Σᵉ explore (Fin ∘ f)
+  Fin-lower-sum≡Σᵉ-Fin f = LiftHom.lift-hom _≡_ ≡.refl ≡.trans (lift 0) (lift-op₂ _+_) (Lift 𝟘) _⊎_ ⊎= (Fin ∘ lower) (lift ∘ f) (Fin0≡𝟘 ∙ ! Lift≡id) (λ _ _ → ! Fin-⊎-+)
     where open ≡
 
 module FromTwoExploreInd
@@ -434,30 +432,43 @@ module FromTwoExploreInd
     sum-swap : ∀ f → A.sum (B.sum ∘ f) ≡ B.sum (A.sum ∘ flip f)
     sum-swap = explore-swap' ℕ°.+-commutativeMonoid
 
-module Adequate-sum₀
+module FromTwoAdequate-sum
   {{_ : UA}}{{_ : FunExt}}
   {A}{B}
   {sumᴬ : Sum A}{sumᴮ : Sum B}
+  (open Adequacy _≡_)
   (sumᴬ-adq : Adequate-sum sumᴬ)
   (sumᴮ-adq : Adequate-sum sumᴮ) where
 
   open ≡
-  sumStableUnder : (p : A ≃ B)(f : A → ℕ)
+  sumStableUnder : (p : A ≃ B)(f : B → ℕ)
+                 → sumᴬ (f ∘ ·→ p) ≡ sumᴮ f
+  sumStableUnder p f = Fin-injective (sumᴬ-adq (f ∘ ·→ p)
+                                      ∙ Σ-fst≃ p _
+                                      ∙ ! sumᴮ-adq f)
+
+  sumStableUnder′ : (p : A ≃ B)(f : A → ℕ)
                  → sumᴬ f ≡ sumᴮ (f ∘ <– p)
-  sumStableUnder p f = Fin-injective (sumᴬ-adq f
+  sumStableUnder′ p f = Fin-injective (sumᴬ-adq f
                                       ∙ Σ-fst≃′ p _
                                       ∙ ! sumᴮ-adq (f ∘ <– p))
 
-module EndoAdequate-sum₀
-  {{_ : UA}}{{_ : FunExt}}
+module FromAdequate-sum
   {A}
   {sum : Sum A}
-  (sum-adq : Adequate-sum sum) where
+  (open Adequacy _≡_)
+  (sum-adq : Adequate-sum sum)
+  {{_ : UA}}{{_ : FunExt}}
+  where
 
-  open Adequate-sum₀ sum-adq sum-adq public
+  open FromTwoAdequate-sum sum-adq sum-adq public
   open ≡
 
-  module _ (p q : A → 𝟚)(prf : sum (𝟚▹ℕ ∘ p) ≡ sum (𝟚▹ℕ ∘ q)) where
+  private
+    count : Count A
+    count f = sum (𝟚▹ℕ ∘ f)
+
+  module _ (p q : A → 𝟚)(prf : count p ≡ count q) where
     private
 
         P = λ x → p x ≡ 1₂
@@ -571,24 +582,33 @@ module From⟦Explore⟧
 
   module FromAdequate-Σᵉ
            (adequate-Σᵉ : ∀ {ℓ} → Adequate-Σ {ℓ} (Σᵉ explore))
-           (f : A → ℕ)
           where
-    adequate-sum : Fin (sum f) ≡ Σ A (Fin ∘ f)
-    adequate-sum = sum⇒Σᵉ f ∙ adequate-Σᵉ (Fin ∘ f)
+    open Adequacy
+    adequate-sum : Adequate-sum _≡_ sum
+    adequate-sum f = sum⇒Σᵉ f ∙ adequate-Σᵉ (Fin ∘ f)
+
+    module _ {{_ : UA}}{{_ : FunExt}} where
+      open FromAdequate-sum adequate-sum public
+
+    -- adequate-any : Adequate-any -→- any
+    -- adequate-any f = {!adequate-Σᵉ _ {!✓any→Σᵉ f!}!}
 
   module FromAdequate-Πᵉ
            (adequate-Πᵉ : ∀ {ℓ} → Adequate-Π {ℓ} (Πᵉ explore))
           where
 
-    adequate-product : ∀ f → Fin (product f) ≡ Π A (Fin ∘ f)
+    open Adequacy
+    adequate-product : Adequate-product _≡_ product
     adequate-product f = product⇒Πᵉ f ∙ adequate-Πᵉ (Fin ∘ f)
 
-    module _ (f : A → 𝟚) where
-        lift-all : ✓ (all f) ≡ (∀ x → ✓ (f x))
-        lift-all = ✓all-Πᵉ f ∙ adequate-Πᵉ _
+    adequate-all : Adequate-all _≡_ all
+    adequate-all f = ✓all-Πᵉ f ∙ adequate-Πᵉ _
 
+    lift-all = adequate-all
+
+    module _ (f : A → 𝟚) where
         check! : {pf : ✓ (all f)} → (∀ x → ✓ (f x))
-        check! {pf} = coe lift-all pf
+        check! {pf} = coe (lift-all f) pf
 
 {-
 module ExplorableRecord where
