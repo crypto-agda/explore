@@ -32,11 +32,11 @@ record Group (G : Set) : Set where
   -- derived property
   help : ∀ x y → x ≡ (x ∙ y) ∙ - y
   help x y = x
-           ≡⟨ sym (proj₂ identity x) ⟩
+           ≡⟨ ! proj₂ identity x ⟩
              x ∙ ε
-           ≡⟨ cong (_∙_ x) (sym (proj₂ inverse y)) ⟩
+           ≡⟨ ap (_∙_ x) (! proj₂ inverse y) ⟩
              x ∙ (y ∙ - y)
-           ≡⟨ sym (assoc x y (- y)) ⟩
+           ≡⟨ ! assoc x y (- y) ⟩
              (x ∙ y) ∙ (- y)
            ∎
     where open ≡-Reasoning
@@ -45,7 +45,7 @@ record Group (G : Set) : Set where
   unique-1g x y eq = x
                    ≡⟨ help x y ⟩
                      (x ∙ y) ∙ - y
-                   ≡⟨ cong (flip _∙_ (- y)) eq ⟩
+                   ≡⟨ ap (flip _∙_ (- y)) eq ⟩
                      y ∙ - y
                    ≡⟨ proj₂ inverse y ⟩
                      ε
@@ -56,7 +56,7 @@ record Group (G : Set) : Set where
   unique-/ x y eq = x
                   ≡⟨ help x y ⟩
                     (x ∙ y) ∙ - y
-                  ≡⟨ cong (flip _∙_ (- y)) eq ⟩
+                  ≡⟨ ap (flip _∙_ (- y)) eq ⟩
                     ε ∙ - y
                   ≡⟨ proj₁ identity (- y) ⟩
                     - y
@@ -64,7 +64,7 @@ record Group (G : Set) : Set where
     where open ≡-Reasoning
 
 module _ {A B : Set}(GA : Group A)(GB : Group B) where
-  open Group GA using (-_) renaming (_∙_ to _+_; ε to 0g)
+  open Group GA using (-_;inverse;identity) renaming (_∙_ to _+_; ε to 0g)
   open Group GB using (unique-1g ; unique-/) renaming (_∙_ to _*_; ε to 1g; -_ to 1/_)
 
   GroupHomomorphism : (A → B) → Set
@@ -74,22 +74,20 @@ module _ {A B : Set}(GA : Group A)(GB : Group B) where
     f-pres-ε : f 0g ≡ 1g
     f-pres-ε = unique-1g (f 0g) (f 0g) part
       where open ≡-Reasoning
-            open Group GA using (identity)
             part = f 0g * f 0g
-                 ≡⟨ sym (f-homo 0g 0g) ⟩
+                 ≡⟨ ! f-homo 0g 0g ⟩
                    f (0g + 0g)
-                 ≡⟨ cong f (proj₁ identity 0g) ⟩
+                 ≡⟨ ap f (proj₁ identity 0g) ⟩
                    f 0g
                  ∎
 
     f-pres-inv : ∀ x → f (- x) ≡ 1/ f x
     f-pres-inv x = unique-/ (f (- x)) (f x) part
       where open ≡-Reasoning
-            open Group GA using (inverse)
             part = f (- x) * f x
-                 ≡⟨ sym (f-homo (- x) x) ⟩
+                 ≡⟨ ! f-homo (- x) x ⟩
                    f (- x + x)
-                 ≡⟨ cong f (proj₁ inverse x) ⟩
+                 ≡⟨ ap f (proj₁ inverse x) ⟩
                    f 0g
                  ≡⟨ f-pres-ε ⟩
                    1g
@@ -134,11 +132,11 @@ module _ {A B}(GA : Group A)(GB : Group B)
     thm O m₀ m₁ = explore (λ x → O (f x * m₀))
                  ≡⟨ sui (- [f] m₀) (λ x → O (f x * m₀)) ⟩
                    explore (λ x → O (f (x + - [f] m₀)  * m₀))
-                 ≡⟨ explore-ext z op (λ x → cong O (lemma1 x)) ⟩
+                 ≡⟨ explore-ext z op (λ x → ap O (lemma1 x)) ⟩
                    explore (λ x → O (f x ))
                  ≡⟨ sui ([f] m₁) (O ∘ f) ⟩
                    explore (λ x → O (f (x + [f] m₁)))
-                 ≡⟨ explore-ext z op (λ x → cong O (lemma2 x)) ⟩
+                 ≡⟨ explore-ext z op (λ x → ap O (lemma2 x)) ⟩
                    explore (λ x → O (f x * m₁))
                  ∎
      where
