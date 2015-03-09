@@ -12,6 +12,11 @@ open import Explore.Core
 open import Explore.Properties
 open import Explore.Sum
 
+{-
+ I had some problems with using the standard library definiton of Groups
+ so I rolled my own, therefor I need some boring proofs first
+
+-}
 record Group (G : Set) : Set where
   field
     _∙_ : G → G → G
@@ -24,12 +29,71 @@ record Group (G : Set) : Set where
     identity : Identity _≡_ ε _∙_
     inverse  : Inverse _≡_ ε -_ _∙_
 
+  -- derived property
+  help : ∀ x y → x ≡ (x ∙ y) ∙ - y
+  help x y = x
+           ≡⟨ sym (proj₂ identity x) ⟩
+             x ∙ ε
+           ≡⟨ cong (_∙_ x) (sym (proj₂ inverse y)) ⟩
+             x ∙ (y ∙ - y)
+           ≡⟨ sym (assoc x y (- y)) ⟩
+             (x ∙ y) ∙ (- y)
+           ∎
+    where open ≡-Reasoning
 
-GroupHomomorphism : ∀ {A B : Set} → Group A → Group B →(A → B) → Set
-GroupHomomorphism GA GB f = ∀ x y → f (x + y) ≡ f x * f y
-  where
-    open Group GA renaming (_∙_ to _+_)
-    open Group GB renaming (_∙_ to _*_)
+  unique-1g : ∀ x y → x ∙ y ≡ y → x ≡ ε
+  unique-1g x y eq = x
+                   ≡⟨ help x y ⟩
+                     (x ∙ y) ∙ - y
+                   ≡⟨ cong (flip _∙_ (- y)) eq ⟩
+                     y ∙ - y
+                   ≡⟨ proj₂ inverse y ⟩
+                     ε
+                   ∎
+    where open ≡-Reasoning
+
+  unique-/ : ∀ x y → x ∙ y ≡ ε → x ≡ - y
+  unique-/ x y eq = x
+                  ≡⟨ help x y ⟩
+                    (x ∙ y) ∙ - y
+                  ≡⟨ cong (flip _∙_ (- y)) eq ⟩
+                    ε ∙ - y
+                  ≡⟨ proj₁ identity (- y) ⟩
+                    - y
+                  ∎
+    where open ≡-Reasoning
+
+module _ {A B : Set}(GA : Group A)(GB : Group B) where
+  open Group GA using (-_) renaming (_∙_ to _+_; ε to 0g)
+  open Group GB using (unique-1g ; unique-/) renaming (_∙_ to _*_; ε to 1g; -_ to 1/_)
+
+  GroupHomomorphism : (A → B) → Set
+  GroupHomomorphism f = ∀ x y → f (x + y) ≡ f x * f y
+
+  module GroupHomomorphismProp {f}(f-homo : GroupHomomorphism f) where
+    f-pres-ε : f 0g ≡ 1g
+    f-pres-ε = unique-1g (f 0g) (f 0g) part
+      where open ≡-Reasoning
+            open Group GA using (identity)
+            part = f 0g * f 0g
+                 ≡⟨ sym (f-homo 0g 0g) ⟩
+                   f (0g + 0g)
+                 ≡⟨ cong f (proj₁ identity 0g) ⟩
+                   f 0g
+                 ∎
+
+    f-pres-inv : ∀ x → f (- x) ≡ 1/ f x
+    f-pres-inv x = unique-/ (f (- x)) (f x) part
+      where open ≡-Reasoning
+            open Group GA using (inverse)
+            part = f (- x) * f x
+                 ≡⟨ sym (f-homo (- x) x) ⟩
+                   f (- x + x)
+                 ≡⟨ cong f (proj₁ inverse x) ⟩
+                   f 0g
+                 ≡⟨ f-pres-ε ⟩
+                   1g
+                 ∎
 
 module _ {A B}(GA : Group A)(GB : Group B)
          (f : A → B)
@@ -39,6 +103,7 @@ module _ {A B}(GA : Group A)(GB : Group B)
          where
   open Group GA using (-_) renaming (_∙_ to _+_ ; ε to 0g)
   open Group GB using ()   renaming (_∙_ to _*_ ; ε to 1g ; -_ to 1/_)
+  open GroupHomomorphismProp GA GB f-homo
 
   {- How all this is related to elgamal
 
@@ -55,71 +120,6 @@ module _ {A B}(GA : Group A)(GB : Group B)
   finally we require that the explore function respects extensionality
   -}
 
-  {-
-   I had some problems with using the standard library definiton of Groups
-   so I rolled my own, therefor I need some boring proofs first
-
-  -}
-
-  help : ∀ x y → x ≡ (x * y) * 1/ y
-  help x y = x
-           ≡⟨ sym (proj₂ identity x) ⟩
-             x * 1g
-           ≡⟨ cong (_*_ x) (sym (proj₂ inverse y)) ⟩
-             x * (y * 1/ y)
-           ≡⟨ sym (assoc x y (1/ y)) ⟩
-             (x * y) * (1/ y)
-           ∎
-    where open ≡-Reasoning
-          open Group GB
-
-  unique-1g : ∀ x y → x * y ≡ y → x ≡ 1g
-  unique-1g x y eq = x
-                   ≡⟨ help x y ⟩
-                     (x * y) * 1/ y
-                   ≡⟨ cong (flip _*_ (1/ y)) eq ⟩
-                     y * 1/ y
-                   ≡⟨ proj₂ inverse y ⟩
-                     1g
-                   ∎
-    where open ≡-Reasoning
-          open Group GB
-
-  unique-/ : ∀ x y → x * y ≡ 1g → x ≡ 1/ y
-  unique-/ x y eq = x
-                  ≡⟨ help x y ⟩
-                    (x * y) * 1/ y
-                  ≡⟨ cong (flip _*_ (1/ y)) eq ⟩
-                    1g * 1/ y
-                  ≡⟨ proj₁ identity (1/ y) ⟩
-                    1/ y
-                  ∎
-    where open ≡-Reasoning
-          open Group GB
-
-  f-pres-ε : f 0g ≡ 1g
-  f-pres-ε = unique-1g (f 0g) (f 0g) part
-    where open ≡-Reasoning
-          open Group GA
-          part = f 0g * f 0g
-               ≡⟨ sym (f-homo 0g 0g) ⟩
-                 f (0g + 0g)
-               ≡⟨ cong f (proj₁ identity 0g) ⟩
-                 f 0g
-               ∎
-
-  f-pres-inv : ∀ x → f (- x) ≡ 1/ f x
-  f-pres-inv x = unique-/ (f (- x)) (f x) part
-    where open ≡-Reasoning
-          open Group GA hiding (-_)
-          part = f (- x) * f x
-               ≡⟨ sym (f-homo (- x) x) ⟩
-                 f (- x + x)
-               ≡⟨ cong f (proj₁ inverse x) ⟩
-                 f 0g
-               ≡⟨ f-pres-ε ⟩
-                 1g
-               ∎
   {-
     While this proof looks complicated it basically just adds inverse of m₀ and then adds m₁ (from image of f)
     we need the homomorphic property to pull out the values.
