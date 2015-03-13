@@ -6,8 +6,8 @@ import Explore.Dice
 import Explore.Examples
 import Explore.Explorable
 import Explore.Fin
-import Explore.GuessingGameFlipping
 import Explore.GroupHomomorphism
+import Explore.GuessingGameFlipping
 import Explore.Isomorphism
 import Explore.Monad
 import Explore.One
@@ -20,6 +20,7 @@ import Explore.Summable
 import Explore.Two
 import Explore.Universe
 import Explore.Universe.Base
+import Explore.Universe.Type
 import Explore.Zero
 -- BROKEN import Explore.Explorable.Fun
 -- BROKEN import Explore.Function.Fin

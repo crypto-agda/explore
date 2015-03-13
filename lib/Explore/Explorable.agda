@@ -318,20 +318,20 @@ module FromExploreInd
        (f   : S → T)
        (g   : A → S)
        (hom-0-1 : f zero ≈ one)
-       (hom-+-* : ∀ x y → (f (x + y)) ≈ (f x * f y))
+       (hom-+-* : ∀ {x y} → (f (x + y)) ≈ (f x * f y))
        where
 
         lift-hom : f (explore zero _+_ g) ≈ explore one _*_ (f ∘ g)
         lift-hom = explore-ind (λ e → f (e zero _+_ g) ≈ e one _*_ (f ∘ g))
                                hom-0-1
-                               (λ p q → ≈-trans (hom-+-* _ _) (≈-cong-* p q))
+                               (λ p q → ≈-trans hom-+-* (≈-cong-* p q))
                                (λ _ → ≈-refl)
 
   module _ {ℓ} {P : A → ★_ ℓ} where
     open LiftHom {S = ★_ ℓ} {★_ ℓ} (λ A B → B → A) id _∘′_
                  (Lift 𝟘) _⊎_ (Lift 𝟙) _×_
                  (λ f g → ×-map f g) Dec P (const (no (λ{ (lift ()) })))
-                 (λ _ _ → uncurry Dec-⊎)
+                 (uncurry Dec-⊎)
                  public renaming (lift-hom to lift-Dec)
 
   module FromFocus {p} (focus : Focus {p} explore) where
@@ -347,7 +347,7 @@ module FromExploreInd
         (f    : S → T)
         (g    : A → S)
         (hom-0-1 : f zero ≡ one)
-        (hom-+-* : ∀ x y → f (x + y) ≡ f x * f y)
+        (hom-+-* : ∀ {x y} → f (x + y) ≡ f x * f y)
       → f (explore zero _+_ g) ≡ explore one _*_ (f ∘ g)
   lift-hom-≡ z _+_ o _*_ = LiftHom.lift-hom _≡_ ≡.refl ≡.trans z _+_ o _*_ (≡.ap₂ _*_)
 
@@ -404,7 +404,7 @@ module FromExploreInd
   lift-sum ℓ f = lower {₀} {ℓ} (explore (lift 0) (lift-op₂ _+_) (lift ∘ f))
 
   Fin-lower-sum≡Σᵉ-Fin : ∀ {{_ : UA}}(f : A → ℕ) → Fin (lift-sum _ f) ≡ Σᵉ explore (Fin ∘ f)
-  Fin-lower-sum≡Σᵉ-Fin f = LiftHom.lift-hom _≡_ ≡.refl ≡.trans (lift 0) (lift-op₂ _+_) (Lift 𝟘) _⊎_ ⊎= (Fin ∘ lower) (lift ∘ f) (Fin0≡𝟘 ∙ ! Lift≡id) (λ _ _ → ! Fin-⊎-+)
+  Fin-lower-sum≡Σᵉ-Fin f = LiftHom.lift-hom _≡_ ≡.refl ≡.trans (lift 0) (lift-op₂ _+_) (Lift 𝟘) _⊎_ ⊎= (Fin ∘ lower) (lift ∘ f) (Fin0≡𝟘 ∙ ! Lift≡id) (! Fin-⊎-+)
     where open ≡
 
 module FromTwoExploreInd

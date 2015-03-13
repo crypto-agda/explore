@@ -19,11 +19,11 @@ open import Explore.Universe.Type
 -- We recommend Custom if you want to work for particular values of n (2, 6...).
 module Explore.Fin where
 
-module Regular n = Explore.Universe.Base (≃ᵁ (Finᵁ n) (Fin n) (Finᵁ-Fin n))
+module Regular n = Explore.Universe.Base (≃ᵁ (Finᵁ n) (Fin n) (Finᵁ≃Fin n))
 
 module Custom where
   module _ n where
-    open Explore.Universe.Base (≃ᵁ (Finᵁ' n) (Fin n) (Finᵁ'-Fin n))
+    open Explore.Universe.Base (≃ᵁ (Finᵁ' n) (Fin n) (Finᵁ'≃Fin n))
       public
 
   Finᵉ0-𝟘ᵉ : (λ {M : ★₀} (ε : M) op f → explore 0 ε op (f ∘ Fin▹𝟘)) ≡ 𝟘ᵉ

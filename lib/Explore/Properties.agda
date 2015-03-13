@@ -156,15 +156,22 @@ module Adequacy {ℓr}(_≈_ : ★₀ → ★₀ → ★_ ℓr){A : ★₀} wher
     Adequate-all : (all : BigOp 𝟚 A) → ★_ ℓr
     Adequate-all allᴬ = ∀ f → ✓ (allᴬ f) ≈ Π A (✓ ∘ f)
 
+module _ {m a}{M : ★ m}{A : ★ a}([⊕] : BigOp M A) where
+    BigOpStableUnder : (p : A → A) → ★ _
+    BigOpStableUnder p = ∀ f → [⊕] f ≡ [⊕] (f ∘ p)
+
+    -- Extensionality of a big-operator
+    BigOp= : ★ _
+    BigOp= = {f g : A → M} → f ≗ g → [⊕] f ≡ [⊕] g
+
 module _ {ℓ a} {A : ★ a} (eᴬ : Explore ℓ A) where
-    StableUnder' : ∀ {M}(ε : M)(op : _)(p : A → A) → ★ _
-    StableUnder' ε op p = ∀ f → eᴬ ε op f ≡ eᴬ ε op (f ∘ p)
-
     StableUnder : (A → A) → ★ _
-    StableUnder p = ∀ {M} ε op → StableUnder' {M} ε op p
+    StableUnder p = ∀ {M}(ε : M) op → BigOpStableUnder (eᴬ ε op) p
 
-    ExploreExt : ★ _
-    ExploreExt = ∀ {M} ε op {f g : A → M} → f ≗ g → eᴬ ε op f ≡ eᴬ ε op g
+    -- Extensionality of an exploration function
+    Explore= : ★ _
+    Explore= = ∀ {M}(ε : M) op → BigOp= (eᴬ ε op)
+    ExploreExt = Explore=
 
 module _ {ℓ a} {A : ★ a} r (eᴬ : Explore ℓ A) where
     ExploreMono : ★ _

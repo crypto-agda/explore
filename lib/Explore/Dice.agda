@@ -28,9 +28,9 @@ module ByHand where
       using ()
       renaming (sum to sumDice; product to productDice; reify to reifyDice; unfocus to unfocusDice)
 
-Dice↔Fin6 : Dice ≃ Fin 6
-Dice↔Fin6 = equiv (⇒) (⇐) ⇒⇐ ⇐⇒
-  module Dice↔Fin6 where
+Dice≃Fin6 : Dice ≃ Fin 6
+Dice≃Fin6 = equiv (⇒) (⇐) ⇒⇐ ⇐⇒
+  module Dice≃Fin6 where
     S = Dice
     T = Fin 6
     ⇒ : S → T
@@ -66,7 +66,7 @@ Dice↔Fin6 = equiv (⇒) (⇐) ⇒⇐ ⇐⇒
 
 -- By using FinU' instead of FinU one get a special case for Fin 1 thus avoiding
 -- a final ε in the exploration function.
-module DiceE = Explore.Universe.Base (≃ᵁ (Finᵁ' 6) Dice (Finᵁ'-Fin 6 ≃-∙ ≃-sym Dice↔Fin6))
+module DiceE = Explore.Universe.Base (≃ᵁ (Finᵁ' 6) Dice (Finᵁ'≃Fin 6 ≃-∙ ≃-! Dice≃Fin6))
 
 module _ {m} where
   open ByHand

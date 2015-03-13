@@ -8,7 +8,9 @@ open import Data.Product.NP using (Σ; _×_)
 open import Data.Sum.NP using (_⊎_)
 open import Data.Nat.Base using (ℕ; zero; suc)
 open import Data.Fin using (Fin)
+open import Data.Vec using (Vec)
 open import HoTT using (ua; UA; module Equivalences)
+open import Relation.Binary.PropositionalEquality.NP using (_≡_; !_; _∙_; idp)
 open        Equivalences using (_≃_; ≃-!; ≃-refl; _≃-∙_)
 
 module Explore.Universe.Type {X : Type₀} where
@@ -36,8 +38,15 @@ El (≃ᵁ u A e) = A
 
 infix  8 _^ᵁ_
 _^ᵁ_ : U → ℕ → U
-u ^ᵁ zero  = u
+u ^ᵁ zero  = 𝟙ᵁ
 u ^ᵁ suc n = u ×ᵁ u ^ᵁ n
+
+^ᵁ≃Vec : ∀ u n → El (u ^ᵁ n) ≃ Vec (El u) n
+^ᵁ≃Vec u zero = ≃-! Vec0≃𝟙
+^ᵁ≃Vec u (suc n) = ×≃-second (El u) (^ᵁ≃Vec u n) ≃-∙ ≃-! Vec∘suc≃×
+
+^ᵁ≡Vec : ∀ {{_ : UA}} u n → El (u ^ᵁ n) ≡ Vec (El u) n
+^ᵁ≡Vec u n = ua (^ᵁ≃Vec u n)
 
 Finᵁ : ℕ → U
 Finᵁ zero    = 𝟘ᵁ
@@ -48,11 +57,11 @@ Finᵁ' zero          = 𝟘ᵁ
 Finᵁ' (suc zero)    = 𝟙ᵁ
 Finᵁ' (suc (suc n)) = 𝟙ᵁ ⊎ᵁ Finᵁ' (suc n)
 
-Finᵁ-Fin : ∀ n → El (Finᵁ n) ≃ Fin n
-Finᵁ-Fin zero    = ≃-! Fin0≃𝟘
-Finᵁ-Fin (suc n) = ⊎≃ ≃-refl (Finᵁ-Fin n) ≃-∙ ≃-! Fin∘suc≃𝟙⊎Fin
+Finᵁ≃Fin : ∀ n → El (Finᵁ n) ≃ Fin n
+Finᵁ≃Fin zero    = ≃-! Fin0≃𝟘
+Finᵁ≃Fin (suc n) = ⊎≃ ≃-refl (Finᵁ≃Fin n) ≃-∙ ≃-! Fin∘suc≃𝟙⊎Fin
 
-Finᵁ'-Fin : ∀ n → El (Finᵁ' n) ≃ Fin n
-Finᵁ'-Fin zero          = ≃-! Fin0≃𝟘
-Finᵁ'-Fin (suc zero)    = ≃-! Fin1≃𝟙
-Finᵁ'-Fin (suc (suc n)) = ⊎≃ ≃-refl (Finᵁ'-Fin (suc n)) ≃-∙ ≃-! Fin∘suc≃𝟙⊎Fin
+Finᵁ'≃Fin : ∀ n → El (Finᵁ' n) ≃ Fin n
+Finᵁ'≃Fin zero          = ≃-! Fin0≃𝟘
+Finᵁ'≃Fin (suc zero)    = ≃-! Fin1≃𝟙
+Finᵁ'≃Fin (suc (suc n)) = ⊎≃ ≃-refl (Finᵁ'≃Fin (suc n)) ≃-∙ ≃-! Fin∘suc≃𝟙⊎Fin
