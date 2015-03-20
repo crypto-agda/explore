@@ -45,7 +45,7 @@ module Explore.GuessingGameFlipping
       P = λ s → s (const 1) ≡ count s (not ∘ X) + count s X
 
       part1 : ∀ {s₀ s₁} → P s₀ → P s₁ → P (λ f → s₀ f + s₁ f)
-      part1 {s₀} {s₁} Ps₀ Ps₁ rewrite Ps₀ | Ps₁ = +-interchange {count s₀ (not ∘ X)} {count s₀ X} {count s₁ (not ∘ X)} {count s₁ X}
+      part1 {s₀} {s₁} Ps₀ Ps₁ rewrite Ps₀ | Ps₁ = +-interchange (count s₀ (not ∘ X)) (count s₀ X) (count s₁ (not ∘ X)) (count s₁ X)
 
       part2 : ∀ x → P (λ f → f x)
       part2 x with X x

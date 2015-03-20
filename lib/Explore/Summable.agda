@@ -50,7 +50,7 @@ module FromSumInd {a} {A : ★_ a}
   sum-hom : SumHom sum
   sum-hom f g = sum-ind (λ s → s (f +° g) ≡ s f + s g)
                         ≡.refl
-                        (λ {s₀} {s₁} p₀ p₁ → ≡.trans (≡.ap₂ _+_ p₀ p₁) (+-interchange {s₀ _} {s₀ _}))
+                        (λ {s₀} {s₁} p₀ p₁ → ≡.trans (≡.ap₂ _+_ p₀ p₁) (+-interchange (s₀ _) (s₀ _) _ _))
                         (λ _ → ≡.refl)
 
   sum-mono : SumMono sum
