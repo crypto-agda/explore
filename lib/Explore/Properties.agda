@@ -6,8 +6,11 @@ open import Level.NP using (_⊔_; ₀; ₁; ₛ; Lift)
 open import Type using (★₀; ★₁; ★_)
 open import Function.NP using (id; _∘′_; _∘_; flip; const; Π; Cmp)
 open import Algebra using (Semigroup; module Semigroup; Monoid; module Monoid; CommutativeMonoid; module CommutativeMonoid)
-import      Algebra.FunctionProperties.NP as FP
-open import Algebra.FunctionProperties.Eq using (Op₂; Injective)
+import      Algebra.FunctionProperties.NP
+import      Algebra.FunctionProperties.Derived as FPD
+open import Algebra.FunctionProperties.Core using (Op₂)
+import Algebra.FunctionProperties.Eq
+open Algebra.FunctionProperties.Eq.Explicits using (Injective)
 open import Data.Nat.NP using (_+_; _*_; _≤_; _+°_)
 open import Data.Product using (Σ; _×_; _,_; proj₁; proj₂)
 open import Data.Sum  using (_⊎_)
@@ -19,6 +22,8 @@ open import Relation.Binary.NP using (module Setoid-Reasoning; _Preserves₂_⟶
 open import Relation.Binary.PropositionalEquality using (_≡_; _≗_)
 
 open import Explore.Core
+
+module FP = Algebra.FunctionProperties.NP Π
 
 module SgrpExtra {c ℓ} (sg : Semigroup c ℓ) where
   open Semigroup sg
@@ -58,8 +63,8 @@ module CMon {c ℓ} (cm : CommutativeMonoid c ℓ) where
   open FP _≈_
 
   ∙-interchange : Interchange _∙_ _∙_
-  ∙-interchange = InterchangeFromAssocCommCong.∙-interchange
-                    isEquivalence
+  ∙-interchange = FPD.FromAssocCommCong.interchange
+                    _≈_ isEquivalence
                     _∙_ assoc comm (λ _ → flip ∙-cong refl)
 
 module _ {ℓ a} {A : ★ a} where
