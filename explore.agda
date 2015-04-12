@@ -6,7 +6,7 @@ import Explore.Dice
 import Explore.Examples
 import Explore.Explorable
 import Explore.Fin
-import Explore.GroupHomomorphism
+-- import Explore.GroupHomomorphism
 import Explore.GuessingGameFlipping
 import Explore.Isomorphism
 import Explore.Monad
