@@ -190,69 +190,6 @@ module FromExplore
 
   open FindForward explore public
 
-module FromBigOp
-  {a} {A : ★ a}
-  {b} {B : ★ b}
-  (_+_  : Op₂ A)
-  (_*_  : Op₂ B)
-  (f : A → B)
-  (hom-+-* : ∀ {x y} → (f (x + y)) ≡ (f x * f y))
-  ([f] : B → A)(f-sur : ∀ {b} → f ([f] b) ≡ b)
-  {ℓ}{X}(F : BigOp X A)
-  (F= : ∀ {g₀ g₁ : A → X} → (∀ x → g₀ x ≡ g₁ x) → F g₀ ≡ F g₁)
-  (sui : ∀ {k} → BigOpStableUnder F (flip _+_ k))
-  (O : B → X)
-  where
-
-  open ≡
-  open ≡-Reasoning
-
-  _≈_ : (g₀ g₁ : B → B) → Set ℓ
-  g₀ ≈ g₁ = F (O ∘ g₀ ∘ f) ≡ F (O ∘ g₁ ∘ f)
-
-  {- How this proof can be used for crypto, in particular ElGamal to DDH
-
-  the Group A is ℤq with modular addition as operation
-  the Group B is the cyclic group with order q
-
-  f is g^, the proof only need that it is a group homomorphism
-  and that it has a right inverse
-
-  we require that the explore (for type A) function (should work with only summation)
-  is Stable under addition of A (notice that we have flip in there that is so that
-  we don't need commutativity
-
-  finally we require that the explore function respects extensionality
-  -}
-
-  {-
-    This proof adds [f] m, because adding a constant is stable under the
-    big op F, this addition can then be pulled homomorphically through
-    f, to become a, multiplication by m.
-  -}
-  module _ (m : B) where
-    _*m = λ x → x * m
-
-    id≈*m : id ≈ _*m
-    id≈*m =
-      F (O ∘ f)           ≡⟨ sui _ ⟩
-      F (O ∘ f ∘ _+[f]m)  ≡⟨ F= (λ _ → ap O lemma) ⟩
-      F (O ∘ _*m ∘ f)     ∎
-      where
-        _+[f]m = λ x → x + [f] m
-
-        lemma : ∀ {x} → f (x + [f] m) ≡ f x * m
-        lemma {x} = f (x + [f] m)   ≡⟨ hom-+-* ⟩
-                    f x * f ([f] m) ≡⟨ ap (_*_ (f x)) f-sur ⟩
-                    f x * m         ∎
-
-  module _ (m₀ m₁ : B) where
-    _*m₀ = λ x → x * m₀
-    _*m₁ = λ x → x * m₁
-
-    *m₀≈*m₁ : _*m₀ ≈ _*m₁
-    *m₀≈*m₁ = ! id≈*m m₀ ∙ id≈*m m₁
-
 module FromExploreInd
     {a} {A : ★ a}
     {explore : ∀ {ℓ} → Explore ℓ A}
