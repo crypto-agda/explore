@@ -42,8 +42,10 @@ open import Explore.BinTree
 -- Exploration functions form a monad
 open import Explore.Monad
 
--- Indistinguisability (One-time-pad like) for groups
-open import Explore.GroupHomomorphism
+-- Some high-level properties about group homomorphisms and
+-- group isomorphisms.
+-- For instance the indistinguisability (One-time-pad like) for groups
+open import Explore.Group
 
 -- In a (bit) guessing game,
 open import Explore.GuessingGameFlipping
