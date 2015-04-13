@@ -21,6 +21,7 @@ open import Data.One using (𝟙)
 open import Data.Tree.Binary
 import Data.List as List
 open List using (List; _++_)
+open import Relation.Nullary.Decidable
 open import Relation.Nullary.NP
 open import Relation.Binary
 open import Relation.Binary.Sum using (_⊎-cong_)
@@ -189,6 +190,19 @@ module FromExplore
   findLastKey = FindBackward.findKey
 
   open FindForward explore public
+
+module FromLookup
+    {a} {A : ★ a}
+    {explore : ∀ {ℓ} → Explore ℓ A}
+    (lookup : ∀ {ℓ} → Lookup {ℓ} explore)
+    where
+
+  module CheckDec! {ℓ}{P : A → ★ ℓ}(decP : ∀ x → Dec (P x)) where
+    CheckDec! : ★ _
+    CheckDec! = explore (Lift 𝟙) _×_ λ x → ✓ ⌊ decP x ⌋
+
+    checkDec! : {p✓ : CheckDec!} → ∀ x → P x
+    checkDec! {p✓} x = toWitness (lookup p✓ x)
 
 module FromExploreInd
     {a} {A : ★ a}

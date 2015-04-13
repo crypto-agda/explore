@@ -244,6 +244,8 @@ module FromKit
   lookup : ∀ {ℓ} → Lookup {ℓ} explore
   lookup = M.lookup u
 
+  open FromLookup {explore = explore} lookup public
+
   focus : ∀ {ℓ} → Focus {ℓ} explore
   focus = M.focus u
 
