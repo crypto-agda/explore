@@ -463,6 +463,9 @@ module FromAdequate-sum
   open FromTwoAdequate-sum sum-adq sum-adq public
   open ≡
 
+  sum-ext : SumExt sum
+  sum-ext = ap sum ∘ λ=
+
   private
     count : Count A
     count f = sum (𝟚▹ℕ ∘ f)
