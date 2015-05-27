@@ -410,9 +410,6 @@ module FromExploreInd
   list≡diff-list = {!explore-endo-monoid-spec (List.monoid A) List.[_]!}
   -}
 
-  lift-op₂ : ∀ {a}{A : ★_ a}(op : Op₂ A){ℓ} → Lift {ℓ = ℓ} A → Lift {ℓ = ℓ} A → Lift {ℓ = ℓ} A
-  lift-op₂ op (lift x) (lift y) = lift (op x y)
-
   lift-sum : ∀ ℓ → Sum A
   lift-sum ℓ f = lower {₀} {ℓ} (explore (lift 0) (lift-op₂ _+_) (lift ∘ f))
 
