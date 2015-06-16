@@ -5,16 +5,19 @@ open import Type
 open import Level.NP
 open import Data.Maybe.NP
 open import Data.List
+open import Data.Zero
+open import Data.One
 open import Data.Two
 open import Data.Product
 open import Data.Sum.NP
-open import Data.One
 open import HoTT using (UA)
+open import Function.NP
 open import Function.Extensionality using (FunExt)
 open import Relation.Binary.PropositionalEquality hiding ([_])
 
 open import Explore.Core
 open import Explore.Explorable
+open import Explore.Universe.Type {𝟘}
 open import Explore.Universe.Base
 open import Explore.Monad {₀} ₀ public renaming (map to map-explore)
 open import Explore.Two
@@ -92,16 +95,37 @@ test6-last : N6.last-H⁻¹ 0₂ ≡ just (1₂ , 1₂)
 test6-last = refl
 -- -}
 
-{-
 𝟛ᵁ : U
 𝟛ᵁ = 𝟙ᵁ ⊎ᵁ 𝟚ᵁ
 
+prop-∧-comm : 𝟚 × 𝟚 → 𝟚
+prop-∧-comm (x , y) = x ∧ y == y ∧ x
+
+module _ {{_ : UA}}{{_ : FunExt}} where
+  check-∧-comm : ∀ x y → ✓ (x ∧ y == y ∧ x)
+  check-∧-comm x y = check! (𝟚ᵁ ×ᵁ 𝟚ᵁ) prop-∧-comm (x , y)
+
+prop-∧-∨-distr : 𝟚 × 𝟚 × 𝟚 → 𝟚
+prop-∧-∨-distr (x , y , z) = x ∧ (y ∨ z) == x ∧ y ∨ x ∧ z
+
+module _ {{_ : UA}}{{_ : FunExt}} where
+  check-∧-∨-distr : ∀ x y z → ✓ (x ∧ (y ∨ z) == x ∧ y ∨ x ∧ z)
+  check-∧-∨-distr x y z =
+    check! (𝟚ᵁ ×ᵁ 𝟚ᵁ ×ᵁ 𝟚ᵁ) prop-∧-∨-distr (x , y , z)
+
 list22 = list (𝟚ᵁ →ᵁ 𝟚ᵁ)
 list33 = list (𝟛ᵁ →ᵁ 𝟛ᵁ)
--}
 
 {-
 module _ {{_ : UA}}{{_ : FunExt}} where
+  module _ (fᵁ : El (𝟚ᵁ →ᵁ 𝟚ᵁ)) x where
+    f = →ᵁ→→ 𝟚ᵁ 𝟚ᵁ fᵁ
+    check22 : ✓ (f x == f (f (f x)))
+    check22 = check! ((𝟚ᵁ →ᵁ 𝟚ᵁ) ×ᵁ 𝟚ᵁ) (λ { (f , x) → let f' = →ᵁ→→ 𝟚ᵁ 𝟚ᵁ f in f' x == f' (f' (f' x)) }) {{!!}} ((f 0₂ , f 1₂) , x)
+  {-
   check22 : ∀ (f : 𝟚 → 𝟚) x → ✓ (f x == f (f (f x)))
-  check22 f x = {!check! ((𝟚ᵁ →ᵁ 𝟚ᵁ) ×ᵁ 𝟚ᵁ) (λ { (f , x) → let f' = →ᵁ→→ 𝟚ᵁ 𝟚ᵁ f in f' x == f' (f' (f' x)) }) {{!!}} ((f 0₂ , f 1₂) , x)!}
--}
+  check22 f x = let k = check! ((𝟚ᵁ →ᵁ 𝟚ᵁ) ×ᵁ 𝟚ᵁ) (λ { (f , x) → let f' = →ᵁ→→ 𝟚ᵁ 𝟚ᵁ f in f' x == f' (f' (f' x)) }) {{!!}} ((f 0₂ , f 1₂) , x) in {!k!}
+-- -}
+-- -}
+-- -}
+-- -}
