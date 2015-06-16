@@ -143,22 +143,22 @@ module Universal-Adequacy {ℓu ℓe ℓr ℓa}
     Adequate-univ-product : ((A → U) → U) → ★_ (ℓa ⊔ (ℓr ⊔ ℓu))
     Adequate-univ-product productᴬ = ∀ f → El (productᴬ f) ≈ Π A (El ∘ f)
 
-module Adequacy {ℓr}(_≈_ : ★₀ → ★₀ → ★_ ℓr){A : ★₀} where
+module Adequacy {ℓa ℓr}(_≈_ : ★₀ → ★_ ℓa → ★_ ℓr){A : ★_ ℓa} where
 
     -- Universal-Adequacy.Adequate-univ-sum ℕ Fin _≡_
-    Adequate-sum : Sum A → ★_ ℓr
+    Adequate-sum : Sum A → ★_(ℓa ⊔ ℓr)
     Adequate-sum sumᴬ = ∀ f → Fin (sumᴬ f) ≈ Σ A (Fin ∘ f)
 
     -- Universal-Adequacy.Adequate-univ-product ℕ Fin _≡_
-    Adequate-product : Product A → ★_ ℓr
+    Adequate-product : Product A → ★_(ℓa ⊔ ℓr)
     Adequate-product productᴬ = ∀ f → Fin (productᴬ f) ≈ Π A (Fin ∘ f)
 
     -- Universal-Adequacy.Adequate-univ-product 𝟚 ✓ _≡_
-    Adequate-any : (any : BigOp 𝟚 A) → ★_ ℓr
+    Adequate-any : (any : BigOp 𝟚 A) → ★_(ℓa ⊔ ℓr)
     Adequate-any anyᴬ = ∀ f → ✓ (anyᴬ f) ≈ Σ A (✓ ∘ f)
 
     -- Universal-Adequacy.Adequate-univ-product 𝟚 ✓ _≡_
-    Adequate-all : (all : BigOp 𝟚 A) → ★_ ℓr
+    Adequate-all : (all : BigOp 𝟚 A) → ★_(ℓa ⊔ ℓr)
     Adequate-all allᴬ = ∀ f → ✓ (allᴬ f) ≈ Π A (✓ ∘ f)
 
 module _ {m a}{M : ★ m}{A : ★ a}([⊕] : BigOp M A) where
