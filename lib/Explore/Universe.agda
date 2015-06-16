@@ -46,6 +46,8 @@ module FromKit
     (ΣᵉX-ok : ∀{{_ : UA}}{{_ : FunExt}}{ℓ} → Adequate-Σ {ℓ} (Σᵉ Xᵉ))
     (ΠᵉX-ok : ∀{{_ : UA}}{{_ : FunExt}}{ℓ} → Adequate-Π {ℓ} (Πᵉ Xᵉ))
     (⟦Xᵉ⟧≡ : ∀ {ℓ₀ ℓ₁} ℓᵣ → ⟦Explore⟧ {ℓ₀} {ℓ₁} ℓᵣ _≡_ Xᵉ Xᵉ)
+    (ΠX : (X → U) → U)
+    (ΠX≃ : ∀{{_ : UA}}{{_ : FunExt}} v → El (ΠX v) ≃ Π X (El ∘ v))
     (u : U)
   where
 
@@ -55,11 +57,13 @@ module FromKit
     open FromXⁱ Xⁱ public
     open FromXˡ Xˡ public
     open FromXᶠ Xᶠ public
+    open FromΠX ΠX public
 
     module _ {{_ : FunExt}}{{_ : UA}} where
       open FromΣᵉX-ok ΣᵉX-ok public
       open FromΠᵉX-ok ΠᵉX-ok public
       open From⟦Xᵉ⟧≡  ⟦Xᵉ⟧≡  public
+      open FromΠX≃   ΠX≃ public
 
   explore : ∀ {ℓ} → Explore ℓ (El u)
   explore = M.explore u
@@ -77,6 +81,12 @@ module FromKit
 
   focus : ∀ {ℓ} → Focus {ℓ} explore
   focus = M.focus u
+
+  Πᵁ : (v : El u → U) → U
+  Πᵁ = M.Πᵁ u
+
+  _→ᵁ_ : (v : U) → U
+  _→ᵁ_ = M._→ᵁ_ u
 
   module _ {{_ : FunExt}}{{_ : UA}} where
     Σᵉ-ok : ∀ {ℓ} → Adequate-Σ {ℓ} (Σᵉ explore)
@@ -113,6 +123,24 @@ module FromKit
 
     Dec-Σ : ∀ {p}{P : El u → Type p} → Π (El u) (Dec ∘ P) → Dec (Σ (El u) P)
     Dec-Σ = FromFocus.Dec-Σ focus
+
+    Πᵁ-Π : ∀ v → El (Πᵁ v) ≡ Π (El u) (El ∘ v)
+    Πᵁ-Π = M.Πᵁ-Π u
+
+    →ᵁ-→ : ∀ v → El (_→ᵁ_ v) ≡ (El u → El v)
+    →ᵁ-→ = M.→ᵁ-→ u
+
+    Πᵁ→Π : ∀ v → El (Πᵁ v) → Π (El u) (El ∘ v)
+    Πᵁ→Π = M.Πᵁ→Π u
+
+    Π→Πᵁ : ∀ v → Π (El u) (El ∘ v) → El (Πᵁ v)
+    Π→Πᵁ = M.Π→Πᵁ u
+
+    →ᵁ→→ : ∀ v → El (_→ᵁ_ v) → (El u → El v)
+    →ᵁ→→ = M.→ᵁ→→ u
+
+    →→→ᵁ : ∀ v → (El u → El v) → El (_→ᵁ_ v)
+    →→→ᵁ = M.→→→ᵁ u
 
     guessing-game-flipping = Explore.GuessingGameFlipping.thm (El u) sum sum-ind
 -- -}
