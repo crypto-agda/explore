@@ -15,7 +15,7 @@ open import Data.Fin using (Fin) renaming (zero to fzero)
 open import Data.Maybe.NP
 open import Algebra
 open import Data.Product.NP renaming (map to ×-map) hiding (first)
-open import Data.Sum.NP
+open import Data.Sum.NP renaming (map to ⊎-map)
 open import Data.Zero using (𝟘)
 open import Data.One using (𝟙)
 open import Data.Tree.Binary
@@ -160,7 +160,7 @@ module FromExplore
   product : (A → ℕ) → ℕ
   product = explore 1 _*_
 
-  big-∧ and big-∨ or big-xor : (A → 𝟚) → 𝟚
+  big-∧ big-∨ big-xor : (A → 𝟚) → 𝟚
 
   big-∧ = explore 1₂ _∧_
   and   = big-∧
@@ -171,6 +171,10 @@ module FromExplore
   any   = big-∨
 
   big-xor = explore 0₂ _xor_
+
+  big-lift∧ big-lift∨ : Level → (A → 𝟚) → 𝟚
+  big-lift∧ ℓ f = lower (explore {ℓ} (lift 1₂) (lift-op₂ _∧_) (lift ∘ f))
+  big-lift∨ ℓ f = lower (explore {ℓ} (lift 0₂) (lift-op₂ _∨_) (lift ∘ f))
 
   bin-tree : BinTree A
   bin-tree = explore empty fork leaf
@@ -364,6 +368,19 @@ module FromExploreInd
       → f (explore zero _+_ g) ≡ explore one _*_ (f ∘ g)
   lift-hom-≡ z _+_ o _*_ = LiftHom.lift-hom _≡_ ≡.refl ≡.trans z _+_ o _*_ (≡.ap₂ _*_)
 
+  -- Since so far S and T should have the same level, we get this mess of resizing
+  -- There is a later version based on ⟦explore⟧.
+  module _ (f : A → 𝟚) {{_ : UA}} where
+    lift-✓all-Πᵉ : ✓ (big-lift∧ ₁ f) ≡ Πᵉ explore (✓ ∘ f)
+    lift-✓all-Πᵉ = lift-hom-≡ (lift 1₂) (lift-op₂ _∧_) (Lift 𝟙) _×_ (✓ ∘ lower) (lift ∘ f) (≡.! Lift≡id) (✓-∧-× _ _)
+
+  module _ (f : A → 𝟚) where
+    lift-✓any↔Σᵉ : ✓ (big-lift∨ ₁ f) ↔ Σᵉ explore (✓ ∘ f)
+    lift-✓any↔Σᵉ = LiftHom.lift-hom _↔_ (id , id) (zip (flip _∘′_) _∘′_)
+                     (lift 0₂) (lift-op₂ _∨_) (Lift 𝟘) _⊎_
+                     (zip ⊎-map ⊎-map) (✓ ∘ lower) (lift ∘ f)
+                     ((λ()) , λ{(lift())}) (✓∨-⊎ , ⊎-✓∨)
+
   sum-ind : SumInd sum
   sum-ind P P0 P+ Pf = explore-ind (λ e → P (e 0 _+_)) P0 P+ Pf
 
@@ -414,7 +431,7 @@ module FromExploreInd
   lift-sum ℓ f = lower {₀} {ℓ} (explore (lift 0) (lift-op₂ _+_) (lift ∘ f))
 
   Fin-lower-sum≡Σᵉ-Fin : ∀ {{_ : UA}}(f : A → ℕ) → Fin (lift-sum _ f) ≡ Σᵉ explore (Fin ∘ f)
-  Fin-lower-sum≡Σᵉ-Fin f = LiftHom.lift-hom _≡_ ≡.refl ≡.trans (lift 0) (lift-op₂ _+_) (Lift 𝟘) _⊎_ ⊎= (Fin ∘ lower) (lift ∘ f) (Fin0≡𝟘 ∙ ! Lift≡id) (! Fin-⊎-+)
+  Fin-lower-sum≡Σᵉ-Fin f = lift-hom-≡ (lift 0) (lift-op₂ _+_) (Lift 𝟘) _⊎_ (Fin ∘ lower) (lift ∘ f) (Fin0≡𝟘 ∙ ! Lift≡id) (! Fin-⊎-+)
     where open ≡
 
 module FromTwoExploreInd
