@@ -20,6 +20,7 @@ import Explore.Summable
 import Explore.Two
 import Explore.Universe
 import Explore.Universe.Base
+import Explore.Universe.FromE
 import Explore.Universe.Type
 import Explore.Zero
 -- BROKEN import Explore.Explorable.Fun
